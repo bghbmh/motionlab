@@ -1,0 +1,176 @@
+/* ── 구글 폰트 ── */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+/* ── Tailwind v4: 커스텀 테마는 @theme 블록으로 정의 ── */
+@theme {
+	--color-navy: #0d1421;
+	--color-card: #141e2e;
+	--color-card2: #1a2740;
+	--color-mint: #3DDBB5;
+	--color-coral: #FF6B5B;
+	--color-amber: #FFB347;
+
+	--font-sans: 'DM Sans', sans-serif;
+	--font-mono: 'DM Mono', monospace;
+}
+
+
+
+/* ── 기본 스타일 ── */
+@layer base {
+	* {
+		box-sizing: border-box;
+	}
+
+	body {
+		background-color: #0d1421;
+		color: #F0F4FF;
+		font-family: 'DM Sans', sans-serif;
+	}
+
+	input,
+	textarea,
+	select {
+		outline: none;
+	}
+}
+
+/* ── 컴포넌트 유틸리티 (@apply 대신 직접 CSS 작성) ── */
+@layer components {
+
+	/* 카드 */
+	.ml-card {
+		background-color: #141e2e;
+		border: 1px solid rgba(255, 255, 255, 0.07);
+		border-radius: 1rem;
+		padding: 1rem;
+	}
+
+	.ml-card-label {
+		font-size: 10px;
+		font-weight: 600;
+		color: rgba(255, 255, 255, 0.4);
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		margin-bottom: 0.75rem;
+		display: block;
+	}
+
+	/* 입력 필드 */
+	.ml-input {
+		width: 100%;
+		background-color: #1a2740;
+		border: 1px solid rgba(255, 255, 255, 0.07);
+		border-radius: 0.5rem;
+		padding: 0.625rem 0.75rem;
+		color: rgba(255, 255, 255, 0.6);
+		font-size: 0.875rem;
+		font-family: 'DM Mono', monospace;
+		transition: border-color 0.2s, color 0.2s;
+	}
+
+	.ml-input::placeholder {
+		color: rgba(255, 255, 255, 0.2);
+	}
+
+	.ml-input:focus {
+		border-color: rgba(61, 219, 181, 0.5);
+		color: #F0F4FF;
+	}
+
+	/* 버튼 */
+	.btn-primary {
+		background-color: #3DDBB5;
+		color: #0d1421;
+		font-weight: 700;
+		font-size: 0.875rem;
+		border-radius: 0.75rem;
+		padding: 0.625rem 1.25rem;
+		border: none;
+		cursor: pointer;
+		transition: background-color 0.2s;
+		display: inline-block;
+		text-align: center;
+		text-decoration: none;
+	}
+
+	.btn-primary:hover {
+		background-color: rgba(61, 219, 181, 0.9);
+	}
+
+	.btn-ghost {
+		background-color: #1a2740;
+		color: rgba(255, 255, 255, 0.5);
+		border: 1px solid rgba(255, 255, 255, 0.07);
+		font-size: 0.875rem;
+		font-weight: 500;
+		border-radius: 0.75rem;
+		padding: 0.5rem 1rem;
+		cursor: pointer;
+		transition: border-color 0.2s, color 0.2s;
+		display: inline-block;
+		text-align: center;
+		text-decoration: none;
+	}
+
+	.btn-ghost:hover {
+		border-color: rgba(255, 255, 255, 0.2);
+		color: rgba(255, 255, 255, 0.7);
+	}
+
+	/* 배지 */
+	.badge-low {
+		background-color: rgba(255, 107, 91, 0.15);
+		color: #FF6B5B;
+		font-size: 0.6875rem;
+		font-weight: 600;
+		padding: 0.1875rem 0.625rem;
+		border-radius: 9999px;
+		display: inline-flex;
+		align-items: center;
+	}
+
+	.badge-good {
+		background-color: rgba(61, 219, 181, 0.12);
+		color: #3DDBB5;
+		font-size: 0.6875rem;
+		font-weight: 600;
+		padding: 0.1875rem 0.625rem;
+		border-radius: 9999px;
+		display: inline-flex;
+		align-items: center;
+	}
+
+	.badge-high {
+		background-color: rgba(255, 179, 71, 0.15);
+		color: #FFB347;
+		font-size: 0.6875rem;
+		font-weight: 600;
+		padding: 0.1875rem 0.625rem;
+		border-radius: 9999px;
+		display: inline-flex;
+		align-items: center;
+	}
+
+	/* 태그 */
+	.ml-tag {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		padding: 0.3125rem 0.75rem;
+		background-color: #1a2740;
+		border: 1px solid rgba(61, 219, 181, 0.25);
+		border-radius: 9999px;
+		font-size: 0.6875rem;
+		color: #3DDBB5;
+		font-weight: 500;
+	}
+
+	/* 구분선 */
+	.ml-divider {
+		border: none;
+		border-top: 1px solid rgba(255, 255, 255, 0.07);
+		margin: 0.5rem 0;
+	}
+}
