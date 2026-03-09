@@ -87,7 +87,7 @@ export default async function MemberHomePage({
 			<div className="ml-card">
 				<div className="flex items-center justify-between gap-2 mb-3">
 					<p className="ml-card-label m-0">이번 주 활동</p>
-					<div>420</div>
+					<div>{avgMets.toFixed(1)} METs</div>
 				</div>
 
 				<div className="flex items-end gap-1.5 h-14">
