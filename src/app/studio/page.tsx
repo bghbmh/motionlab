@@ -18,7 +18,11 @@ interface MemberWithData extends Member {
 	inbody_records: Array<{
 		weight: number
 		muscle_mass: number
-		body_fat_pct: number
+		body_fat_pct: number      // %
+		body_fat_mass: number     // kg
+		bmi: number
+		bmr: number              // kcal, 기초대사량
+		visceral_fat: number
 		measured_at: string
 	}>
 	workout_logs: WorkoutLog[]
@@ -27,7 +31,8 @@ interface MemberWithData extends Member {
 export default function StudioPage() {
 	const [members, setMembers] = useState<MemberWithData[]>([])
 	const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null)
-	const [loading, setLoading] = useState(true)
+	const [loading, setLoading] = useState(true);
+	const [copied, setCopied] = useState(false);
 
 	useEffect(() => {
 		const fetchMembers = async () => {
@@ -50,14 +55,14 @@ export default function StudioPage() {
 			const { data: membersData } = await supabase
 				.from('members')
 				.select(`
-          *,
-          inbody_records (
-            weight, muscle_mass, body_fat_pct, measured_at
-          ),
-          workout_logs (
-            logged_at, mets_score
-          )
-        `)
+					*,
+					inbody_records (
+						weight, muscle_mass, body_fat_pct,body_fat_mass, bmi,bmr, visceral_fat, measured_at
+					),
+					workout_logs (
+						logged_at, mets_score
+					)
+					`)
 				.eq('studio_id', instructor.studio_id)
 				.eq('is_active', true)
 				.order('name')
@@ -77,9 +82,9 @@ export default function StudioPage() {
 
 	const selectedMember = selectedMemberId
 		? members.find(m => m.id === selectedMemberId)
-		: null
+		: null;
 
-	const weekStart = getWeekStart()
+	const weekStart = getWeekStart();
 
 	const getWeeklyStats = (member: MemberWithData) => {
 		const weekLogs = (member.workout_logs ?? []).filter(
@@ -133,6 +138,46 @@ export default function StudioPage() {
 				))}
 			</div>
 		)
+	}
+
+	// 회원앱 링크 복사 함수
+	// function handleCopyMemberLink(accessToken: string) {
+	// 	const url = `${window.location.origin}/m/${accessToken}`
+	// 	navigator.clipboard.writeText(url).then(() => {
+	// 		setCopied(true)
+	// 		setTimeout(() => setCopied(false), 2000)  // 2초 후 원복
+	// 	})
+	// }
+
+	function handleCopyMemberLink(accessToken: string) {
+		const url = `${window.location.origin}/m/${accessToken}`
+
+		// clipboard API 지원 여부 확인 (HTTPS 환경에서만 동작)
+		if (navigator.clipboard?.writeText) {
+			navigator.clipboard.writeText(url).then(() => {
+				setCopied(true)
+				setTimeout(() => setCopied(false), 2000)
+			})
+		} else {
+			// fallback: textarea 방식 (HTTP 환경, 구형 브라우저 대응)
+			const textarea = document.createElement('textarea')
+			textarea.value = url
+			textarea.style.position = 'fixed'
+			textarea.style.opacity = '0'
+			document.body.appendChild(textarea)
+			textarea.focus()
+			textarea.select()
+			try {
+				document.execCommand('copy')
+				setCopied(true)
+				setTimeout(() => setCopied(false), 2000)
+			} catch (e) {
+				// 복사 실패 시 URL을 alert로 보여줌
+				alert(`링크를 복사해주세요:\n${url}`)
+			} finally {
+				document.body.removeChild(textarea)
+			}
+		}
 	}
 
 	if (loading) {
@@ -229,6 +274,39 @@ export default function StudioPage() {
 							</div>
 						</div>
 						<div className="flex items-center gap-3">
+							{/* 회원앱 링크 복사 버튼 */}
+							<button
+								onClick={() => handleCopyMemberLink(selectedMember.access_token)}
+								title="회원앱 링크 복사"
+								className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+								style={{
+									background: copied
+										? 'rgba(61,219,181,0.15)'
+										: 'rgba(255,255,255,0.04)',
+									border: copied
+										? '1px solid rgba(61,219,181,0.4)'
+										: '1px solid rgba(255,255,255,0.1)',
+									color: copied ? '#3DDBB5' : 'rgba(255,255,255,0.5)',
+								}}
+							>
+								{copied ? (
+									<>
+										<svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+											<path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+										</svg>
+										복사됨
+									</>
+								) : (
+									<>
+										<svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+											<rect x="4" y="1" width="7" height="8" rx="1.2" stroke="currentColor" strokeWidth="1.2" />
+											<path d="M1 4h2v6.5A.5.5 0 003.5 11H8v1H3a2 2 0 01-2-2V4z" fill="currentColor" />
+										</svg>
+										회원 공유 링크
+									</>
+								)}
+							</button>
+
 							<Link
 								href={`/studio/members/${selectedMember.id}`}
 								className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-xs 
@@ -236,6 +314,8 @@ export default function StudioPage() {
 							>
 								상세 보기 →
 							</Link>
+
+
 						</div>
 					</div>
 
@@ -267,7 +347,7 @@ export default function StudioPage() {
 					{/* 인바디 최근 정보 */}
 					<div className="bg-card border border-white/[0.07] rounded-lg p-4">
 						<p className="text-xs font-mono uppercase tracking-widest text-white/40 mb-4">
-							인바디 최근{' '}
+							인바디 최근_입력값 모두 보이게 수정{' '}
 							{(() => {
 								const latest = getLatestInbody(selectedMember)
 								return latest
@@ -279,13 +359,16 @@ export default function StudioPage() {
 							})()}
 						</p>
 						{getLatestInbody(selectedMember) ? (
-							<div className="grid grid-cols-3 gap-3">
+							<div className="grid grid-cols-6 gap-3">
 								{(() => {
 									const latest = getLatestInbody(selectedMember)!
 									return [
 										['체중', `${latest.weight}kg`, ''],
 										['근육량', `${latest.muscle_mass}kg`, '↑'],
 										['체지방률', `${latest.body_fat_pct}%`, '↓'],
+										['체지방량', `${latest.body_fat_mass}kg`, '↓'],
+										['BMI', `${latest.bmi}`, ''],
+										['내장지방레벨', `${latest.visceral_fat}`, '↓']
 									].map(([label, value, arrow]) => (
 										<div
 											key={label}
@@ -293,7 +376,7 @@ export default function StudioPage() {
 										>
 											<p className="text-xs text-white/40 mb-2">{label}</p>
 											<p className="font-mono text-sm text-white">
-												{value}
+												{value !== 'null' ? value : '-'}
 												{arrow && (
 													<span
 														className={

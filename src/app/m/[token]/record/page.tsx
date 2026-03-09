@@ -85,7 +85,7 @@ function RecordModal({
 				.update({
 					workout_type: form.workout_type,
 					duration_min: Number(form.duration),
-					mets_score: Number(form.mets),
+					mets_score: WORKOUT_TYPE_METS[form.workout_type],
 					condition_memo: form.condition_memo || null,
 					logged_at: form.logged_at,
 				})
@@ -186,20 +186,8 @@ function RecordModal({
 						</div>
 
 						{/* METs + 시간 가로 배치 */}
-						<div className="grid grid-cols-2 gap-3">
-							<div>
-								<p className="ml-card-label">METs 점수</p>
-								<input
-									className="ml-input"
-									type="number"
-									step="0.1"
-									placeholder="예: 4.5"
-									value={form.mets}
-									onChange={e => setForm(p => ({ ...p, mets: e.target.value }))}
-									required
-								/>
-							</div>
-							<div>
+						<div className="grid grid-cols-3 gap-3">
+							<div className='col-span-2'>
 								<p className="ml-card-label">운동 시간 (분)</p>
 								<input
 									className="ml-input"
@@ -209,6 +197,21 @@ function RecordModal({
 									onChange={e => setForm(p => ({ ...p, duration: e.target.value }))}
 									required
 								/>
+							</div>
+							<div>
+								<p className="ml-card-label">METs 점수</p>
+								{/* <input
+									className="ml-input"
+									type="number"
+									step="0.1"
+									placeholder="예: 4.5"
+									value={form.mets}
+									onChange={e => setForm(p => ({ ...p, mets: e.target.value }))}
+									required
+								/> */}
+								<div className="ml-input border-transparent">
+									{WORKOUT_TYPE_METS[form.workout_type].toFixed(1)}
+								</div>
 							</div>
 						</div>
 

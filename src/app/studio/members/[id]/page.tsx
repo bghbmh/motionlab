@@ -67,7 +67,9 @@ export default async function MemberDetailPage({
 	const maxMets = Math.max(...weekDays.map(d => d.mets), 0.1)
 
 	const latestInbody = member.inbody_records
-		?.sort((a: any, b: any) => b.measured_at.localeCompare(a.measured_at))[0]
+		?.sort((a: any, b: any) => b.measured_at.localeCompare(a.measured_at))[0];
+
+	console.log('latestInbody', latestInbody)
 
 	const recentNotes = member.notes
 		?.sort((a: any, b: any) => b.written_at.localeCompare(a.written_at))
@@ -99,40 +101,44 @@ export default async function MemberDetailPage({
 				</div>
 
 				{/* 주간 차트 + 인바디 */}
-				<div className="grid grid-cols-2 gap-4">
-					<div className="ml-card">
-						<p className="ml-card-label">이번 주 홈트 기록</p>
-						<div className="flex items-end gap-1.5" style={{ height: 64 }}>
+				<div className="grid grid-cols-3 gap-4">
+
+					<div className="col-span-1 ml-card flex flex-col">
+						<div className='flex justify-between items-center mb-3'>
+							<p className="ml-card-label flex-none m-0">이번 주 홈트 기록</p>
+							<p className="text-xs font-mono " style={{ color: 'rgba(255,255,255,0.3)' }}>
+								활동일{' '}
+								<span style={{ color: '#3DDBB5' }}>
+									{weekLogs.length}
+								</span>{' '}일
+							</p>
+						</div>
+
+						<div className="flex flex-col flex-1 items-end gap-1.5" > {/* style={{ height: 64 }} */}
 							{weekDays.map(({ day, mets, has }) => (
-								<div key={day} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
+								<div key={day} className="flex-1 flex  items-center gap-3 w-full ">
+									<span className="text-[9px] font-mono" style={{ color: 'rgba(255,255,255,0.3)' }}>{day}</span>
 									<div
 										className="w-full"
 										style={{
-											height: has ? `${(mets / maxMets) * 100}%` : '100%',
+											width: has ? `${(mets / maxMets) * 100}%` : '100%',
 											background: has
 												? mets > maxMets * 0.7 ? '#3DDBB5' : 'rgba(61,219,181,0.35)'
-												: 'transparent',
-											border: has ? 'none' : '1px dashed rgba(255,255,255,0.15)',
-											minHeight: has ? 4 : undefined,
+												: 'rgba(255,255,255,0.05)',
+											minHeight: 4,
 											borderRadius: 4,
 										}}
 									/>
-									<span className="text-[9px] font-mono" style={{ color: 'rgba(255,255,255,0.3)' }}>{day}</span>
+
 								</div>
 							))}
 						</div>
-						<p className="text-xs font-mono mt-2" style={{ color: 'rgba(255,255,255,0.3)' }}>
-							평균 METs{' '}
-							<span style={{ color: avgMets < 2 ? '#FF6B5B' : '#3DDBB5' }}>
-								{avgMets.toFixed(1)}
-							</span>
-							{' '}· 활동일 {weekLogs.length}일
-						</p>
+
 					</div>
 
-					<div className="ml-card">
+					<div className="ml-card col-span-2">
 						<p className="ml-card-label">
-							인바디 최근
+							인바디 최근_입력값 모두 보이게 수정
 							{latestInbody && (
 								<span className="font-normal normal-case ml-1" style={{ color: 'rgba(255,255,255,0.2)' }}>
 									· {latestInbody.measured_at}
@@ -145,6 +151,9 @@ export default async function MemberDetailPage({
 									['체중', latestInbody.weight ? `${latestInbody.weight}kg` : '—'],
 									['근육량', latestInbody.muscle_mass ? `${latestInbody.muscle_mass}kg` : '—'],
 									['체지방률', latestInbody.body_fat_pct ? `${latestInbody.body_fat_pct}%` : '—'],
+									['체지방량', latestInbody.body_fat_mass ? `${latestInbody.body_fat_mass}kg` : '—'],
+									['BMI', latestInbody.bmi ? `${latestInbody.bmi}` : '—'],
+									['내장지방레벨', latestInbody.visceral_fat ? `${latestInbody.visceral_fat}` : '—'],
 								].map(([label, val]) => (
 									<div key={label} className="ml-card text-center" style={{ padding: '0.625rem' }}>
 										<p className="ml-card-label" style={{ marginBottom: '0.25rem' }}>{label}</p>
@@ -160,7 +169,16 @@ export default async function MemberDetailPage({
 
 				{/* 이번 주 상세 로그 */}
 				<div className="ml-card">
-					<p className="ml-card-label">이번 주 홈트 상세</p>
+					<div className='flex justify-between items-center mb-3'>
+						<p className="ml-card-label flex-none m-0">이번 주 홈트 상세</p>
+						<p className="text-xs font-mono " style={{ color: 'rgba(255,255,255,0.3)' }}>
+							평균 METs{' '}
+							<span style={{ color: avgMets < 2 ? '#FF6B5B' : '#3DDBB5' }}>
+								{avgMets.toFixed(1)}
+							</span>
+							{' '}· 활동일 {weekLogs.length}일
+						</p>
+					</div>
 					<div className="flex flex-col" style={{ gap: 0 }}>
 						{weekDays.map(({ day }, i) => {
 							const d = new Date(weekStart)

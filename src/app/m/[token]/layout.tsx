@@ -1,6 +1,47 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import type { Metadata } from 'next'
 import MemberTabBar from '@/components/member/MemberTabBar'
+
+// 1. 동적 메타데이터 생성 함수 추가 (Next.js 15)
+export async function generateMetadata({
+	params,
+}: {
+	params: Promise<{ token: string }>
+}): Promise<Metadata> {
+	const { token } = await params
+	const supabase = await createClient()
+
+	const { data: member } = await supabase
+		.from('members')
+		.select('name')
+		.eq('access_token', token)
+		.single()
+
+	const name = member?.name || '회원'
+
+	// 도메인 주소 (배포 환경에 맞게 설정 필요)
+	const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://your-domain.com'
+	const ogImageUrl = `${baseUrl}/api/og?name=${encodeURIComponent(name)}`
+
+	return {
+		title: `${name}님 | motion-log`,
+		description: `${name}의 데이터 기반 운동 루틴 매니지먼트`,
+		openGraph: {
+			title: `${name}님의 운동 리포트`,
+			description: '인바디와 운동 기록을 확인하세요.',
+		}
+	}
+}
+
+// images: [
+// 				{
+// 					url: ogImageUrl,
+// 					width: 1200,
+// 					height: 630,
+// 					alt: `${name}님의 운동 리포트`,
+// 				},
+// 			],
 
 export async function generateViewport() {
 	return {
