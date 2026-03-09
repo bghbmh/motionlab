@@ -187,243 +187,250 @@ export default function StudioPage() {
 			</div>
 		)
 	}
-
 	return (
-		<div className="flex gap-5 h-[calc(100vh-64px)] px-4 py-4">
-			{/* Left: 회원 목록 */}
-			<div className="w-64 shrink-0 flex flex-col gap-3">
-				<input
-					className="ml-input"
-					placeholder="🔍  회원 검색..."
-				/>
-				<div className="flex flex-col gap-2 overflow-y-auto flex-1">
-					{members.map(m => {
-						const { weekLogs, avgMets } = getWeeklyStats(m)
-						const status = getActivityStatus(avgMets)
-						const badgeClass = {
-							low: 'badge-low',
-							good: 'badge-good',
-							high: 'badge-high',
-						}[status]
-						const isSelected = selectedMemberId === m.id
-
-						return (
-							<button
-								key={m.id}
-								onClick={() => setSelectedMemberId(m.id)}
-								className={`bg-card2 border rounded-xl p-3 text-left transition-all ${isSelected
-									? 'border-mint/60 bg-card2'
-									: 'border-white/[0.07] hover:border-mint/40'
-									}`}
-							>
-								<div className="flex justify-between items-center">
-									<span className="font-semibold text-sm text-white">{m.name}</span>
-									<span className={`text-xs px-2 py-1 rounded-full ${badgeClass}`}>
-										{ACTIVITY_STATUS_LABELS[status]}
-									</span>
-								</div>
-								<p className="text-xs text-white/30 font-mono mt-1">
-									이번 주 {weekLogs.length}일 · METs {avgMets.toFixed(1)}
-								</p>
-								<p className="text-xs text-white/20 font-mono mt-0.5">
-									주 {m.sessions_per_week}회 수업
-								</p>
-							</button>
-						)
-					})}
-
-					{members.length === 0 && (
-						<p className="text-xs text-white/30 text-center mt-8">
-							등록된 회원이 없습니다.
-							<br />
-							헤더의 신규회원 추가 버튼을 눌러주세요.
-						</p>
-					)}
-				</div>
+		<div className="flex items-center justify-center h-full min-h-[60vh]">
+			<div className="text-center">
+				<p className="text-4xl mb-4">👈</p>
+				<p className="text-white/40 text-sm">왼쪽에서 회원을 선택하세요</p>
 			</div>
-
-			{/* Right: 선택된 회원 정보 또는 안내 메시지 */}
-			{selectedMember ? (
-				<div className="flex-1 flex flex-col gap-4 overflow-y-auto">
-					{/* 회원 이름 + 상태 배지 + 상세보기 */}
-					<div className="bg-card border border-white/[0.07] rounded-lg p-4 flex justify-between items-start">
-						<div className="flex items-center gap-4">
-							<div>
-								<div className="flex items-center gap-3">
-									<p className="text-lg font-bold text-white">{selectedMember.name}</p>
-									{(() => {
-										const { avgMets } = getWeeklyStats(selectedMember)
-										const status = getActivityStatus(avgMets)
-										const badgeClass = {
-											low: 'badge-low',
-											good: 'badge-good',
-											high: 'badge-high',
-										}[status]
-										return (
-											<span className={`text-sm px-3 py-1 rounded-full ${badgeClass}`}>
-												{ACTIVITY_STATUS_LABELS[status]}
-											</span>
-										)
-									})()}
-								</div>
-
-
-								<p className="text-xs text-white/40 mt-1">
-									주 {selectedMember.sessions_per_week}회 수업
-								</p>
-							</div>
-						</div>
-						<div className="flex items-center gap-3">
-							{/* 회원앱 링크 복사 버튼 */}
-							<button
-								onClick={() => handleCopyMemberLink(selectedMember.access_token)}
-								title="회원앱 링크 복사"
-								className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
-								style={{
-									background: copied
-										? 'rgba(61,219,181,0.15)'
-										: 'rgba(255,255,255,0.04)',
-									border: copied
-										? '1px solid rgba(61,219,181,0.4)'
-										: '1px solid rgba(255,255,255,0.1)',
-									color: copied ? '#3DDBB5' : 'rgba(255,255,255,0.5)',
-								}}
-							>
-								{copied ? (
-									<>
-										<svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-											<path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-										</svg>
-										복사됨
-									</>
-								) : (
-									<>
-										<svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-											<rect x="4" y="1" width="7" height="8" rx="1.2" stroke="currentColor" strokeWidth="1.2" />
-											<path d="M1 4h2v6.5A.5.5 0 003.5 11H8v1H3a2 2 0 01-2-2V4z" fill="currentColor" />
-										</svg>
-										회원 공유 링크
-									</>
-								)}
-							</button>
-
-							<Link
-								href={`/studio/members/${selectedMember.id}`}
-								className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-xs 
-                       hover:bg-white/10 transition-colors text-white/80 hover:text-white"
-							>
-								상세 보기 →
-							</Link>
-
-
-						</div>
-					</div>
-
-					{/* 이번 주 홈트 기록 */}
-					<div className="bg-card border border-white/[0.07] rounded-lg p-4">
-						<p className="text-xs font-mono uppercase tracking-widest text-white/40 mb-4">
-							이번 주 홈트 기록
-						</p>
-						{renderWeekChart(selectedMember)}
-						<p className="text-xs text-white/40 mt-3 font-mono">
-							평균{' '}
-							<span className="text-mint">
-								{(() => {
-									const { avgMets } = getWeeklyStats(selectedMember)
-									return avgMets.toFixed(1)
-								})()}{' '}
-								METs
-							</span>{' '}
-							· 권장 대비{' '}
-							<span className="text-amber">
-								{(() => {
-									const { avgMets } = getWeeklyStats(selectedMember)
-									return Math.round((avgMets / 5) * 100)
-								})()}%
-							</span>
-						</p>
-					</div>
-
-					{/* 인바디 최근 정보 */}
-					<div className="bg-card border border-white/[0.07] rounded-lg p-4">
-						<p className="text-xs font-mono uppercase tracking-widest text-white/40 mb-4">
-							인바디 최근_입력값 모두 보이게 수정{' '}
-							{(() => {
-								const latest = getLatestInbody(selectedMember)
-								return latest
-									? `· ${new Date(latest.measured_at).toLocaleDateString('ko-KR', {
-										month: '2-digit',
-										day: '2-digit',
-									})}`
-									: '· 기록 없음'
-							})()}
-						</p>
-						{getLatestInbody(selectedMember) ? (
-							<div className="grid grid-cols-6 gap-3">
-								{(() => {
-									const latest = getLatestInbody(selectedMember)!
-									return [
-										['체중', `${latest.weight}kg`, ''],
-										['근육량', `${latest.muscle_mass}kg`, '↑'],
-										['체지방률', `${latest.body_fat_pct}%`, '↓'],
-										['체지방량', `${latest.body_fat_mass}kg`, '↓'],
-										['BMI', `${latest.bmi}`, ''],
-										['내장지방레벨', `${latest.visceral_fat}`, '↓']
-									].map(([label, value, arrow]) => (
-										<div
-											key={label}
-											className="bg-card2 border border-white/[0.07] rounded-xl p-3 text-center"
-										>
-											<p className="text-xs text-white/40 mb-2">{label}</p>
-											<p className="font-mono text-sm text-white">
-												{value !== 'null' ? value : '-'}
-												{arrow && (
-													<span
-														className={
-															arrow === '↑'
-																? 'text-mint'
-																: 'text-coral'
-														}
-													>
-														{arrow}
-													</span>
-												)}
-											</p>
-										</div>
-									))
-								})()}
-							</div>
-						) : (
-							<p className="text-xs text-white/40">기록된 인바디 정보가 없습니다.</p>
-						)}
-					</div>
-
-					{/* 액션 버튼 */}
-					<div className="flex gap-3">
-						<Link
-							href={`/studio/members/${selectedMember.id}?tab=note`}
-							className="flex-1 px-4 py-2.5 bg-mint text-navy rounded-lg font-semibold text-sm
-                     hover:bg-mint/90 transition-colors"
-						>
-							알림장 작성 →
-						</Link>
-						<Link
-							href={`/studio/members/${selectedMember.id}?tab=inbody`}
-							className="flex-1 px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg 
-                     hover:bg-white/10 transition-colors text-white text-sm"
-						>
-							인바디 입력 →
-						</Link>
-					</div>
-				</div>
-			) : (
-				<div className="flex-1 flex items-center justify-center">
-					<div className="text-center">
-						<p className="text-4xl mb-4">👈</p>
-						<p className="text-white/40 text-sm">왼쪽에서 회원을 선택하세요</p>
-					</div>
-				</div>
-			)}
 		</div>
 	)
+	// return (
+	// 	<div className="flex gap-5 h-[calc(100vh-64px)] px-4 py-4">
+	// 		{/* Left: 회원 목록 */}
+	// 		<div className="w-64 shrink-0 flex flex-col gap-3">
+	// 			<input
+	// 				className="ml-input"
+	// 				placeholder="🔍  회원 검색..."
+	// 			/>
+	// 			<div className="flex flex-col gap-2 overflow-y-auto flex-1">
+	// 				{members.map(m => {
+	// 					const { weekLogs, avgMets } = getWeeklyStats(m)
+	// 					const status = getActivityStatus(avgMets)
+	// 					const badgeClass = {
+	// 						low: 'badge-low',
+	// 						good: 'badge-good',
+	// 						high: 'badge-high',
+	// 					}[status]
+	// 					const isSelected = selectedMemberId === m.id
+
+	// 					return (
+	// 						<button
+	// 							key={m.id}
+	// 							onClick={() => setSelectedMemberId(m.id)}
+	// 							className={`bg-card2 border rounded-xl p-3 text-left transition-all ${isSelected
+	// 								? 'border-mint/60 bg-card2'
+	// 								: 'border-white/[0.07] hover:border-mint/40'
+	// 								}`}
+	// 						>
+	// 							<div className="flex justify-between items-center">
+	// 								<span className="font-semibold text-sm text-white">{m.name}</span>
+	// 								<span className={`text-xs px-2 py-1 rounded-full ${badgeClass}`}>
+	// 									{ACTIVITY_STATUS_LABELS[status]}
+	// 								</span>
+	// 							</div>
+	// 							<p className="text-xs text-white/30 font-mono mt-1">
+	// 								이번 주 {weekLogs.length}일 · METs {avgMets.toFixed(1)}
+	// 							</p>
+	// 							<p className="text-xs text-white/20 font-mono mt-0.5">
+	// 								주 {m.sessions_per_week}회 수업
+	// 							</p>
+	// 						</button>
+	// 					)
+	// 				})}
+
+	// 				{members.length === 0 && (
+	// 					<p className="text-xs text-white/30 text-center mt-8">
+	// 						등록된 회원이 없습니다.
+	// 						<br />
+	// 						헤더의 신규회원 추가 버튼을 눌러주세요.
+	// 					</p>
+	// 				)}
+	// 			</div>
+	// 		</div>
+
+	// 		{/* Right: 선택된 회원 정보 또는 안내 메시지 */}
+	// 		{selectedMember ? (
+	// 			<div className="flex-1 flex flex-col gap-4 overflow-y-auto">
+	// 				{/* 회원 이름 + 상태 배지 + 상세보기 */}
+	// 				<div className="bg-card border border-white/[0.07] rounded-lg p-4 flex justify-between items-start">
+	// 					<div className="flex items-center gap-4">
+	// 						<div>
+	// 							<div className="flex items-center gap-3">
+	// 								<p className="text-lg font-bold text-white">{selectedMember.name}</p>
+	// 								{(() => {
+	// 									const { avgMets } = getWeeklyStats(selectedMember)
+	// 									const status = getActivityStatus(avgMets)
+	// 									const badgeClass = {
+	// 										low: 'badge-low',
+	// 										good: 'badge-good',
+	// 										high: 'badge-high',
+	// 									}[status]
+	// 									return (
+	// 										<span className={`text-sm px-3 py-1 rounded-full ${badgeClass}`}>
+	// 											{ACTIVITY_STATUS_LABELS[status]}
+	// 										</span>
+	// 									)
+	// 								})()}
+	// 							</div>
+
+
+	// 							<p className="text-xs text-white/40 mt-1">
+	// 								주 {selectedMember.sessions_per_week}회 수업
+	// 							</p>
+	// 						</div>
+	// 					</div>
+	// 					<div className="flex items-center gap-3">
+	// 						{/* 회원앱 링크 복사 버튼 */}
+	// 						<button
+	// 							onClick={() => handleCopyMemberLink(selectedMember.access_token)}
+	// 							title="회원앱 링크 복사"
+	// 							className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+	// 							style={{
+	// 								background: copied
+	// 									? 'rgba(61,219,181,0.15)'
+	// 									: 'rgba(255,255,255,0.04)',
+	// 								border: copied
+	// 									? '1px solid rgba(61,219,181,0.4)'
+	// 									: '1px solid rgba(255,255,255,0.1)',
+	// 								color: copied ? '#3DDBB5' : 'rgba(255,255,255,0.5)',
+	// 							}}
+	// 						>
+	// 							{copied ? (
+	// 								<>
+	// 									<svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+	// 										<path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+	// 									</svg>
+	// 									복사됨
+	// 								</>
+	// 							) : (
+	// 								<>
+	// 									<svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+	// 										<rect x="4" y="1" width="7" height="8" rx="1.2" stroke="currentColor" strokeWidth="1.2" />
+	// 										<path d="M1 4h2v6.5A.5.5 0 003.5 11H8v1H3a2 2 0 01-2-2V4z" fill="currentColor" />
+	// 									</svg>
+	// 									회원 공유 링크
+	// 								</>
+	// 							)}
+	// 						</button>
+
+	// 						<Link
+	// 							href={`/studio/members/${selectedMember.id}`}
+	// 							className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-xs 
+	//                    hover:bg-white/10 transition-colors text-white/80 hover:text-white"
+	// 						>
+	// 							상세 보기 →
+	// 						</Link>
+
+
+	// 					</div>
+	// 				</div>
+
+	// 				{/* 이번 주 홈트 기록 */}
+	// 				<div className="bg-card border border-white/[0.07] rounded-lg p-4">
+	// 					<p className="text-xs font-mono uppercase tracking-widest text-white/40 mb-4">
+	// 						이번 주 홈트 기록
+	// 					</p>
+	// 					{renderWeekChart(selectedMember)}
+	// 					<p className="text-xs text-white/40 mt-3 font-mono">
+	// 						평균{' '}
+	// 						<span className="text-mint">
+	// 							{(() => {
+	// 								const { avgMets } = getWeeklyStats(selectedMember)
+	// 								return avgMets.toFixed(1)
+	// 							})()}{' '}
+	// 							METs
+	// 						</span>{' '}
+	// 						· 권장 대비{' '}
+	// 						<span className="text-amber">
+	// 							{(() => {
+	// 								const { avgMets } = getWeeklyStats(selectedMember)
+	// 								return Math.round((avgMets / 5) * 100)
+	// 							})()}%
+	// 						</span>
+	// 					</p>
+	// 				</div>
+
+	// 				{/* 인바디 최근 정보 */}
+	// 				<div className="bg-card border border-white/[0.07] rounded-lg p-4">
+	// 					<p className="text-xs font-mono uppercase tracking-widest text-white/40 mb-4">
+	// 						인바디 최근_입력값 모두 보이게 수정{' '}
+	// 						{(() => {
+	// 							const latest = getLatestInbody(selectedMember)
+	// 							return latest
+	// 								? `· ${new Date(latest.measured_at).toLocaleDateString('ko-KR', {
+	// 									month: '2-digit',
+	// 									day: '2-digit',
+	// 								})}`
+	// 								: '· 기록 없음'
+	// 						})()}
+	// 					</p>
+	// 					{getLatestInbody(selectedMember) ? (
+	// 						<div className="grid grid-cols-6 gap-3">
+	// 							{(() => {
+	// 								const latest = getLatestInbody(selectedMember)!
+	// 								return [
+	// 									['체중', `${latest.weight}kg`, ''],
+	// 									['근육량', `${latest.muscle_mass}kg`, '↑'],
+	// 									['체지방률', `${latest.body_fat_pct}%`, '↓'],
+	// 									['체지방량', `${latest.body_fat_mass}kg`, '↓'],
+	// 									['BMI', `${latest.bmi}`, ''],
+	// 									['내장지방레벨', `${latest.visceral_fat}`, '↓']
+	// 								].map(([label, value, arrow]) => (
+	// 									<div
+	// 										key={label}
+	// 										className="bg-card2 border border-white/[0.07] rounded-xl p-3 text-center"
+	// 									>
+	// 										<p className="text-xs text-white/40 mb-2">{label}</p>
+	// 										<p className="font-mono text-sm text-white">
+	// 											{value !== 'null' ? value : '-'}
+	// 											{arrow && (
+	// 												<span
+	// 													className={
+	// 														arrow === '↑'
+	// 															? 'text-mint'
+	// 															: 'text-coral'
+	// 													}
+	// 												>
+	// 													{arrow}
+	// 												</span>
+	// 											)}
+	// 										</p>
+	// 									</div>
+	// 								))
+	// 							})()}
+	// 						</div>
+	// 					) : (
+	// 						<p className="text-xs text-white/40">기록된 인바디 정보가 없습니다.</p>
+	// 					)}
+	// 				</div>
+
+	// 				{/* 액션 버튼 */}
+	// 				<div className="flex gap-3">
+	// 					<Link
+	// 						href={`/studio/members/${selectedMember.id}?tab=note`}
+	// 						className="flex-1 px-4 py-2.5 bg-mint text-navy rounded-lg font-semibold text-sm
+	//                  hover:bg-mint/90 transition-colors"
+	// 					>
+	// 						알림장 작성 →
+	// 					</Link>
+	// 					<Link
+	// 						href={`/studio/members/${selectedMember.id}?tab=inbody`}
+	// 						className="flex-1 px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg 
+	//                  hover:bg-white/10 transition-colors text-white text-sm"
+	// 					>
+	// 						인바디 입력 →
+	// 					</Link>
+	// 				</div>
+	// 			</div>
+	// 		) : (
+	// 			<div className="flex-1 flex items-center justify-center">
+	// 				<div className="text-center">
+	// 					<p className="text-4xl mb-4">👈</p>
+	// 					<p className="text-white/40 text-sm">왼쪽에서 회원을 선택하세요</p>
+	// 				</div>
+	// 			</div>
+	// 		)}
+	// 	</div>
+	// )
 }

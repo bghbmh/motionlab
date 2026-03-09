@@ -7,6 +7,7 @@ import {
 	getActivityStatus,
 	type WorkoutLog,
 } from '@/types/database'
+import CopyLinkButton from '@/components/studio/CopyLinkButton'
 
 function getWeekStart() {
 	const d = new Date()
@@ -21,9 +22,9 @@ const DAY_LABELS = ['월', '화', '수', '목', '금', '토', '일']
 export default async function MemberDetailPage({
 	params,
 }: {
-	params: Promise<{ id: string }>   // ← Promise 타입
+	params: Promise<{ id: string }>
 }) {
-	const { id } = await params        // ← await 필수
+	const { id } = await params
 
 	const supabase = await createClient()
 
@@ -32,7 +33,7 @@ export default async function MemberDetailPage({
 		.select(`
       *,
       inbody_records (
-        id, weight, muscle_mass, body_fat_pct, measured_at
+        id, weight, muscle_mass, body_fat_pct, body_fat_mass, bmi, visceral_fat, measured_at
       ),
       workout_logs (
         id, logged_at, workout_type, duration_min, mets_score, condition_memo
@@ -67,9 +68,7 @@ export default async function MemberDetailPage({
 	const maxMets = Math.max(...weekDays.map(d => d.mets), 0.1)
 
 	const latestInbody = member.inbody_records
-		?.sort((a: any, b: any) => b.measured_at.localeCompare(a.measured_at))[0];
-
-	console.log('latestInbody', latestInbody)
+		?.sort((a: any, b: any) => b.measured_at.localeCompare(a.measured_at))[0]
 
 	const recentNotes = member.notes
 		?.sort((a: any, b: any) => b.written_at.localeCompare(a.written_at))
@@ -81,16 +80,22 @@ export default async function MemberDetailPage({
 		<div className="flex gap-5">
 			{/* Left */}
 			<div className="flex-1 flex flex-col gap-4">
+
 				{/* 회원 헤더 */}
 				<div className="ml-card flex justify-between items-center">
-					<div className="flex items-center gap-3">
+					<div className="flex items-center gap-3 flex-wrap">
 						<h1 className="text-lg font-bold text-white">{member.name}</h1>
 						<span className={badgeClass}>{ACTIVITY_STATUS_LABELS[status]}</span>
 						<span className="text-xs font-mono" style={{ color: 'rgba(255,255,255,0.3)' }}>
 							등록 {member.registered_at} · 주 {member.sessions_per_week}회
 						</span>
 					</div>
-					<div className="flex gap-2">
+
+					{/* 액션 버튼 그룹 */}
+					<div className="flex items-center gap-2 shrink-0">
+						{/* 회원앱 링크 복사 */}
+						<CopyLinkButton accessToken={member.access_token} />
+
 						<Link href={`/studio/members/${id}/notes/new`} className="btn-primary text-xs py-2 px-4">
 							알림장 작성
 						</Link>
@@ -103,44 +108,53 @@ export default async function MemberDetailPage({
 				{/* 주간 차트 + 인바디 */}
 				<div className="grid grid-cols-3 gap-4">
 
+					{/* 주간 홈트 차트 */}
 					<div className="col-span-1 ml-card flex flex-col">
-						<div className='flex justify-between items-center mb-3'>
+						<div className="flex justify-between items-center mb-3">
 							<p className="ml-card-label flex-none m-0">이번 주 홈트 기록</p>
-							<p className="text-xs font-mono " style={{ color: 'rgba(255,255,255,0.3)' }}>
+							<p className="text-xs font-mono" style={{ color: 'rgba(255,255,255,0.3)' }}>
 								활동일{' '}
-								<span style={{ color: '#3DDBB5' }}>
-									{weekLogs.length}
-								</span>{' '}일
+								<span style={{ color: '#3DDBB5' }}>{weekLogs.length}</span>일
 							</p>
 						</div>
 
-						<div className="flex flex-col flex-1 items-end gap-1.5" > {/* style={{ height: 64 }} */}
+						<div className="flex flex-col flex-1 gap-1.5">
 							{weekDays.map(({ day, mets, has }) => (
-								<div key={day} className="flex-1 flex  items-center gap-3 w-full ">
-									<span className="text-[9px] font-mono" style={{ color: 'rgba(255,255,255,0.3)' }}>{day}</span>
+								<div key={day} className="flex-1 flex items-center gap-3 w-full">
+									<span className="text-[9px] font-mono w-4 shrink-0"
+										style={{ color: 'rgba(255,255,255,0.3)' }}>
+										{day}
+									</span>
 									<div
-										className="w-full"
+										className="h-1.5 rounded"
 										style={{
 											width: has ? `${(mets / maxMets) * 100}%` : '100%',
 											background: has
 												? mets > maxMets * 0.7 ? '#3DDBB5' : 'rgba(61,219,181,0.35)'
 												: 'rgba(255,255,255,0.05)',
-											minHeight: 4,
+											minHeight: 6,
 											borderRadius: 4,
 										}}
 									/>
-
 								</div>
 							))}
 						</div>
 
+						<p className="text-xs font-mono mt-3" style={{ color: 'rgba(255,255,255,0.3)' }}>
+							평균 METs{' '}
+							<span style={{ color: avgMets < 2 ? '#FF6B5B' : '#3DDBB5' }}>
+								{avgMets.toFixed(1)}
+							</span>
+						</p>
 					</div>
 
+					{/* 인바디 최근 */}
 					<div className="ml-card col-span-2">
 						<p className="ml-card-label">
-							인바디 최근_입력값 모두 보이게 수정
+							인바디 최근
 							{latestInbody && (
-								<span className="font-normal normal-case ml-1" style={{ color: 'rgba(255,255,255,0.2)' }}>
+								<span className="font-normal normal-case ml-1"
+									style={{ color: 'rgba(255,255,255,0.2)' }}>
 									· {latestInbody.measured_at}
 								</span>
 							)}
@@ -162,16 +176,18 @@ export default async function MemberDetailPage({
 								))}
 							</div>
 						) : (
-							<p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>인바디 기록이 없습니다.</p>
+							<p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
+								인바디 기록이 없습니다.
+							</p>
 						)}
 					</div>
 				</div>
 
 				{/* 이번 주 상세 로그 */}
 				<div className="ml-card">
-					<div className='flex justify-between items-center mb-3'>
+					<div className="flex justify-between items-center mb-3">
 						<p className="ml-card-label flex-none m-0">이번 주 홈트 상세</p>
-						<p className="text-xs font-mono " style={{ color: 'rgba(255,255,255,0.3)' }}>
+						<p className="text-xs font-mono" style={{ color: 'rgba(255,255,255,0.3)' }}>
 							평균 METs{' '}
 							<span style={{ color: avgMets < 2 ? '#FF6B5B' : '#3DDBB5' }}>
 								{avgMets.toFixed(1)}
@@ -188,11 +204,16 @@ export default async function MemberDetailPage({
 							return (
 								<div key={day} className="flex justify-between py-2 text-sm"
 									style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-									<span className="font-mono w-6" style={{ color: 'rgba(255,255,255,0.3)' }}>{day}</span>
-									<span className="flex-1" style={{ color: log ? '#F0F4FF' : 'rgba(255,255,255,0.2)' }}>
+									<span className="font-mono w-6"
+										style={{ color: 'rgba(255,255,255,0.3)' }}>
+										{day}
+									</span>
+									<span className="flex-1"
+										style={{ color: log ? '#F0F4FF' : 'rgba(255,255,255,0.2)' }}>
 										{log ? `${WORKOUT_TYPE_LABELS[log.workout_type]} ${log.duration_min}분` : '기록 없음'}
 									</span>
-									<span className="font-mono text-xs" style={{ color: log ? '#3DDBB5' : 'rgba(255,255,255,0.2)' }}>
+									<span className="font-mono text-xs"
+										style={{ color: log ? '#3DDBB5' : 'rgba(255,255,255,0.2)' }}>
 										{log ? `${log.mets_score} METs` : '—'}
 									</span>
 								</div>
@@ -207,10 +228,15 @@ export default async function MemberDetailPage({
 				<p className="ml-card-label" style={{ paddingLeft: 4 }}>이전 알림장</p>
 				{recentNotes?.length > 0 ? recentNotes.map((note: any) => (
 					<div key={note.id} className="ml-card">
-						<p className="font-mono text-xs mb-2" style={{ color: '#3DDBB5' }}>{note.written_at}</p>
+						<p className="font-mono text-xs mb-2" style={{ color: '#3DDBB5' }}>
+							{note.written_at}
+						</p>
 						<p className="text-xs leading-relaxed" style={{
 							color: 'rgba(255,255,255,0.6)',
-							display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden'
+							display: '-webkit-box',
+							WebkitLineClamp: 3,
+							WebkitBoxOrient: 'vertical',
+							overflow: 'hidden',
 						}}>
 							{note.content}
 						</p>
@@ -219,8 +245,9 @@ export default async function MemberDetailPage({
 								{note.note_tags.map((t: any) => (
 									<span key={t.tag} className="text-[10px] rounded-full px-2 py-0.5"
 										style={{
-											background: '#1a2740', color: 'rgba(61,219,181,0.7)',
-											border: '1px solid rgba(61,219,181,0.15)'
+											background: '#1a2740',
+											color: 'rgba(61,219,181,0.7)',
+											border: '1px solid rgba(61,219,181,0.15)',
 										}}>
 										{t.tag}
 									</span>
@@ -229,9 +256,12 @@ export default async function MemberDetailPage({
 						)}
 					</div>
 				)) : (
-					<p className="text-xs pl-1" style={{ color: 'rgba(255,255,255,0.3)' }}>작성된 알림장이 없습니다.</p>
+					<p className="text-xs pl-1" style={{ color: 'rgba(255,255,255,0.3)' }}>
+						작성된 알림장이 없습니다.
+					</p>
 				)}
-				<Link href={`/studio/members/${id}/notes/new`} className="btn-primary text-center text-xs py-2.5 mt-1">
+				<Link href={`/studio/members/${id}/notes/new`}
+					className="btn-primary text-center text-xs py-2.5 mt-1">
 					알림장 작성
 				</Link>
 			</div>

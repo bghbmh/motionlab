@@ -5,10 +5,5 @@ export default function NoteNewLayout({
 }: {
 	children: React.ReactNode
 }) {
-	return (
-		<>
-			<BackHeader title="알림장 작성" backLabel="← 뒤로" />
-			<div className="p-5">{children}</div>
-		</>
-	)
+	return <>{children}</>
 }
