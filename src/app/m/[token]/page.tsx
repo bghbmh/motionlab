@@ -85,7 +85,11 @@ export default async function MemberHomePage({
 			</div>
 
 			<div className="ml-card">
-				<p className="ml-card-label">이번 주 활동</p>
+				<div className="flex items-center gap-2 mb-3">
+					<p className="ml-card-label">이번 주 활동</p>
+					<div>420</div>
+				</div>
+
 				<div className="flex items-end gap-1.5 h-14">
 					{weekBars.map(({ day, mets, has }) => (
 						<div key={day} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
