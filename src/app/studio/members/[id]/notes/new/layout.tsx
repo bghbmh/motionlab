@@ -7,7 +7,7 @@ export default function NoteNewLayout({
 }) {
 	return (
 		<>
-			<BackHeader title="알림장 작성" backLabel="← 회원목록" />
+			<BackHeader title="알림장 작성" backLabel="← 뒤로" />
 			<div className="p-5">{children}</div>
 		</>
 	)

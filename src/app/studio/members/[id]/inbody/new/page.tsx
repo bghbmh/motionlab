@@ -12,9 +12,10 @@ const FIELDS = [
 	{ key: 'body_fat_pct', label: '체지방률 (%)', placeholder: '28.1' },
 	{ key: 'body_fat_mass', label: '체지방량 (kg)', placeholder: '16.4' },
 	{ key: 'bmi', label: 'BMI', placeholder: '22.1' },
-	{ key: 'bmr', label: '기초대사량 (kcal)', placeholder: '1320' },
-] as const
+	{ key: 'bmr', label: '내장지방레벨', placeholder: '12' },
 
+] as const
+//{ key: 'bmr', label: '기초대사량 (kcal)', placeholder: '1320' },
 export default function NewInbodyPage() {
 	const router = useRouter()
 	const { id } = useParams<{ id: string }>()   // ← useParams 사용

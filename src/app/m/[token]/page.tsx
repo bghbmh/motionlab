@@ -87,6 +87,7 @@ export default async function MemberHomePage({
 			<div className="ml-card">
 				<div className="flex items-center justify-between gap-2 mb-3">
 					<p className="ml-card-label m-0">이번 주 활동</p>
+
 					<p className="text-xs text-white/30 font-mono mt-2">
 						<span className="text-mint">{avgMets.toFixed(1)} METs</span>
 					</p>
@@ -116,7 +117,7 @@ export default async function MemberHomePage({
 				</p> */}
 			</div>
 
-			<div className="ml-card">
+			{/* <div className="ml-card">
 				<div className="flex items-center justify-between gap-2 mb-3">
 					<p className="ml-card-label m-0">기대치_test</p>
 					<p className="text-xs text-white/30 font-mono mt-2">
@@ -127,7 +128,7 @@ export default async function MemberHomePage({
 				<div className="flex items-end gap-1.5 h-14">
 					운동 후 기대되는 METs 점수는 <span className="text-mint">{avgMets.toFixed(1)} METs</span>입니다.
 				</div>
-			</div>
+			</div> */}
 
 			{latestNote && (
 				<div className="ml-card">
