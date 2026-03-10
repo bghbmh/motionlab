@@ -57,7 +57,7 @@ export default function WorkoutRow({ item, index, showRemove, onChange, onRemove
 			{/* 운동 종류 */}
 			<div>
 				<p className="ml-card-label mb-2">추천하는 운동 종류</p>
-				<div className="grid grid-cols-3 gap-1.5">
+				<div className="grid grid-cols-6 gap-1.5">
 					{(Object.keys(WORKOUT_TYPE_LABELS) as WorkoutType[]).map(t => {
 						const isSelected = item.workout_type === t
 						const wc = WORKOUT_COLORS[t]

@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { WORKOUT_TYPE_LABELS, WorkoutType } from '@/types/database'
+import { NoteWorkout, WORKOUT_TYPE_LABELS } from '@/types/database'
 
 export default async function NotesPage({
 	params,
@@ -21,7 +21,7 @@ export default async function NotesPage({
 	// is_sent = true 인 알림장만 회원에게 표시
 	const { data: notes } = await supabase
 		.from('notes')
-		.select('*, note_tags(tag)')
+		.select('*, note_tags(tag), note_workouts(id, day, workout_type, intensity, duration_min, mets, sort_order)')
 		.eq('member_id', member.id)
 		.eq('is_sent', true)
 		.order('written_at', { ascending: false })
@@ -60,39 +60,37 @@ export default async function NotesPage({
 							</span>
 						</div>
 
-						<div style={{ borderLeft: '3px solid #3DDBB5', paddingLeft: '0.75rem' }}>
-							<p className="text-sm text-white leading-relaxed">{note.content}</p>
-							<div className="flex gap-2 text-[12px] mt-2">
-
-								<span className=" font-mono"
-									style={{ color: 'rgba(255,255,255,0.7)' }}>
-									목표 {note.recommended_mets ? note.recommended_mets : '-'} METs
-								</span>
-
-								{'·'}
+						{/* 내용 */}
+						<div style={{ borderLeft: '3px solid rgba(255,255,255,0.1)', paddingLeft: '0.75rem' }}>
+							<p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.72)' }}>
+								{note.content}
+							</p>
+							<div className="text-[12px] mt-2">
+								{note.recommended_mets && (
+									<span className=" font-mono "
+										style={{ color: 'rgba(255,255,255,0.5)' }}>
+										목표 <span className=" font-mono" style={{ color: 'rgba(255,255,255,1)' }}>{note.recommended_mets}</span> METs
+									</span>
+								)}
 								{/* 요일 배지 */}
-								<div className="day-list ">
-									{noteDays.map(d => (
-										<span
-											key={d}
-											className="day-list-item font-medium">
-											{d === '전체' ? '매일' : d}
-										</span>
+								<div className="day-list mt-1">
+									{noteDays.map(d => {
+										//const dayWorkouts = (note.note_workouts ?? []).filter(w => w.day === d);
+										const dayWorkouts = (note.note_workouts as NoteWorkout[] ?? [])
+											.filter((w: NoteWorkout) => w.day === d);
 
-									))}
+										return (
+											<div key={d} className="day-list-item  " >
+												<span key={d} className="day  font-medium">{d === '전체' ? '매일' : d}</span>
+												{dayWorkouts?.map(dw => (
+													<span key={dw.id} className='dw'>
+														{WORKOUT_TYPE_LABELS[dw.workout_type]} {dw.duration_min}분
+													</span>
+												))}
+											</div>
+										)
+									})}
 								</div>
-								{note.recommended_workout_type && (
-									<span className="font-medium"
-										style={{ color: 'rgba(255,255,255,0.7)' }}>
-										{WORKOUT_TYPE_LABELS[note.recommended_workout_type as WorkoutType]}
-									</span>
-								)}
-								{note.recommended_duration_min && (
-									<span className=" font-mono"
-										style={{ color: 'rgba(255,255,255,0.7)' }}>
-										{note.recommended_duration_min}분 추천
-									</span>
-								)}
 
 							</div>
 						</div>

@@ -45,7 +45,7 @@ export default function NotesListPage() {
 
 		const { data: notesData } = await supabase
 			.from('notes')
-			.select('*, note_tags(tag)')
+			.select('*, note_tags(tag), note_workouts(id, day, workout_type, intensity, duration_min, mets, sort_order)')
 			.eq('member_id', id)
 			.order('created_at', { ascending: false })
 
@@ -92,6 +92,8 @@ export default function NotesListPage() {
 			</div>
 		)
 	}
+
+
 
 	return (
 		<div>

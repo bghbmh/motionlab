@@ -52,7 +52,7 @@ export default function NoteSlideModal({ memberId, editTarget, onClose, onSaved 
 		}
 		return map
 	})
-	console.log("asdf ==== ", dayWorkouts)
+
 	// 총 METs
 	const totalMets = Object.values(dayWorkouts)
 		.flat()

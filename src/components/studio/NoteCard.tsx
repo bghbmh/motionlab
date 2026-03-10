@@ -1,5 +1,5 @@
 import type { Note } from '@/types/database'
-import { INTENSITY_LABELS, WORKOUT_TYPE_LABELS, WORKOUT_TYPE_METS } from '@/types/database'
+import { INTENSITY_LABELS, WORKOUT_TYPE_LABELS } from '@/types/database'
 
 const INTENSITY_STYLE: Record<string, { color: string; bg: string; border: string }> = {
 	recovery: { color: '#FFB347', bg: 'rgba(255,179,71,0.1)', border: 'rgba(255,179,71,0.3)' },
@@ -75,25 +75,50 @@ export default function NoteCard({ note, onEdit, onDelete, onSend, onUnsend }: P
 				<p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.72)' }}>
 					{note.content}
 				</p>
-				<div className="flex gap-2 text-[12px] mt-2">
+				<div className="text-[12px] mt-2">
 					{note.recommended_mets && (
-						<span className=" font-mono"
+						<span className=" font-mono "
 							style={{ color: 'rgba(255,255,255,0.5)' }}>
-							목표 {note.recommended_mets} METs
+							목표 <span className=" font-mono" style={{ color: 'rgba(255,255,255,1)' }}>{note.recommended_mets}</span> METs
 						</span>
 					)}
-					{'·'}
 					{/* 요일 배지 */}
-					<div className="day-list ">
-						{noteDays.map(d => (
-							<span
-								key={d}
-								className="day-list-item font-medium">
-								{d === '전체' ? '매일' : d}
-							</span>
-
-						))}
+					<div className="day-list mt-1">
+						{noteDays.map(d => {
+							//const dayWorkouts = (note.note_workouts ?? []).filter(w => w.day === d);
+							const dayWorkouts = note.note_workouts?.filter(w => w.day === d);
+							return (
+								<div key={d} className="day-list-item  " >
+									<span key={d} className="day  font-medium">{d === '전체' ? '매일' : d}</span>
+									{dayWorkouts?.map(dw => (
+										<span key={dw.id} className='dw'>
+											{WORKOUT_TYPE_LABELS[dw.workout_type]} {dw.duration_min}분
+										</span>
+									))}
+								</div>
+							)
+						})}
 					</div>
+
+					{/* <div className="flex flex-col gap-1 mt-2">
+						{noteDays.map(d => {
+							// 해당 요일의 운동들만 필터링
+							const dayWorkouts = (note.note_workouts ?? []).filter(w => w.day === d);
+
+							return (
+								<div key={d} className="flex items-center gap-2">
+									<span className="text-[11px] font-bold text-white/50 w-8">{d}</span>
+									<div className="flex flex-wrap gap-1">
+										{dayWorkouts.map(w => (
+											<span key={w.id} className="text-[11px] bg-white/5 px-1.5 py-0.5 rounded">
+												{WORKOUT_TYPE_LABELS[w.workout_type]} {w.duration_min}분
+											</span>
+										))}
+									</div>
+								</div>
+							);
+						})}
+					</div> */}
 					{/* {note.recommended_workout_type && (
 						<span className="font-medium"
 							style={{ color: 'rgba(255,255,255,0.6)' }}>
@@ -111,21 +136,23 @@ export default function NoteCard({ note, onEdit, onDelete, onSend, onUnsend }: P
 			</div>
 
 			{/* 태그 */}
-			{note.note_tags?.length > 0 && (
-				<div className="flex flex-wrap gap-3">
-					{/* 강도 배지 */}
-					<span className="text-[10px] px-2 py-0.5 rounded-full font-semibold flex items-center flex-none"
-						style={{ background: st.bg, color: st.color, border: `1px solid ${st.border}` }}>
-						{INTENSITY_LABELS[note.intensity]}
-					</span>
-					<div className='flex gap-1 flex-wrap flex-grow'>
-						{note.note_tags.map(t => (
-							<span key={t.tag} className="ml-tag-default py-0.5 px-2 text-[10px]">{t.tag}</span>
-						))}
-					</div>
+			{
+				note.note_tags?.length > 0 && (
+					<div className="flex flex-wrap gap-3">
+						{/* 강도 배지 */}
+						<span className="text-[10px] px-2 py-0.5 rounded-full font-semibold flex items-center flex-none"
+							style={{ background: st.bg, color: st.color, border: `1px solid ${st.border}` }}>
+							{INTENSITY_LABELS[note.intensity]}
+						</span>
+						<div className='flex gap-1 flex-wrap flex-grow'>
+							{note.note_tags.map(t => (
+								<span key={t.tag} className="ml-tag-default py-0.5 px-2 text-[10px]">{t.tag}</span>
+							))}
+						</div>
 
-				</div>
-			)}
-		</div>
+					</div>
+				)
+			}
+		</div >
 	)
 }
