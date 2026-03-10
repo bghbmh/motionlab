@@ -56,6 +56,7 @@ export default function NotesListPage() {
 
 	useEffect(() => { fetchData() }, [fetchData])
 
+
 	async function handleSend(note: NoteWithTags) {
 		const supabase = createClient()
 		await supabase.from('notes').update({ is_sent: true }).eq('id', note.id)

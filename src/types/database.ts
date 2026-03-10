@@ -82,6 +82,17 @@ export const WORKOUT_TYPE_METS: Record<WorkoutType, number> = {
 	other: 3.5,
 }
 
+export interface NoteWorkout {
+	id: string
+	note_id: string
+	day: string                     // '전체' | '월' | '화' | ...
+	workout_type: WorkoutType
+	intensity: Intensity
+	duration_min: number | null
+	mets: number | null             // 자동 계산: METs/h × (분/60)
+	sort_order: number
+}
+
 export interface Note {
 	id: string
 	member_id: string
@@ -89,14 +100,13 @@ export interface Note {
 	content: string
 	intensity: Intensity
 	written_at: string              // 'YYYY-MM-DD'
-	is_sent: boolean                // 회원에게 전송 여부 (default: false)
-	days: string[]                  // 선택된 요일 ['전체'] or ['월','화','수'...]
-	recommended_workout_type: WorkoutType | null  // 추천 운동 종류
-	recommended_duration_min: number | null       // 추천 운동 시간 (분)
-	recommended_mets: number | null               // 자동 계산된 METs 목표
+	is_sent: boolean
+	days: string[]                  // ['전체'] or ['월','화','수'...]
+	recommended_mets: number | null // note_workouts METs 합산 총점
 	created_at: string
 	// join
 	note_tags?: NoteTag[]
+	note_workouts?: NoteWorkout[]
 }
 
 export type Intensity = 'recovery' | 'normal' | 'high'

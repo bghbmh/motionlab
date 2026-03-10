@@ -1,38 +1,15 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import type { Intensity, Note, WorkoutType } from '@/types/database'
-import { INTENSITY_LABELS, WORKOUT_TYPE_LABELS, WORKOUT_TYPE_METS } from '@/types/database'
+import type { Intensity } from '@/types/database'
+import {
+	type NoteWithTags, type WorkoutItem,
+	ALL_DAYS, WEEKDAYS, DEFAULT_TAGS,
+	calcMets, newItem, uid,
+} from './noteWorkoutTypes'
+import DaySection from './DaySection'
 
-// ─── 상수 ────────────────────────────────────────────────────────
-const ALL_DAYS = ['전체', '월', '화', '수', '목', '금', '토', '일']
-const DEFAULT_TAGS = ['코어강화', '스트레칭', '초보자루틴', '필라테스기초']
-
-const INTENSITY_STYLE: Record<Intensity, React.CSSProperties> = {
-	recovery: { borderColor: '#FFB347', color: '#FFB347', backgroundColor: 'rgba(255,179,71,0.1)' },
-	normal: { borderColor: '#3DDBB5', color: '#3DDBB5', backgroundColor: 'rgba(61,219,181,0.1)' },
-	high: { borderColor: '#FF6B5B', color: '#FF6B5B', backgroundColor: 'rgba(255,107,91,0.1)' },
-}
-
-const WORKOUT_ICONS: Record<WorkoutType, string> = {
-	stretching: '🧘', strength: '💪', cardio: '🏃',
-	pilates: '🌿', yoga: '☯️', other: '⚡',
-}
-
-const WORKOUT_COLORS: Record<WorkoutType, { bg: string; border: string; text: string }> = {
-	stretching: { bg: 'rgba(255,179,71,0.08)', border: 'rgba(255,179,71,0.25)', text: '#FFB347' },
-	strength: { bg: 'rgba(255,107,91,0.08)', border: 'rgba(255,107,91,0.25)', text: '#FF6B5B' },
-	cardio: { bg: 'rgba(61,219,181,0.08)', border: 'rgba(61,219,181,0.25)', text: '#3DDBB5' },
-	pilates: { bg: 'rgba(61,219,181,0.08)', border: 'rgba(61,219,181,0.25)', text: '#3DDBB5' },
-	yoga: { bg: 'rgba(255,179,71,0.08)', border: 'rgba(255,179,71,0.25)', text: '#FFB347' },
-	other: { bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.1)', text: 'rgba(255,255,255,0.4)' },
-}
-
-// ─── Types ────────────────────────────────────────────────────────
-type NoteWithTags = Omit<Note, 'note_tags'> & {
-	note_tags: { tag: string }[]
-}
 
 interface Props {
 	memberId: string
@@ -41,35 +18,47 @@ interface Props {
 	onSaved: () => void
 }
 
-// ─── 컴포넌트 ─────────────────────────────────────────────────────
 export default function NoteSlideModal({ memberId, editTarget, onClose, onSaved }: Props) {
 	const [visible, setVisible] = useState(false)
-
-	// 기본 폼 상태
-	const [intensity, setIntensity] = useState<Intensity>(editTarget?.intensity ?? 'normal')
-	const [days, setDays] = useState<string[]>(editTarget?.days ?? ['전체'])
 	const [content, setContent] = useState(editTarget?.content ?? '')
+	const [selectedDays, setSelectedDays] = useState<string[]>(editTarget?.days ?? ['전체'])
 	const [tags, setTags] = useState<string[]>(editTarget?.note_tags?.map(t => t.tag) ?? [])
 	const [tagInput, setTagInput] = useState('')
 	const [loading, setLoading] = useState(false)
 
-	// 추천 운동 폼 상태
-	const [workoutType, setWorkoutType] = useState<WorkoutType | null>(
-		editTarget?.recommended_workout_type ?? null
-	)
-	const [durationMin, setDurationMin] = useState<string>(
-		editTarget?.recommended_duration_min != null
-			? String(editTarget.recommended_duration_min)
-			: ''
-	)
 
-	// METs 자동 계산 (운동 종류 기준 METs/h × 시간/60), 60으로 나누는건 안함
-	const calculatedMets = useMemo<number | null>(() => {
-		if (!workoutType || !durationMin || Number(durationMin) <= 0) return null
-		const base = WORKOUT_TYPE_METS[workoutType]           // METs per hour
-		//return Math.round(base * (Number(durationMin) / 60) * 100) / 100
-		return Math.round(base * Number(durationMin) * 100) / 100
-	}, [workoutType, durationMin])
+
+
+	// 요일별 운동 목록
+	const [dayWorkouts, setDayWorkouts] = useState<Record<string, WorkoutItem[]>>(() => {
+		if (!editTarget?.note_workouts?.length) {
+			const firstDay = editTarget?.days?.[0] ?? '전체'
+			return { [firstDay]: [newItem()] }
+		}
+		const map: Record<string, WorkoutItem[]> = {};
+
+
+		for (const w of editTarget.note_workouts.sort((a, b) => a.sort_order - b.sort_order)) {
+			const d = w.day ?? '전체'
+			if (!map[d]) map[d] = [];
+
+			map[d].push({
+				localId: uid(),
+				dbId: w.id,
+				workout_type: w.workout_type,
+				intensity: w.intensity,
+				duration_min: w.duration_min != null ? String(w.duration_min) : '',
+			})
+		}
+		return map
+	})
+	console.log("asdf ==== ", dayWorkouts)
+	// 총 METs
+	const totalMets = Object.values(dayWorkouts)
+		.flat()
+		.filter(Boolean)
+		.reduce<number>((s, w) => s + (calcMets(w) ?? 0), 0)
+	const totalMetsDisplay = totalMets > 0 ? Math.round(totalMets * 100) / 100 : null
 
 	useEffect(() => {
 		const t = requestAnimationFrame(() => setVisible(true))
@@ -82,21 +71,41 @@ export default function NoteSlideModal({ memberId, editTarget, onClose, onSaved 
 	}
 
 	function toggleDay(day: string) {
-		if (day === '전체') { setDays(['전체']); return }
-		setDays(prev => {
+		if (day === '전체') {
+			setSelectedDays(['전체'])
+			setDayWorkouts({ '전체': [newItem()] })
+			return
+		}
+		setSelectedDays(prev => {
 			const without = prev.filter(d => d !== '전체')
-			const next = without.includes(day) ? without.filter(d => d !== day) : [...without, day]
-			return next.length === 0 ? ['전체'] : next
+			if (without.includes(day)) {
+				const next = without.filter(d => d !== day)
+				setDayWorkouts(dw => {
+					const updated = { ...dw }
+					delete updated[day]
+					return next.length === 0 ? { '전체': [newItem()] } : updated
+				})
+				return next.length === 0 ? ['전체'] : next
+			} else {
+				setDayWorkouts(dw => ({ ...dw, [day]: null as any }))
+				return [...without, day].sort((a, b) => WEEKDAYS.indexOf(a) - WEEKDAYS.indexOf(b))
+			}
 		})
 	}
 
-	function toggleDefaultTag(tag: string) {
-		setTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])
+	function getPreviousItems(day: string): WorkoutItem[] {
+		if (day === '전체') return []
+		const idx = WEEKDAYS.indexOf(day)
+		for (let i = idx - 1; i >= 0; i--) {
+			const d = WEEKDAYS[i]
+			if (dayWorkouts[d]?.length) return dayWorkouts[d]
+		}
+		return []
 	}
 
 	function addTag() {
 		const t = tagInput.trim()
-		if (t && !tags.includes(t)) setTags(prev => [...prev, t])
+		if (t && !tags.includes(t)) setTags(p => [...p, t])
 		setTagInput('')
 	}
 
@@ -108,56 +117,66 @@ export default function NoteSlideModal({ memberId, editTarget, onClose, onSaved 
 		const supabase = createClient()
 		const { data: { user } } = await supabase.auth.getUser()
 
-		// DB에 저장할 추천 운동 payload
-		const workoutPayload = {
-			recommended_workout_type: workoutType,
-			recommended_duration_min: durationMin ? Number(durationMin) : null,
-			recommended_mets: calculatedMets,
+		const notePayload = {
+			content: content.trim(),
+			intensity: 'normal' as Intensity,
+			days: selectedDays,
+			recommended_mets: totalMetsDisplay,
 		}
 
-		if (editTarget) {
-			await supabase.from('notes').update({
-				content: content.trim(),
-				intensity,
-				days,
-				...workoutPayload,
-			}).eq('id', editTarget.id)
+		let noteId: string
 
-			await supabase.from('note_tags').delete().eq('note_id', editTarget.id)
-			if (tags.length > 0) {
-				await supabase.from('note_tags').insert(tags.map(tag => ({ note_id: editTarget.id, tag })))
-			}
+		if (editTarget) {
+			await supabase.from('notes').update(notePayload).eq('id', editTarget.id)
+			noteId = editTarget.id
+			await supabase.from('note_tags').delete().eq('note_id', noteId)
+			await supabase.from('note_workouts').delete().eq('note_id', noteId)
 		} else {
 			const { data: note, error } = await supabase
 				.from('notes')
 				.insert({
 					member_id: memberId,
 					instructor_id: user!.id,
-					content: content.trim(),
-					intensity,
-					days,
 					is_sent: false,
 					written_at: new Date().toISOString().split('T')[0],
-					...workoutPayload,
+					...notePayload,
 				})
-				.select()
-				.single()
+				.select().single()
+			if (error || !note) { setLoading(false); return }
+			noteId = note.id
+		}
 
-			if (!error && note && tags.length > 0) {
-				await supabase.from('note_tags').insert(tags.map(tag => ({ note_id: note.id, tag })))
-			}
+		if (tags.length > 0) {
+			await supabase.from('note_tags').insert(tags.map(tag => ({ note_id: noteId, tag })))
+		}
+
+		const workoutRows = Object.entries(dayWorkouts).flatMap(([day, items]) =>
+			(items ?? [])
+				.filter(w => w.workout_type)
+				.map((w, idx) => ({
+					note_id: noteId,
+					day,
+					workout_type: w.workout_type!,
+					intensity: w.intensity,
+					duration_min: w.duration_min ? Number(w.duration_min) : null,
+					mets: calcMets(w),
+					sort_order: idx,
+				}))
+		)
+		if (workoutRows.length > 0) {
+			await supabase.from('note_workouts').insert(workoutRows)
 		}
 
 		setLoading(false)
 		onSaved()
 	}
 
-	// ─────────────────────────────────────────────────────────────
+	const activeDays = selectedDays.includes('전체') ? ['전체'] : selectedDays
+
 	return (
 		<>
-			{/* 배경 오버레이 */}
-			<div
-				className="fixed inset-0 z-40"
+			{/* 배경 */}
+			<div className="fixed inset-0 z-40"
 				style={{
 					background: visible ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0)',
 					backdropFilter: visible ? 'blur(3px)' : 'none',
@@ -166,11 +185,10 @@ export default function NoteSlideModal({ memberId, editTarget, onClose, onSaved 
 				onClick={handleClose}
 			/>
 
-			{/* 슬라이드 패널 */}
-			<div
-				className="fixed top-0 right-0 bottom-0 z-50 flex flex-col"
+			{/* 패널 */}
+			<div className="fixed top-0 right-0 bottom-0 z-50 flex flex-col"
 				style={{
-					width: 'min(520px, 90vw)',
+					width: 'min(540px, 92vw)',
 					background: '#141e2e',
 					borderLeft: '1px solid rgba(255,255,255,0.08)',
 					boxShadow: '-20px 0 60px rgba(0,0,0,0.5)',
@@ -178,31 +196,52 @@ export default function NoteSlideModal({ memberId, editTarget, onClose, onSaved 
 					transition: 'transform 0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
 					overflowY: 'auto',
 				}}
-				onClick={e => e.stopPropagation()}
-			>
+				onClick={e => e.stopPropagation()}>
+
 				{/* 헤더 */}
 				<div className="flex justify-between items-center px-6 py-4 sticky top-0 z-10"
 					style={{ background: '#141e2e', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
 					<p className="font-mono text-sm font-medium" style={{ color: '#3DDBB5' }}>
 						{editTarget ? '알림장 수정' : '새 알림장 작성'}
 					</p>
-					<button type="button" onClick={handleClose} className="btn-ghost text-xs py-1 px-2.5">✕</button>
+					<div className="flex items-center gap-3">
+						{totalMetsDisplay && (
+							<div className="flex items-center gap-1.5 rounded-lg px-2.5 py-1"
+								style={{ background: 'rgba(61,219,181,0.08)', border: '1px solid rgba(61,219,181,0.2)' }}>
+								<span className="text-[11px] font-mono" style={{ color: 'rgba(255,255,255,0.7)' }}>총 METs</span>
+								<span className="font-mono text-sm font-bold" style={{ color: '#3DDBB5' }}>{totalMetsDisplay}</span>
+							</div>
+						)}
+						<button type="button" onClick={handleClose} className="btn-ghost text-xs py-1 px-2.5">✕</button>
+					</div>
 				</div>
 
-				{/* 폼 */}
-				<form onSubmit={handleSubmit} className="flex flex-col gap-6 p-6 flex-1">
+				<form onSubmit={handleSubmit} className="flex flex-col gap-7 p-6 flex-1">
 
-					{/* ① 요일 선택 */}
+					{/* ① 운동 방향 메모 */}
+					<div>
+						<p className="ml-card-label">
+							운동 방향 메모
+							<span className="font-normal normal-case ml-1" style={{ color: '#3DDBB5' }}>
+								— 회원에게 전달됩니다
+							</span>
+						</p>
+						<textarea className="ml-input" rows={3} style={{ resize: 'none' }}
+							placeholder="이번 주 운동 방향을 작성해주세요..."
+							value={content} onChange={e => setContent(e.target.value)} required />
+					</div>
+
+					{/* ② 요일 선택 */}
 					<div>
 						<p className="ml-card-label">
 							요일 선택
-							<span className="font-normal normal-case ml-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
+							<span className="font-normal normal-case ml-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
 								· 중복 선택 가능
 							</span>
 						</p>
 						<div className="flex gap-2 flex-wrap">
 							{ALL_DAYS.map(day => {
-								const isSelected = days.includes(day)
+								const isSelected = selectedDays.includes(day)
 								return (
 									<button key={day} type="button" onClick={() => toggleDay(day)}
 										className="text-xs font-semibold rounded-lg px-3 py-2 transition-all"
@@ -218,144 +257,44 @@ export default function NoteSlideModal({ memberId, editTarget, onClose, onSaved 
 						</div>
 					</div>
 
-					{/* ② 수업 강도 */}
-					<div>
-						<p className="ml-card-label">
-							수업 강도
-							<span className="font-normal normal-case ml-1" style={{ color: 'rgba(255,255,255,0.3)' }}>
-								· 회원의 운동 강도를 선택해주세요
-							</span>
-						</p>
-						<div className="flex gap-2">
-							{(['recovery', 'normal', 'high'] as Intensity[]).map(i => (
-								<button key={i} type="button" onClick={() => setIntensity(i)}
-									className="flex-1 text-xs font-semibold rounded-xl py-2.5 transition-all"
-									style={{
-										border: '1px solid',
-										...(intensity === i
-											? INTENSITY_STYLE[i]
-											: { borderColor: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.3)', backgroundColor: '#1a2740' })
-									}}>
-									{INTENSITY_LABELS[i]}
-								</button>
-							))}
-						</div>
+					{/* ③ 요일별 추천 운동 */}
+					<div className="flex flex-col gap-3">
+						<p className="ml-card-label m-0">요일별 추천 운동</p>
+						{activeDays.map(day => (
+							<DaySection
+								key={day}
+								day={day}
+								items={dayWorkouts[day] ?? null}
+								previousItems={getPreviousItems(day)}
+								onUpdate={items => setDayWorkouts(dw => ({ ...dw, [day]: items }))}
+								onAddWorkout={() =>
+									setDayWorkouts(dw => ({ ...dw, [day]: [...(dw[day] ?? []), newItem()] }))
+								}
+								onRemoveWorkout={localId =>
+									setDayWorkouts(dw => ({
+										...dw,
+										[day]: (dw[day] ?? []).filter(w => w.localId !== localId),
+									}))
+								}
+							/>
+						))}
 					</div>
 
-					{/* ③ 운동 방향 메모 */}
-					<div>
-						<p className="ml-card-label">
-							운동 방향 메모
-							<span className="font-normal normal-case ml-1" style={{ color: '#3DDBB5' }}>
-								— 회원에게 전달됩니다
-							</span>
-						</p>
-						<textarea
-							className="ml-input" rows={3} style={{ resize: 'vertical' }}
-							placeholder="이번 주 운동 방향을 작성해주세요..."
-							value={content}
-							onChange={e => setContent(e.target.value)}
-							required
-						/>
-					</div>
-
-					{/* ④ 추천할 운동 종류 */}
-					<div>
-						<p className="ml-card-label">
-							추천할 운동 종류
-							<span className="font-normal normal-case ml-1" style={{ color: 'rgba(255,255,255,0.3)' }}>
-								· 하나만 선택 (재클릭 시 해제)
-							</span>
-						</p>
-						<div className="grid grid-cols-3 gap-2">
-							{(Object.keys(WORKOUT_TYPE_LABELS) as WorkoutType[]).map(t => {
-								const isSelected = workoutType === t
-								const c = WORKOUT_COLORS[t]
-								return (
-									<button key={t} type="button"
-										onClick={() => setWorkoutType(prev => prev === t ? null : t)}
-										className="py-3 rounded-xl text-sm font-semibold transition-all flex flex-col items-center gap-1.5"
-										style={{
-											background: isSelected ? c.bg : '#1a2740',
-											border: `1px solid ${isSelected ? c.border : 'rgba(255,255,255,0.07)'}`,
-											color: isSelected ? c.text : 'rgba(255,255,255,0.35)',
-										}}>
-										<span className="text-lg">{WORKOUT_ICONS[t]}</span>
-										<span className="text-[11px]">{WORKOUT_TYPE_LABELS[t]}</span>
-									</button>
-								)
-							})}
-						</div>
-					</div>
-
-					{/* ⑤ 운동 예상 시간 + METs 자동 계산 */}
-					<div>
-						<p className="ml-card-label">운동 예상 시간</p>
-						<div className="flex gap-3 items-stretch">
-							{/* 시간 입력 */}
-							<div className="flex-1 relative">
-								<input
-									type="number" min={1} className="ml-input pr-10"
-									placeholder="30"
-									value={durationMin}
-									onChange={e => setDurationMin(e.target.value)}
-								/>
-								<span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none"
-									style={{ color: 'rgba(255,255,255,0.3)' }}>분</span>
-							</div>
-
-							{/* METs 결과 박스 */}
-							<div className="flex-none flex gap-2 items-center justify-center rounded-xl px-4"
-								style={{
-									width: 120,
-									background: calculatedMets ? 'rgba(61,219,181,0.07)' : '#1a2740',
-									transition: 'all 0.2s ease',
-								}}>
-								<p className="font-mono text-xl font-bold leading-none"
-									style={{ color: calculatedMets ? '#3DDBB5' : 'rgba(255,255,255,0.15)' }}>
-									{calculatedMets ?? '—'}
-								</p>
-								<p className="text-[10px] font-mono mt-1"
-									style={{ color: 'rgba(255,255,255,0.7)' }}>
-									METs
-								</p>
-							</div>
-						</div>
-
-						{/* 계산 근거 한 줄 */}
-						<p className="text-[11px] mt-2 font-mono"
-							style={{ color: 'rgba(255,255,255,0.5)' }}>
-							{workoutType && durationMin && Number(durationMin) > 0
-								? `${WORKOUT_TYPE_LABELS[workoutType]} ${WORKOUT_TYPE_METS[workoutType]} METs/h × ${durationMin}분 = ${calculatedMets} METs`
-								: '운동 종류 · 시간을 입력하면 자동 계산됩니다'}
-						</p>
-					</div>
-
-					{/* ⑥ 추천 운동 태그 */}
+					{/* ④ 추천 운동 태그 */}
 					<div>
 						<p className="ml-card-label">
 							추천 운동 태그
 							<span className="font-normal normal-case ml-1" style={{ color: 'rgba(255,255,255,0.3)' }}>
-								· 영상 추천 키워드로 사용됩니다
+								· 영상 추천 키워드
 							</span>
 						</p>
-
 						{tags.length > 0 ? (
 							<div className="flex flex-wrap gap-1.5 mb-3">
 								{tags.map(t => (
 									<span key={t} className="ml-tag">
 										{t}
-										<button type="button"
-											onClick={() => setTags(prev => prev.filter(x => x !== t))}
-											className="text-[20px] "
-											style={{
-												color: 'rgba(61,219,181,0.4)',
-												cursor: 'pointer',
-												marginLeft: 2,
-												lineHeight: 0,
-											}}>
-											×
-										</button>
+										<button type="button" onClick={() => setTags(p => p.filter(x => x !== t))}
+											style={{ color: 'rgba(61,219,181,0.4)', cursor: 'pointer', marginLeft: 2 }}>×</button>
 									</span>
 								))}
 							</div>
@@ -365,36 +304,34 @@ export default function NoteSlideModal({ memberId, editTarget, onClose, onSaved 
 								태그를 추가하면 영상 추천에 사용됩니다
 							</div>
 						)}
-
 						<p className="ml-card-label mb-2">기본 추천 태그</p>
 						<div className="flex flex-wrap gap-1.5 mb-3">
 							{DEFAULT_TAGS.map(t => {
-								const isSelected = tags.includes(t)
+								const isSel = tags.includes(t)
 								return (
-									<button key={t} type="button" onClick={() => toggleDefaultTag(t)}
+									<button key={t} type="button"
+										onClick={() => setTags(p => p.includes(t) ? p.filter(x => x !== t) : [...p, t])}
 										className="text-[11px] rounded-full px-3 py-1 transition-all"
 										style={{
-											background: isSelected ? 'rgba(61,219,181,0.12)' : '#1a2740',
-											border: `1px solid ${isSelected ? 'rgba(61,219,181,0.4)' : 'rgba(255,255,255,0.07)'}`,
-											color: isSelected ? '#3DDBB5' : 'rgba(255,255,255,0.4)',
+											background: isSel ? 'rgba(61,219,181,0.12)' : '#1a2740',
+											border: `1px solid ${isSel ? 'rgba(61,219,181,0.4)' : 'rgba(255,255,255,0.07)'}`,
+											color: isSel ? '#3DDBB5' : 'rgba(255,255,255,0.4)',
 										}}>
-										{isSelected ? '✓ ' : '+ '}{t}
+										{isSel ? '✓ ' : '+ '}{t}
 									</button>
 								)
 							})}
 						</div>
-
 						<div className="flex gap-2">
 							<input className="ml-input" placeholder="태그 직접 입력 후 Enter"
-								value={tagInput}
-								onChange={e => setTagInput(e.target.value)}
+								value={tagInput} onChange={e => setTagInput(e.target.value)}
 								onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag() } }}
 							/>
 							<button type="button" onClick={addTag} className="btn-ghost px-4 flex-none text-xs">추가</button>
 						</div>
 					</div>
 
-					{/* 저장 버튼 */}
+					{/* 저장 */}
 					<button type="submit" disabled={loading} className="btn-primary py-3.5 text-sm"
 						style={{ opacity: loading ? 0.5 : 1 }}>
 						{loading ? '저장 중...' : editTarget ? '수정 완료' : '알림장 저장'}

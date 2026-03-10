@@ -23,6 +23,7 @@ export default function NoteCard({ note, onEdit, onDelete, onSend, onUnsend }: P
 	const st = INTENSITY_STYLE[note.intensity]
 	const noteDays = note.days ?? ['전체'];
 
+
 	return (
 		<div
 			className="ml-card flex flex-col gap-3"
@@ -93,7 +94,7 @@ export default function NoteCard({ note, onEdit, onDelete, onSend, onUnsend }: P
 
 						))}
 					</div>
-					{note.recommended_workout_type && (
+					{/* {note.recommended_workout_type && (
 						<span className="font-medium"
 							style={{ color: 'rgba(255,255,255,0.6)' }}>
 							{WORKOUT_TYPE_LABELS[note.recommended_workout_type]}
@@ -104,7 +105,7 @@ export default function NoteCard({ note, onEdit, onDelete, onSend, onUnsend }: P
 							style={{ color: 'rgba(255,255,255,0.5)' }}>
 							{note.recommended_duration_min}분 추천
 						</span>
-					)}
+					)} */}
 
 				</div>
 			</div>

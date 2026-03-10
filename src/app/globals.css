@@ -223,7 +223,11 @@
 	}
 
 
-
+	.workout-row-item+.workout-row-item {
+		border-top: 1px dashed hsl(0 100% 100% / .1);
+		padding-top: 1rem;
+		margin-top: .5rem;
+	}
 
 
 }
