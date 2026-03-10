@@ -118,7 +118,7 @@ export default async function MemberHomePage({
 
 			{latestNote && (
 				<div className="ml-card">
-					<p className="ml-card-label">강사 알림장</p>
+					<p className="ml-card-label">알림장</p>
 					<div className="border-l-[3px] border-mint pl-3">
 						<p className="text-sm text-white leading-relaxed line-clamp-3">
 							{latestNote.content}

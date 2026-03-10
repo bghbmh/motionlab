@@ -70,30 +70,17 @@ export default async function NotesPage({
 									</span>
 								)}
 								{'·'}
-								{/* 요일 표시 */}
-								{noteDays.length > 0 && noteDays[0] !== '전체' && (
-									<div className="flex gap-1">
-										{noteDays.map((d: string) => (
-											<span
-												key={d}
-												className="font-medium"
-												style={{
-													width: '1.5em',
-													height: '1.5em',
-													display: 'flex',
-													alignItems: 'center',
-													justifyContent: 'center',
-													lineHeight: 1,
-													borderRadius: '9999px',
-													background: 'rgba(61, 219, 182, 0.16)',
-													color: 'rgba(61, 219, 182, 1)',
-												}}
-											>
-												{d === '전체' ? '매일' : d}
-											</span>
-										))}
-									</div>
-								)}
+								{/* 요일 배지 */}
+								<div className="day-list ">
+									{noteDays.map(d => (
+										<span
+											key={d}
+											className="day-list-item font-medium">
+											{d === '전체' ? '매일' : d}
+										</span>
+
+									))}
+								</div>
 								{note.recommended_workout_type && (
 									<span className="font-medium"
 										style={{ color: 'rgba(255,255,255,0.7)' }}>

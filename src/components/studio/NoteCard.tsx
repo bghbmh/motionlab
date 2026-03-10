@@ -34,21 +34,14 @@ export default function NoteCard({ note, onEdit, onDelete, onSend, onUnsend }: P
 					<span className="font-mono text-xs shrink-0" style={{ color: 'rgba(255,255,255,0.6)' }}>
 						{note.written_at}
 					</span>
-					{'·'}
-					{/* 요일 배지 */}
-					<div className="flex gap-1 flex-wrap">
-						{noteDays.map(d => (
-							<span key={d} className="text-[11px]  font-medium"
-								style={{ color: 'rgba(255,255,255,0.6)' }}>
-								{d === '전체' ? '매일' : d}
-							</span>
-						))}
-					</div>
-					{'·'}
+
 					{/* 전송됨 배지 */}
 					{note.is_sent && (
-						<span className="text-[11px] font-semibold"
-							style={{ color: '#3DDBB5' }}> ✓ 전송됨</span>
+						<>
+							{'·'}
+							<span className="text-[11px] font-semibold"
+								style={{ color: '#3DDBB5' }}> ✓ 전송됨</span>
+						</>
 					)}
 				</div>
 
@@ -88,7 +81,18 @@ export default function NoteCard({ note, onEdit, onDelete, onSend, onUnsend }: P
 							목표 {note.recommended_mets} METs
 						</span>
 					)}
-					/
+					{'·'}
+					{/* 요일 배지 */}
+					<div className="day-list ">
+						{noteDays.map(d => (
+							<span
+								key={d}
+								className="day-list-item font-medium">
+								{d === '전체' ? '매일' : d}
+							</span>
+
+						))}
+					</div>
 					{note.recommended_workout_type && (
 						<span className="font-medium"
 							style={{ color: 'rgba(255,255,255,0.6)' }}>

@@ -39,6 +39,28 @@
 		outline: none;
 		cursor: pointer;
 	}
+
+	.day-list {
+		display: flex;
+		flex-wrap: wrap;
+	}
+
+	.day-list-item {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		color: rgba(61, 219, 182, 1);
+		font-size: 0.75rem;
+		font-weight: 500;
+	}
+
+	.day-list-item+.day-list-item::before {
+		content: '/';
+		line-height: 1;
+		font-size: 0.5rem;
+		padding: 0 0.25rem;
+		opacity: 0.5;
+	}
 }
 
 /* ── 컴포넌트 유틸리티 (@apply 대신 직접 CSS 작성) ── */
@@ -199,4 +221,9 @@
 		border: 1px solid rgba(61, 219, 181, 0.2);
 		color: rgb(61, 219, 181);
 	}
+
+
+
+
+
 }
