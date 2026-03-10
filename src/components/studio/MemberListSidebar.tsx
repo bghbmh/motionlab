@@ -78,10 +78,10 @@ export default function MemberListSidebar({ members }: { members: MemberSummary[
 									{ACTIVITY_STATUS_LABELS[status]}
 								</span>
 							</div>
-							<p className="text-xs text-white/30 font-mono mt-1">
+							<p className="text-xs text-white/50 font-mono mt-1">
 								이번 주 {weekLogs.length}일 · METs {avgMets.toFixed(1)}
 							</p>
-							<p className="text-xs text-white/20 font-mono mt-0.5">
+							<p className="text-xs text-white/50 font-mono mt-0.5">
 								주 {m.sessions_per_week}회 수업
 							</p>
 						</button>

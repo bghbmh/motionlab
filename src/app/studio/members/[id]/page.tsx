@@ -8,7 +8,9 @@ import {
 	type WorkoutLog,
 } from '@/types/database'
 import CopyLinkButton from '@/components/studio/CopyLinkButton'
-import EditMemberButton from '@/components/studio/EditMemberButton'
+import EditMemberButton from '@/components/studio/EditMemberButton';
+import WeeklyWorkoutDetail from '@/components/studio/WeeklyWorkoutDetail';
+
 
 function getWeekStart() {
 	const d = new Date()
@@ -47,16 +49,27 @@ export default async function MemberDetailPage({
 		.eq('id', id)
 		.single()
 
-	if (!member) notFound()
+	if (!member) notFound();
+
+	const baseDate = member.registered_at;
+
+	// 이 기준일로부터의 로그만 미리 필터링해서 넘겨주면 더 좋음
+	const relevantLogs = (member.workout_logs || []).filter((l: any) => {
+		// 대략 기준일 전후 데이터를 적절히 넘김 (여유있게 전체를 넘겨도 무방)
+		return true
+	})
+
+	console.log("member - ", member, baseDate)
 
 	const weekStart = getWeekStart()
 	const weekLogs: WorkoutLog[] = (member.workout_logs ?? []).filter(
 		(l: WorkoutLog) => l.logged_at >= weekStart
 	)
-	const avgMets = weekLogs.length
-		? weekLogs.reduce((s: number, l: WorkoutLog) => s + l.mets_score, 0) / weekLogs.length
-		: 0
-	const status = getActivityStatus(avgMets)
+	const totalMets = weekLogs.length
+		? weekLogs.reduce((s: number, l: WorkoutLog) => s + l.mets_score, 0)
+		: 0;
+
+	const status = getActivityStatus(totalMets)
 
 	const weekDays = Array.from({ length: 7 }, (_, i) => {
 		const d = new Date(weekStart)
@@ -125,10 +138,6 @@ export default async function MemberDetailPage({
 					<div className="col-span-1 ml-card flex flex-col">
 						<div className="flex justify-between items-center mb-3">
 							<p className="ml-card-label flex-none m-0">이번 주 홈트 기록</p>
-							<p className="text-xs font-mono" style={{ color: 'rgba(255,255,255,0.3)' }}>
-								활동일{' '}
-								<span style={{ color: '#3DDBB5' }}>{weekLogs.length}</span>일
-							</p>
 						</div>
 
 						<div className="flex flex-col flex-1 gap-1.5">
@@ -152,13 +161,6 @@ export default async function MemberDetailPage({
 								</div>
 							))}
 						</div>
-
-						<p className="text-xs font-mono mt-3" style={{ color: 'rgba(255,255,255,0.3)' }}>
-							평균 METs{' '}
-							<span style={{ color: avgMets < 2 ? '#FF6B5B' : '#3DDBB5' }}>
-								{avgMets.toFixed(1)}
-							</span>
-						</p>
 					</div>
 
 					{/* 인바디 최근 */}
@@ -197,29 +199,39 @@ export default async function MemberDetailPage({
 				</div>
 
 				{/* 이번 주 상세 로그 */}
-				<div className="ml-card">
+				<WeeklyWorkoutDetail
+					registeredAt={baseDate}
+					inbodyDates={[baseDate]}
+					workoutLogs={member.workout_logs || []}
+				/>
+				{/* <div className="ml-card">
 					<div className="flex justify-between items-center mb-3">
+
+
 						<p className="ml-card-label flex-none m-0">이번 주 홈트 상세</p>
 						<p className="text-xs font-mono" style={{ color: 'rgba(255,255,255,0.3)' }}>
-							평균 METs{' '}
-							<span style={{ color: avgMets < 2 ? '#FF6B5B' : '#3DDBB5' }}>
-								{avgMets.toFixed(1)}
+							총 METs{' '}
+							<span style={{ color: totalMets < 2 ? '#FF6B5B' : '#3DDBB5' }}>
+								{totalMets.toFixed(1)}
 							</span>
 							{' '}· 활동일 {weekLogs.length}일
 						</p>
 					</div>
 					<div className="flex flex-col" style={{ gap: 0 }}>
 						{weekDays.map(({ day }, i) => {
-							const d = new Date(weekStart)
-							d.setDate(d.getDate() + i)
-							const iso = d.toISOString().split('T')[0]
-							const log = weekLogs.find((l: WorkoutLog) => l.logged_at === iso)
+							const d = new Date(weekStart);
+							d.setDate(d.getDate() + i);
+							const iso = d.toISOString().split('T')[0];
+							const log = weekLogs.find((l: WorkoutLog) => l.logged_at === iso);
+							const [y, m, dd] = log?.logged_at.split('-') ?? ['--', '--', '--'];
+							console.log("asss - ", d)
 							return (
 								<div key={day} className="flex justify-between py-2 text-sm"
 									style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-									<span className="font-mono w-6" style={{ color: 'rgba(255,255,255,0.3)' }}>
-										{day}
-									</span>
+									<div className="flex gap-2 items-center font-mono w-[70px]">
+										<span style={{ color: 'rgba(255,255,255,0.7)' }}>{day}</span>
+										<small style={{ color: 'rgba(255,255,255,0.5)' }}>{d.getMonth() + 1}/{d.getDate()}</small>
+									</div>
 									<span className="flex-1"
 										style={{ color: log ? '#F0F4FF' : 'rgba(255,255,255,0.2)' }}>
 										{log ? `${WORKOUT_TYPE_LABELS[log.workout_type]} ${log.duration_min}분` : '기록 없음'}
@@ -232,7 +244,7 @@ export default async function MemberDetailPage({
 							)
 						})}
 					</div>
-				</div>
+				</div> */}
 			</div>
 
 			{/* Right: 최근 전송된 알림장 */}
@@ -283,6 +295,6 @@ export default async function MemberDetailPage({
 					알림장 목록
 				</Link>
 			</div>
-		</div>
+		</div >
 	)
 }
