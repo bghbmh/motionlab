@@ -46,8 +46,9 @@ export default function CopyLinkButton({ accessToken }: Props) {
 			className="btn-ghost flex items-center gap-1.5 text-xs transition-all"
 			style={{
 				background: copied ? 'rgba(61,219,181,0.15)' : 'rgba(255,255,255,0.04)',
-				border: copied ? '1px solid rgba(61,219,181,0.4)' : '1px solid rgba(255,255,255,0.1)',
+				// border: copied ? '1px solid rgba(61,219,181,0.4)' : '1px solid rgba(255,255,255,0.1)',
 				color: copied ? '#3DDBB5' : 'rgba(255,255,255,0.5)',
+				border: 'none'
 			}}
 		>
 			{copied ? (

@@ -8,7 +8,7 @@ import {
 	type WorkoutLog,
 } from '@/types/database'
 import CopyLinkButton from '@/components/studio/CopyLinkButton'
-import DeleteMemberButton from '@/components/studio/DeleteMemberButton'
+import EditMemberButton from '@/components/studio/EditMemberButton'
 
 function getWeekStart() {
 	const d = new Date()
@@ -90,7 +90,14 @@ export default async function MemberDetailPage({
 						<span className="text-xs font-mono" style={{ color: 'rgba(255,255,255,0.3)' }}>
 							등록 {member.registered_at} · 주 {member.sessions_per_week}회
 						</span>
-						<DeleteMemberButton memberId={member.id} memberName={member.name} />
+						<EditMemberButton
+							memberId={member.id}
+							memberName={member.name}
+							memberPhone={member.phone}
+							memberBirthDate={member.birth_date}
+							memberSessionsPerWeek={member.sessions_per_week}
+							memberMemo={member.memo}
+						/>
 					</div>
 
 					{/* 하단: 이름 + 배지 + 액션 버튼 */}
@@ -105,7 +112,7 @@ export default async function MemberDetailPage({
 								알림장 목록
 							</Link>
 							<Link href={`/studio/members/${id}/inbody/new`} className="btn-ghost text-xs py-2 px-4">
-								인바디 입력
+								인바디 기록보기
 							</Link>
 						</div>
 					</div>

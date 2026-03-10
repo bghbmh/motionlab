@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
@@ -109,6 +109,14 @@ function RecordModal({
 		onSaved()
 	}
 
+	// METs 자동 계산 (운동 종류 기준 METs/h × 시간/60), 60으로 나누는건 안함
+	const calculatedMets = useMemo<number | null>(() => {
+		if (!form.workout_type || !form.duration || Number(form.duration) <= 0) return null
+		const base = WORKOUT_TYPE_METS[form.workout_type]           // METs per hour
+		//return Math.round(base * (Number(form.duration) / 60) * 100) / 100
+		return Math.round(base * Number(form.duration) * 100) / 100
+	}, [form.workout_type, form.duration])
+
 	return (
 		<div
 			className="fixed inset-0 z-50 flex items-end justify-center"
@@ -186,7 +194,7 @@ function RecordModal({
 						</div>
 
 						{/* METs + 시간 가로 배치 */}
-						<div className="grid grid-cols-3 gap-3">
+						<div className="grid grid-cols-3 gap-1 gap-x-3">
 							<div className='col-span-2'>
 								<p className="ml-card-label">운동 시간 (분)</p>
 								<input
@@ -198,7 +206,7 @@ function RecordModal({
 									required
 								/>
 							</div>
-							<div>
+							<div className='col-span-1'>
 								<p className="ml-card-label">METs 점수</p>
 								{/* <input
 									className="ml-input"
@@ -210,20 +218,19 @@ function RecordModal({
 									required
 								/> */}
 								<div className="ml-input border-transparent">
-									{WORKOUT_TYPE_METS[form.workout_type].toFixed(1)}
+									{calculatedMets ?? '—'}
 								</div>
+							</div>
+
+							{/* 참고 METs */}
+							<div
+								className="text-[11px] col-span-3"
+								style={{ color: 'rgba(255,255,255,0.5) ' }}
+							>참고 · 스트레칭 2.5 / 근력운동 5.0 / 유산소 6.0 / 필라테스 4.0 / 요가 3.0 / 기타 3.5
 							</div>
 						</div>
 
-						{/* 참고 METs */}
-						<div
-							className="rounded-xl px-3 py-2"
-							style={{ background: '#1a2740', border: '1px solid rgba(255,255,255,0.05)' }}
-						>
-							<p className="text-[10px] font-mono leading-relaxed" style={{ color: 'rgba(255,255,255,0.25)' }}>
-								참고 · 스트레칭 2.5 / 걷기 3.5 / 필라테스 4.0 / 근력운동 5.0 / 달리기 8.0
-							</p>
-						</div>
+
 
 						{/* 컨디션 메모 */}
 						<div>
@@ -246,8 +253,8 @@ function RecordModal({
 						</button>
 					</form>
 				</div>
-			</div>
-		</div>
+			</div >
+		</div >
 	)
 }
 

@@ -1,5 +1,5 @@
 import type { Note } from '@/types/database'
-import { INTENSITY_LABELS } from '@/types/database'
+import { INTENSITY_LABELS, WORKOUT_TYPE_LABELS, WORKOUT_TYPE_METS } from '@/types/database'
 
 const INTENSITY_STYLE: Record<string, { color: string; bg: string; border: string }> = {
 	recovery: { color: '#FFB347', bg: 'rgba(255,179,71,0.1)', border: 'rgba(255,179,71,0.3)' },
@@ -21,7 +21,7 @@ interface Props {
 
 export default function NoteCard({ note, onEdit, onDelete, onSend, onUnsend }: Props) {
 	const st = INTENSITY_STYLE[note.intensity]
-	const noteDays = note.days ?? ['전체']
+	const noteDays = note.days ?? ['전체'];
 
 	return (
 		<div
@@ -81,6 +81,28 @@ export default function NoteCard({ note, onEdit, onDelete, onSend, onUnsend }: P
 				<p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.72)' }}>
 					{note.content}
 				</p>
+				<div className="flex gap-2 text-[12px] mt-2">
+					{note.recommended_mets && (
+						<span className=" font-mono"
+							style={{ color: 'rgba(255,255,255,0.5)' }}>
+							목표 {note.recommended_mets} METs
+						</span>
+					)}
+					/
+					{note.recommended_workout_type && (
+						<span className="font-medium"
+							style={{ color: 'rgba(255,255,255,0.6)' }}>
+							{WORKOUT_TYPE_LABELS[note.recommended_workout_type]}
+						</span>
+					)}
+					{note.recommended_duration_min && (
+						<span className=" font-mono"
+							style={{ color: 'rgba(255,255,255,0.5)' }}>
+							{note.recommended_duration_min}분 추천
+						</span>
+					)}
+
+				</div>
 			</div>
 
 			{/* 태그 */}

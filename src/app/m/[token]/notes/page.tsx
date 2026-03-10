@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { WORKOUT_TYPE_LABELS, WorkoutType } from '@/types/database'
 
 export default async function NotesPage({
 	params,
@@ -36,6 +37,7 @@ export default async function NotesPage({
 		high: { color: '#FF6B5B', backgroundColor: 'rgba(255,107,91,0.1)', border: '1px solid rgba(255,107,91,0.3)' },
 	}
 
+
 	return (
 		<div className="p-4 flex flex-col gap-4">
 			<h2 className="text-base font-bold text-white pt-1">알림장</h2>
@@ -50,24 +52,7 @@ export default async function NotesPage({
 								<span className="font-mono text-xs font-medium" style={{ color: '#3DDBB5' }}>
 									{note.written_at}
 								</span>
-								{/* 요일 표시 */}
-								{noteDays.length > 0 && noteDays[0] !== '전체' && (
-									<div className="flex gap-1">
-										{noteDays.map((d: string) => (
-											<span
-												key={d}
-												className="text-[10px] px-1.5 py-0.5 rounded font-medium"
-												style={{
-													background: 'rgba(61,219,181,0.08)',
-													color: 'rgba(61,219,181,0.7)',
-													border: '1px solid rgba(61,219,181,0.15)',
-												}}
-											>
-												{d}
-											</span>
-										))}
-									</div>
-								)}
+
 							</div>
 							<span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
 								style={intensityStyle[note.intensity]}>
@@ -77,6 +62,52 @@ export default async function NotesPage({
 
 						<div style={{ borderLeft: '3px solid #3DDBB5', paddingLeft: '0.75rem' }}>
 							<p className="text-sm text-white leading-relaxed">{note.content}</p>
+							<div className="flex gap-2 text-[12px] mt-2">
+								{note.recommended_mets && (
+									<span className=" font-mono"
+										style={{ color: 'rgba(255,255,255,0.7)' }}>
+										목표 {note.recommended_mets} METs
+									</span>
+								)}
+								{'·'}
+								{/* 요일 표시 */}
+								{noteDays.length > 0 && noteDays[0] !== '전체' && (
+									<div className="flex gap-1">
+										{noteDays.map((d: string) => (
+											<span
+												key={d}
+												className="font-medium"
+												style={{
+													width: '1.5em',
+													height: '1.5em',
+													display: 'flex',
+													alignItems: 'center',
+													justifyContent: 'center',
+													lineHeight: 1,
+													borderRadius: '9999px',
+													background: 'rgba(61, 219, 182, 0.16)',
+													color: 'rgba(61, 219, 182, 1)',
+												}}
+											>
+												{d === '전체' ? '매일' : d}
+											</span>
+										))}
+									</div>
+								)}
+								{note.recommended_workout_type && (
+									<span className="font-medium"
+										style={{ color: 'rgba(255,255,255,0.7)' }}>
+										{WORKOUT_TYPE_LABELS[note.recommended_workout_type as WorkoutType]}
+									</span>
+								)}
+								{note.recommended_duration_min && (
+									<span className=" font-mono"
+										style={{ color: 'rgba(255,255,255,0.7)' }}>
+										{note.recommended_duration_min}분 추천
+									</span>
+								)}
+
+							</div>
 						</div>
 
 						{note.note_tags && note.note_tags.length > 0 && (
