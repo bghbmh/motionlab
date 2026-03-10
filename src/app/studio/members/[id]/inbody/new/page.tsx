@@ -130,14 +130,14 @@ export default function NewInbodyPage() {
 
 						</div>
 
-						<p className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs leading-relaxed" >
+						<div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs leading-relaxed" >
 							<dl className='flex items-center gap-1 justify-between'><dt className='opacity-50'>체중</dt><dd>58.4kg</dd></dl>
 							<dl className='flex items-center gap-1 justify-between'><dt className='opacity-50'>근육량</dt><dd>21.2kg</dd></dl>
 							<dl className='flex items-center gap-1 justify-between'><dt className='opacity-50'>체지방률</dt><dd>28.1%</dd></dl>
 							<dl className='flex items-center gap-1 justify-between'><dt className='opacity-50'>체지방량</dt><dd>16.4kg</dd></dl>
 							<dl className='flex items-center gap-1 justify-between'><dt className='opacity-50'>BMI</dt><dd>22.1</dd></dl>
 							<dl className='flex items-center gap-1 justify-between'><dt className='opacity-50'>내장지방</dt><dd>10</dd></dl>
-						</p>
+						</div>
 					</div>
 				))}
 

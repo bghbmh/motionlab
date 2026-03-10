@@ -8,6 +8,7 @@ import {
 	type WorkoutLog,
 } from '@/types/database'
 import CopyLinkButton from '@/components/studio/CopyLinkButton'
+import DeleteMemberButton from '@/components/studio/DeleteMemberButton'
 
 function getWeekStart() {
 	const d = new Date()
@@ -39,7 +40,7 @@ export default async function MemberDetailPage({
         id, logged_at, workout_type, duration_min, mets_score, condition_memo
       ),
       notes (
-        id, content, intensity, written_at,
+        id, content, intensity, written_at, is_sent,
         note_tags ( tag )
       )
     `)
@@ -68,12 +69,11 @@ export default async function MemberDetailPage({
 	const maxMets = Math.max(...weekDays.map(d => d.mets), 0.1)
 
 	const latestInbody = member.inbody_records
-		?.sort((a: any, b: any) => b.measured_at.localeCompare(a.measured_at))[0];
-
-	console.log('latestInbody', member, latestInbody)
+		?.sort((a: any, b: any) => b.measured_at.localeCompare(a.measured_at))[0]
 
 	const recentNotes = member.notes
-		?.sort((a: any, b: any) => b.written_at.localeCompare(a.written_at))
+		?.filter((n: any) => n.is_sent)
+		.sort((a: any, b: any) => b.written_at.localeCompare(a.written_at))
 		.slice(0, 3)
 
 	const badgeClass = { low: 'badge-low', good: 'badge-good', high: 'badge-high' }[status]
@@ -84,26 +84,30 @@ export default async function MemberDetailPage({
 			<div className="flex-1 flex flex-col gap-4">
 
 				{/* 회원 헤더 */}
-				<div className="ml-card flex justify-between items-center">
-					<div className="flex items-center gap-3 flex-wrap">
-						<h1 className="text-lg font-bold text-white">{member.name}</h1>
-						<span className={badgeClass}>{ACTIVITY_STATUS_LABELS[status]}</span>
+				<div className="ml-card flex flex-col gap-3">
+					{/* 상단: 등록일 + 삭제 버튼 */}
+					<div className="flex justify-between items-center">
 						<span className="text-xs font-mono" style={{ color: 'rgba(255,255,255,0.3)' }}>
 							등록 {member.registered_at} · 주 {member.sessions_per_week}회
 						</span>
+						<DeleteMemberButton memberId={member.id} memberName={member.name} />
 					</div>
 
-					{/* 액션 버튼 그룹 */}
-					<div className="flex items-center gap-2 shrink-0">
-						{/* 회원앱 링크 복사 */}
-						<CopyLinkButton accessToken={member.access_token} />
-
-						<Link href={`/studio/members/${id}/notes/new`} className="btn-primary text-xs py-2 px-4">
-							알림장 목록
-						</Link>
-						<Link href={`/studio/members/${id}/inbody/new`} className="btn-ghost text-xs py-2 px-4">
-							인바디 입력
-						</Link>
+					{/* 하단: 이름 + 배지 + 액션 버튼 */}
+					<div className="flex justify-between items-center flex-wrap gap-2">
+						<div className="flex items-center gap-3">
+							<h1 className="text-lg font-bold text-white">{member.name}</h1>
+							<span className={badgeClass}>{ACTIVITY_STATUS_LABELS[status]}</span>
+						</div>
+						<div className="flex items-center gap-2 shrink-0">
+							<CopyLinkButton accessToken={member.access_token} />
+							<Link href={`/studio/members/${id}/notes`} className="btn-primary text-xs py-2 px-4">
+								알림장 목록
+							</Link>
+							<Link href={`/studio/members/${id}/inbody/new`} className="btn-ghost text-xs py-2 px-4">
+								인바디 입력
+							</Link>
+						</div>
 					</div>
 				</div>
 
@@ -206,8 +210,7 @@ export default async function MemberDetailPage({
 							return (
 								<div key={day} className="flex justify-between py-2 text-sm"
 									style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-									<span className="font-mono w-6"
-										style={{ color: 'rgba(255,255,255,0.3)' }}>
+									<span className="font-mono w-6" style={{ color: 'rgba(255,255,255,0.3)' }}>
 										{day}
 									</span>
 									<span className="flex-1"
@@ -225,14 +228,20 @@ export default async function MemberDetailPage({
 				</div>
 			</div>
 
-			{/* Right: 이전 알림장 */}
+			{/* Right: 최근 전송된 알림장 */}
 			<div className="flex flex-col gap-3" style={{ width: 224, flexShrink: 0 }}>
-				<p className="ml-card-label m-0" style={{ paddingLeft: 4 }}>최근 알림장</p>
+				<p className="ml-card-label m-0" style={{ paddingLeft: 4 }}>최근 전송 알림장</p>
 				{recentNotes?.length > 0 ? recentNotes.map((note: any) => (
-					<div key={note.id} className="ml-card">
-						<p className="font-mono text-xs mb-2" style={{ color: '#3DDBB5' }}>
-							{note.written_at}
-						</p>
+					<div key={note.id} className="ml-card" style={{ borderColor: 'rgba(61,219,181,0.18)' }}>
+						<div className="flex items-center gap-1.5 mb-2">
+							<p className="font-mono text-xs" style={{ color: '#3DDBB5' }}>
+								{note.written_at}
+							</p>
+							<span className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold"
+								style={{ background: 'rgba(61,219,181,0.1)', color: '#3DDBB5', border: '1px solid rgba(61,219,181,0.2)' }}>
+								전송됨
+							</span>
+						</div>
 						<p className="text-xs leading-relaxed" style={{
 							color: 'rgba(255,255,255,0.6)',
 							display: '-webkit-box',
@@ -259,10 +268,10 @@ export default async function MemberDetailPage({
 					</div>
 				)) : (
 					<p className="text-xs pl-1" style={{ color: 'rgba(255,255,255,0.3)' }}>
-						작성된 알림장이 없습니다.
+						전송된 알림장이 없습니다.
 					</p>
 				)}
-				<Link href={`/studio/members/${id}/notes/new`}
+				<Link href={`/studio/members/${id}/notes`}
 					className="btn-primary text-center text-xs py-2.5 mt-1">
 					알림장 목록
 				</Link>

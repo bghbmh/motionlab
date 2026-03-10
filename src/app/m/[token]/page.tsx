@@ -36,10 +36,12 @@ export default async function MemberHomePage({
 		.gte('logged_at', weekStart)
 		.order('logged_at')
 
+	// 전송된 알림장 중 가장 최근 1개만 홈에 표시
 	const { data: latestNote } = await supabase
 		.from('notes')
 		.select('id, content, written_at, note_tags(tag)')
 		.eq('member_id', member.id)
+		.eq('is_sent', true)
 		.order('written_at', { ascending: false })
 		.limit(1)
 		.single()
@@ -112,23 +114,7 @@ export default async function MemberHomePage({
 						</div>
 					))}
 				</div>
-				{/* <p className="text-xs text-white/30 font-mono mt-2">
-					오늘 <span className="text-mint">{avgMets.toFixed(1)} METs</span>
-				</p> */}
 			</div>
-
-			{/* <div className="ml-card">
-				<div className="flex items-center justify-between gap-2 mb-3">
-					<p className="ml-card-label m-0">기대치_test</p>
-					<p className="text-xs text-white/30 font-mono mt-2">
-						<span className="text-mint">{avgMets.toFixed(1)} METs</span>
-					</p>
-				</div>
-
-				<div className="flex items-end gap-1.5 h-14">
-					운동 후 기대되는 METs 점수는 <span className="text-mint">{avgMets.toFixed(1)} METs</span>입니다.
-				</div>
-			</div> */}
 
 			{latestNote && (
 				<div className="ml-card">

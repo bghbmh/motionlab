@@ -89,6 +89,8 @@ export interface Note {
 	content: string
 	intensity: Intensity
 	written_at: string              // 'YYYY-MM-DD'
+	is_sent: boolean                // 회원에게 전송 여부 (default: false)
+	days: string[]                  // 선택된 요일 ['전체'] or ['월','화','수'...]
 	created_at: string
 	// join
 	note_tags?: NoteTag[]
