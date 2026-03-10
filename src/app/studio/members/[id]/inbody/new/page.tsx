@@ -55,7 +55,7 @@ export default function NewInbodyPage() {
 	}
 
 	return (
-		<div className="flex gap-5" style={{ maxWidth: 720 }}>
+		<div className="flex gap-5" >
 			<form onSubmit={handleSubmit} className="flex-1 flex flex-col gap-4">
 
 				<div className="ml-card">
@@ -111,6 +111,40 @@ export default function NewInbodyPage() {
 					</button>
 				</div>
 			</form>
-		</div>
+
+			{/* Right: 이전 알림장 */}
+			<div className="flex flex-col gap-3" style={{ width: 224, flexShrink: 0 }}>
+				<p className="ml-card-label m-0" style={{ paddingLeft: 4 }}>인바디 기록</p>
+				{Array.from({ length: 3 }).map((_, i) => (
+					<div key={i} className="ml-card">
+						<div className='flex items-center justify-between gap-1 mb-2'>
+							<p className="ml-card-label m-0" style={{ color: '#3DDBB5' }}>2026.03.09</p>
+							<div className='flex gap-1'>
+								<button className="btn-ghost text-xs py-1.5 px-3"  >
+									수정
+								</button>
+								<button className="btn-ghost text-xs py-1.5 px-3"  >
+									삭제
+								</button>
+							</div>
+
+						</div>
+
+						<p className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs leading-relaxed" >
+							<dl className='flex items-center gap-1 justify-between'><dt className='opacity-50'>체중</dt><dd>58.4kg</dd></dl>
+							<dl className='flex items-center gap-1 justify-between'><dt className='opacity-50'>근육량</dt><dd>21.2kg</dd></dl>
+							<dl className='flex items-center gap-1 justify-between'><dt className='opacity-50'>체지방률</dt><dd>28.1%</dd></dl>
+							<dl className='flex items-center gap-1 justify-between'><dt className='opacity-50'>체지방량</dt><dd>16.4kg</dd></dl>
+							<dl className='flex items-center gap-1 justify-between'><dt className='opacity-50'>BMI</dt><dd>22.1</dd></dl>
+							<dl className='flex items-center gap-1 justify-between'><dt className='opacity-50'>내장지방</dt><dd>10</dd></dl>
+						</p>
+					</div>
+				))}
+
+				<p className="text-xs pl-1" style={{ color: 'rgba(255,255,255,0.3)' }}>
+					인바디 기록이 없습니다.
+				</p>
+			</div >
+		</div >
 	)
 }
