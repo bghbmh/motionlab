@@ -99,7 +99,7 @@ export default async function MemberDetailPage({
 						<CopyLinkButton accessToken={member.access_token} />
 
 						<Link href={`/studio/members/${id}/notes/new`} className="btn-primary text-xs py-2 px-4">
-							알림장 작성
+							알림장 목록
 						</Link>
 						<Link href={`/studio/members/${id}/inbody/new`} className="btn-ghost text-xs py-2 px-4">
 							인바디 입력
@@ -264,7 +264,7 @@ export default async function MemberDetailPage({
 				)}
 				<Link href={`/studio/members/${id}/notes/new`}
 					className="btn-primary text-center text-xs py-2.5 mt-1">
-					알림장 작성
+					알림장 목록
 				</Link>
 			</div>
 		</div>
