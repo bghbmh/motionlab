@@ -66,7 +66,7 @@ export default async function NotesPage({
 
 								<span className=" font-mono"
 									style={{ color: 'rgba(255,255,255,0.7)' }}>
-									목표 {note.recommended_mets ? `(${note.recommended_mets})` : '-'} METs
+									목표 {note.recommended_mets ? note.recommended_mets : '-'} METs
 								</span>
 
 								{'·'}
