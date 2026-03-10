@@ -66,17 +66,60 @@ export default function NewNotePage() {
 
 	return (
 		<div className="flex gap-5">
-			{/* Left: 수업 강도 */}
-			<div style={{ width: 208, flexShrink: 0 }} className="flex flex-col gap-4">
-				<div className="ml-card">
-					<p className="ml-card-label">수업 강도 처방</p>
-					<div className="flex flex-col gap-2">
+			{/* Left: 회원 현황 */}
+			<div style={{ width: 208, flexShrink: 0 }} >
+				<div className="ml-card mb-3">
+					<p className="ml-card-label"> 회원이름 현황</p>
+					<dl className='flex items-center gap-1 justify-between text-xs '><dt className='opacity-50'>지난 주 활동일</dt><dd className='font-mono'>4 / 7일</dd></dl>
+					<hr className="my-4 border-t-1 border-dotted border-gray-400  opacity-50" />
+					<div className="flex flex-col gap-2 text-xs ">
+						<dl className='flex items-center gap-1 justify-between'><dt className='opacity-50'>이번 주 목표 METs</dt><dd className='font-mono'>420</dd></dl>
+
+						<dl className='flex items-center gap-1 justify-between'><dt className='opacity-50'>체중</dt><dd className='font-mono'>58.4kg</dd></dl>
+						<dl className='flex items-center gap-1 justify-between'><dt className='opacity-50'>근육량</dt><dd className='font-mono'>21.2kg</dd></dl>
+						<dl className='flex items-center gap-1 justify-between'><dt className='opacity-50'>체지방률</dt><dd className='font-mono'>28.1%</dd></dl>
+						<dl className='flex items-center gap-1 justify-between'><dt className='opacity-50'>체지방량</dt><dd className='font-mono'>16.4kg</dd></dl>
+						<dl className='flex items-center gap-1 justify-between'><dt className='opacity-50'>BMI</dt><dd className='font-mono'>22.1</dd></dl>
+						<dl className='flex items-center gap-1 justify-between'><dt className='opacity-50'>내장지방레벨</dt><dd className='font-mono'>10</dd></dl>
+
+					</div>
+				</div>
+				<button type="button" className="btn-primary text-center text-xs py-2.5 mt-1 w-full" >
+					알림장 추가
+				</button>
+			</div>
+
+
+			<div className='flex flex-col gap-4' style={{ flex: 1 }}>
+				{/* Right: 요일 선택 */}
+				<div>
+					<p className="ml-card-label">요일 선택 </p>
+
+					<div className="flex gap-2">
+						{['전체', '월', '화', '수', '목', '금', '토', '일'].map(i => (
+							<button
+								key={i}
+								type="button"
+								className="btn-ghost text-xs font-semibold transition-all">
+								{i}
+							</button>
+						))}
+					</div>
+				</div>
+
+				{/* Right: 수업 강도 */}
+				<div className="ml-card ">
+					<p className="ml-card-label">수업 강도 처방 <span className="font-normal normal-case ml-1" style={{ color: 'rgba(255,255,255,0.3)' }}>
+						· 회원의 운동 강도를 선택해주세요
+					</span></p>
+
+					<div className="flex gap-2">
 						{(['recovery', 'normal', 'high'] as Intensity[]).map(i => (
 							<button
 								key={i}
 								type="button"
 								onClick={() => setIntensity(i)}
-								className="py-2 rounded-xl text-sm font-semibold transition-all"
+								className="btn-ghost text-xs font-semibold transition-all"
 								style={{
 									border: '1px solid',
 									...(intensity === i
@@ -89,72 +132,105 @@ export default function NewNotePage() {
 							</button>
 						))}
 					</div>
+
 				</div>
+
+				{/* Right: 알림장 작성 */}
+				<form onSubmit={handleSubmit} className="flex-1 flex flex-col gap-4">
+					<div className="ml-card flex-1">
+						<p className="ml-card-label">
+							운동 방향 메모
+							<span className="font-normal normal-case ml-1" style={{ color: '#3DDBB5' }}>
+								— 회원에게 전달됩니다
+							</span>
+						</p>
+						<textarea
+							className="ml-input"
+							rows={6}
+							style={{ resize: 'none' }}
+							placeholder="이번 주 운동 방향을 작성해주세요..."
+							value={content}
+							onChange={e => setContent(e.target.value)}
+							required
+						/>
+					</div>
+
+					<div className="ml-card">
+						<p className="ml-card-label">
+							추천 운동 태그
+							<span className="font-normal normal-case ml-1" style={{ color: 'rgba(255,255,255,0.3)' }}>
+								· 영상 추천 키워드로 사용됩니다
+							</span>
+						</p>
+						<div className="flex flex-wrap gap-2 mb-3" style={{
+							minHeight: '2em',
+							padding: '2px 4px'
+						}}>
+							{tags.map(t => (
+								<span key={t} className="ml-tag">
+									{t}
+									<button type="button" onClick={() => removeTag(t)}
+										style={{ color: 'rgba(61,219,181,0.4)', cursor: 'pointer' }}>×</button>
+								</span>
+							))}
+							{tags.length === 0 && (
+								<div className="text-xs" style={{
+									flex: '1 1 100%',
+									textAlign: 'center',
+									color: 'rgba(255,255,255,0.5)',
+									backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 4,
+									padding: '0.5em 1em', minHeight: '2em'
+								}}>
+									태그를 추가하면 영상 추천에 사용됩니다
+								</div>
+							)}
+						</div>
+						<div className='mb-3 '>
+							<p className="ml-card-label">
+								기본 추천 태그 제공
+							</p>
+							<div className='flex gap-2 flex-wrap'>
+								<span className="ml-tag-default ">
+									<button type="button" >v</button>코어강화
+								</span>
+								<span className="ml-tag-default ">
+									<button type="button"  >v</button>스트레칭
+								</span>
+								<span className="ml-tag-default ">
+									<button type="button"  >v</button>초보자루틴
+								</span>
+								<span className="ml-tag-default ">
+									<button type="button"  >v</button>필라테스기초
+								</span>
+							</div>
+
+						</div>
+						<div className="flex gap-2">
+							<input
+								className="ml-input"
+								placeholder="태그 입력 후 Enter"
+								value={tagInput}
+								onChange={e => setTagInput(e.target.value)}
+								onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag() } }}
+							/>
+							<button type="button" onClick={addTag} className="btn-ghost px-4 flex-none">추가</button>
+						</div>
+
+					</div>
+
+					<div className="flex gap-3">
+						<button type="button" onClick={() => router.back()} className="btn-ghost flex-1 py-3">
+							취소
+						</button>
+						<button type="submit" disabled={loading} className="btn-primary py-3"
+							style={{ flex: 2, opacity: loading ? 0.5 : 1 }}>
+							{loading ? '저장 중...' : '저장'}
+						</button>
+					</div>
+				</form>
 			</div>
 
-			{/* Right: 알림장 작성 */}
-			<form onSubmit={handleSubmit} className="flex-1 flex flex-col gap-4">
-				<div className="ml-card flex-1">
-					<p className="ml-card-label">
-						운동 방향 메모
-						<span className="font-normal normal-case ml-1" style={{ color: '#3DDBB5' }}>
-							— 회원에게 전달됩니다
-						</span>
-					</p>
-					<textarea
-						className="ml-input"
-						rows={6}
-						style={{ resize: 'none' }}
-						placeholder="이번 주 운동 방향을 작성해주세요..."
-						value={content}
-						onChange={e => setContent(e.target.value)}
-						required
-					/>
-				</div>
 
-				<div className="ml-card">
-					<p className="ml-card-label">
-						추천 운동 태그
-						<span className="font-normal normal-case ml-1" style={{ color: 'rgba(255,255,255,0.3)' }}>
-							· 영상 추천 키워드로 사용됩니다
-						</span>
-					</p>
-					<div className="flex gap-2 mb-3">
-						<input
-							className="ml-input"
-							placeholder="태그 입력 후 Enter"
-							value={tagInput}
-							onChange={e => setTagInput(e.target.value)}
-							onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag() } }}
-						/>
-						<button type="button" onClick={addTag} className="btn-ghost px-4">추가</button>
-					</div>
-					<div className="flex flex-wrap gap-2">
-						{tags.map(t => (
-							<span key={t} className="ml-tag">
-								{t}
-								<button type="button" onClick={() => removeTag(t)}
-									style={{ color: 'rgba(61,219,181,0.4)', cursor: 'pointer' }}>×</button>
-							</span>
-						))}
-						{tags.length === 0 && (
-							<span className="text-xs" style={{ color: 'rgba(255,255,255,0.2)' }}>
-								태그를 추가하면 영상 추천에 사용됩니다
-							</span>
-						)}
-					</div>
-				</div>
-
-				<div className="flex gap-3">
-					<button type="button" onClick={() => router.back()} className="btn-ghost flex-1 py-3">
-						취소
-					</button>
-					<button type="submit" disabled={loading} className="btn-primary py-3"
-						style={{ flex: 2, opacity: loading ? 0.5 : 1 }}>
-						{loading ? '저장 중...' : '알림장 저장 및 전송'}
-					</button>
-				</div>
-			</form>
 		</div>
 	)
 }

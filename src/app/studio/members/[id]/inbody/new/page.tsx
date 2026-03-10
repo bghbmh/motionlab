@@ -118,7 +118,7 @@ export default function NewInbodyPage() {
 				{Array.from({ length: 3 }).map((_, i) => (
 					<div key={i} className="ml-card">
 						<div className='flex items-center justify-between gap-1 mb-2'>
-							<p className="ml-card-label m-0" style={{ color: '#3DDBB5' }}>2026.03.09</p>
+							<p className="ml-card-label m-0" style={{ color: '#3DDBB5' }}>26.03.09. 10:13</p>
 							<div className='flex gap-1'>
 								<button className="btn-ghost text-xs py-1.5 px-3"  >
 									수정

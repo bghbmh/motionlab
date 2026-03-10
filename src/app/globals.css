@@ -167,6 +167,19 @@
 		font-weight: 500;
 	}
 
+	.ml-tag-default {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		padding: 0.3125rem 0.75rem;
+		background-color: #1a2740;
+		border: 1px solid rgba(61, 219, 181, 0.05);
+		border-radius: 9999px;
+		font-size: 0.6875rem;
+		color: #dee9e7;
+		font-weight: 500;
+	}
+
 	/* 구분선 */
 	.ml-divider {
 		border: none;

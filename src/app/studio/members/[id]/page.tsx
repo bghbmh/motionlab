@@ -227,7 +227,7 @@ export default async function MemberDetailPage({
 
 			{/* Right: 이전 알림장 */}
 			<div className="flex flex-col gap-3" style={{ width: 224, flexShrink: 0 }}>
-				<p className="ml-card-label" style={{ paddingLeft: 4 }}>이전 알림장</p>
+				<p className="ml-card-label m-0" style={{ paddingLeft: 4 }}>최근 알림장</p>
 				{recentNotes?.length > 0 ? recentNotes.map((note: any) => (
 					<div key={note.id} className="ml-card">
 						<p className="font-mono text-xs mb-2" style={{ color: '#3DDBB5' }}>
