@@ -63,12 +63,12 @@ export default async function NotesPage({
 						<div style={{ borderLeft: '3px solid #3DDBB5', paddingLeft: '0.75rem' }}>
 							<p className="text-sm text-white leading-relaxed">{note.content}</p>
 							<div className="flex gap-2 text-[12px] mt-2">
-								{note.recommended_mets && (
-									<span className=" font-mono"
-										style={{ color: 'rgba(255,255,255,0.7)' }}>
-										목표 {note.recommended_mets} METs
-									</span>
-								)}
+
+								<span className=" font-mono"
+									style={{ color: 'rgba(255,255,255,0.7)' }}>
+									목표 {note.recommended_mets ? `(${note.recommended_mets})` : '-'} METs
+								</span>
+
 								{'·'}
 								{/* 요일 배지 */}
 								<div className="day-list ">
