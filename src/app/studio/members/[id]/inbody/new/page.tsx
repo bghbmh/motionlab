@@ -221,9 +221,9 @@ function InbodyCard({
 				</div>
 			</div>
 
-			<div className="grid grid-cols-3 gap-x-4 gap-y-1.5 text-xs">
+			<div className="grid grid-cols-6 gap-x-4 gap-y-1.5 text-xs">
 				{items.map(([label, val]) => (
-					<dl key={label} className="flex justify-between gap-1">
+					<dl key={label} className="">
 						<dt style={{ color: 'rgba(255,255,255,0.4)' }}>{label}</dt>
 						<dd className="font-mono text-white">{val}</dd>
 					</dl>
