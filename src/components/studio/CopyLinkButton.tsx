@@ -40,9 +40,10 @@ export default function CopyLinkButton({ accessToken }: Props) {
 
 	return (
 		<button
+			type='button'
 			onClick={handleCopy}
 			title="회원앱 접속 링크 복사"
-			className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all"
+			className="btn-ghost flex items-center gap-1.5 text-xs transition-all"
 			style={{
 				background: copied ? 'rgba(61,219,181,0.15)' : 'rgba(255,255,255,0.04)',
 				border: copied ? '1px solid rgba(61,219,181,0.4)' : '1px solid rgba(255,255,255,0.1)',

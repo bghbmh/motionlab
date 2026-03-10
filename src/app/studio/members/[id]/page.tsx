@@ -68,7 +68,9 @@ export default async function MemberDetailPage({
 	const maxMets = Math.max(...weekDays.map(d => d.mets), 0.1)
 
 	const latestInbody = member.inbody_records
-		?.sort((a: any, b: any) => b.measured_at.localeCompare(a.measured_at))[0]
+		?.sort((a: any, b: any) => b.measured_at.localeCompare(a.measured_at))[0];
+
+	console.log('latestInbody', member, latestInbody)
 
 	const recentNotes = member.notes
 		?.sort((a: any, b: any) => b.written_at.localeCompare(a.written_at))
