@@ -68,12 +68,12 @@ export default function WeeklyWorkoutDetail({ registeredAt, inbodyDates, workout
 						</div>
 						<div className="flex-1">
 							{log ? (
-								<div className="flex flex-col">
+								<div className="flex flex-col justify-center min-h-[37px]">
 									<span className="text-sm">{WORKOUT_TYPE_LABELS[log.workout_type]} {log.duration_min}분</span>
 									{log.condition_memo && <p className="text-[11px] text-white/40">{log.condition_memo}</p>}
 								</div>
 							) : (
-								<span className="text-xs text-white/10 italic">기록 없음</span>
+								<div className="text-xs text-white/50 flex flex-col justify-center min-h-[37px]">기록 없음</div>
 							)}
 						</div>
 						{log && <span className="text-xs font-mono text-[#3DDBB5]">{log.mets_score?.toFixed(1)} <small className="text-white/20">METs</small></span>}

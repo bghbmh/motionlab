@@ -24,11 +24,11 @@ export default function WeeklyBaseDatePicker({ registeredAt, inbodyDates, onBase
 	return (
 		<div className=" px-3 py-1 flex flex-col sm:flex-row sm:items-center gap-3 bg-white/5 rounded-md mb-3">
 			{/* 제목 및 현재 상태 (좌측 고정) */}
-			<div className="flex flex-col min-w-[100px] shrink-0">
-				<p className="text-[10px] font-bold text-white/50 uppercase tracking-tighter">기준일 </p>
-				<p className="text-[11px] text-[#3DDBB5] font-semibold truncate">
+			<div className="flex min-w-[100px] text-[11px] items-center gap-1 shrink-0">
+				<p className="text-[#3DDBB5] font-semibold truncate">
 					{mode === 'reg' ? '가입일' : mode === 'inbody' ? '인바디 측정일' : '사용자 지정'}
 				</p>
+				<p className=" font-bold text-white/50 uppercase tracking-tighter">기준 </p>
 			</div>
 
 			{/* 버튼 그룹 (가로 배치) */}
