@@ -60,7 +60,6 @@ export default async function MemberDetailPage({
 		return true
 	})
 
-	console.log("member - ", member, baseDate)
 
 	const weekStart = getWeekStart()
 	const weekLogs: WorkoutLog[] = (member.workout_logs ?? []).filter(

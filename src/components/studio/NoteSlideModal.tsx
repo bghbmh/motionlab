@@ -389,6 +389,14 @@ export default function NoteSlideModal({ memberId, editTarget, onClose, onSaved 
 							videos={videos}
 							onChange={setVideos}
 							defaultQuery={defaultVideoQuery}
+							suggestedWorkouts={
+								Object.values(dayWorkouts)
+									.flat()
+									.filter(w => w?.workout_type)
+									.map(w => WORKOUT_TYPE_LABELS[w.workout_type!])
+									.filter((v, i, a) => a.indexOf(v) === i)   // 중복 제거
+							}
+							suggestedTags={tags}
 						/>
 					</div>
 
