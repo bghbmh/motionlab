@@ -44,7 +44,7 @@ export default function NotesListClient({ id, initialMember, latestInbody, initi
 	const refreshData = async () => {
 		const supabase = createClient()
 		const { data } = await supabase.from('notes')
-			.select('*, note_tags(tag), note_workouts(id, day, workout_type, intensity, duration_min, mets, sort_order)')
+			.select('*, note_tags(tag), note_workouts(id, day, workout_type, intensity, duration_min, mets, sort_order), note_videos(id, video_id, youtube_url, title, thumbnail_url, source, sort_order)')
 			.eq('member_id', id)
 			.order('created_at', { ascending: false });
 		setNotes(data ?? [])

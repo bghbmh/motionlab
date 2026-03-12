@@ -2,14 +2,24 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import type { Intensity } from '@/types/database'
+import type { Intensity, NoteVideo } from '@/types/database'
+import { WORKOUT_TYPE_LABELS } from '@/types/database'
+import { getThumbnailUrl } from '@/lib/youtubeUtils'
 import {
 	type NoteWithTags, type WorkoutItem,
 	ALL_DAYS, WEEKDAYS, DEFAULT_TAGS,
 	calcMets, newItem, uid,
 } from './noteWorkoutTypes'
 import DaySection from './DaySection'
+import NoteVideoSelector from './NoteVideoSelector'
 
+export interface VideoItem {
+	videoId: string
+	title: string
+	thumbnailUrl: string
+	youtubeUrl: string
+	source: 'manual' | 'search'
+}
 
 interface Props {
 	memberId: string
@@ -25,8 +35,18 @@ export default function NoteSlideModal({ memberId, editTarget, onClose, onSaved 
 	const [tags, setTags] = useState<string[]>(editTarget?.note_tags?.map(t => t.tag) ?? [])
 	const [tagInput, setTagInput] = useState('')
 	const [loading, setLoading] = useState(false)
-
-
+	const [videos, setVideos] = useState<VideoItem[]>(() => {
+		if (!editTarget?.note_videos?.length) return []
+		return editTarget.note_videos
+			.sort((a, b) => a.sort_order - b.sort_order)
+			.map(v => ({
+				videoId: v.video_id,
+				title: v.title ?? '',
+				thumbnailUrl: v.thumbnail_url ?? getThumbnailUrl(v.video_id),
+				youtubeUrl: v.youtube_url,
+				source: (v.source ?? 'manual') as 'manual' | 'search',
+			}))
+	})
 
 
 	// 요일별 운동 목록
@@ -59,6 +79,17 @@ export default function NoteSlideModal({ memberId, editTarget, onClose, onSaved 
 		.filter(Boolean)
 		.reduce<number>((s, w) => s + (calcMets(w) ?? 0), 0)
 	const totalMetsDisplay = totalMets > 0 ? Math.round(totalMets * 100) / 100 : null
+
+
+	// 기본 검색어 — 태그 우선, 없으면 운동종류
+	const defaultVideoQuery = tags.length > 0
+		? tags.join(' ')
+		: Object.values(dayWorkouts)
+			.flat()
+			.filter(w => w?.workout_type)
+			.map(w => WORKOUT_TYPE_LABELS[w.workout_type!])
+			.filter((v, i, a) => a.indexOf(v) === i)
+			.join(' ')
 
 	useEffect(() => {
 		const t = requestAnimationFrame(() => setVisible(true))
@@ -131,6 +162,7 @@ export default function NoteSlideModal({ memberId, editTarget, onClose, onSaved 
 			noteId = editTarget.id
 			await supabase.from('note_tags').delete().eq('note_id', noteId)
 			await supabase.from('note_workouts').delete().eq('note_id', noteId)
+			await supabase.from('note_videos').delete().eq('note_id', noteId)
 		} else {
 			const { data: note, error } = await supabase
 				.from('notes')
@@ -148,6 +180,20 @@ export default function NoteSlideModal({ memberId, editTarget, onClose, onSaved 
 
 		if (tags.length > 0) {
 			await supabase.from('note_tags').insert(tags.map(tag => ({ note_id: noteId, tag })))
+		}
+
+		if (videos.length > 0) {
+			await supabase.from('note_videos').insert(
+				videos.map((v, idx) => ({
+					note_id: noteId,
+					video_id: v.videoId,
+					youtube_url: v.youtubeUrl,
+					title: v.title || null,
+					thumbnail_url: v.thumbnailUrl || null,
+					source: v.source,
+					sort_order: idx,
+				}))
+			)
 		}
 
 		const workoutRows = Object.entries(dayWorkouts).flatMap(([day, items]) =>
@@ -329,6 +375,21 @@ export default function NoteSlideModal({ memberId, editTarget, onClose, onSaved 
 							/>
 							<button type="button" onClick={addTag} className="btn-ghost px-4 flex-none text-xs">추가</button>
 						</div>
+					</div>
+
+					<div>
+						<p className="ml-card-label">
+							추천 영상
+							<span className="font-normal normal-case ml-1"
+								style={{ color: 'rgba(255,255,255,0.3)' }}>
+								· 최대 5개 · 회원 추천영상 탭에 표시됩니다
+							</span>
+						</p>
+						<NoteVideoSelector
+							videos={videos}
+							onChange={setVideos}
+							defaultQuery={defaultVideoQuery}
+						/>
 					</div>
 
 					{/* 저장 */}

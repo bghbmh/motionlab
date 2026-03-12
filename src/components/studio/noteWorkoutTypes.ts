@@ -57,6 +57,7 @@ export function calcMets(item: WorkoutItem | null): number | null {
 // ─── NoteWithTags (모달 Props용) ──────────────────────────────────
 import type { WorkoutType as WT } from '@/types/database'
 
+// ↓ note_videos 필드 추가
 export type NoteWithTags = {
 	id: string
 	content: string
@@ -68,5 +69,14 @@ export type NoteWithTags = {
 		id: string; day: string; workout_type: WT
 		intensity: Intensity; duration_min: number | null
 		mets: number | null; sort_order: number
+	}[]
+	note_videos?: {                  // ← 추가
+		id: string
+		video_id: string
+		youtube_url: string
+		title: string | null
+		thumbnail_url: string | null
+		source: string
+		sort_order: number
 	}[]
 }

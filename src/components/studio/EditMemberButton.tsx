@@ -11,6 +11,7 @@ interface Props {
 	memberBirthDate: string | null
 	memberSessionsPerWeek: number
 	memberMemo: string | null
+	memberWeekStartDate: string | null   // ← 추가
 }
 
 export default function EditMemberButton({
@@ -20,6 +21,7 @@ export default function EditMemberButton({
 	memberBirthDate,
 	memberSessionsPerWeek,
 	memberMemo,
+	memberWeekStartDate
 }: Props) {
 	const router = useRouter()
 	const [showModal, setShowModal] = useState(false)
@@ -31,6 +33,7 @@ export default function EditMemberButton({
 		birth_date: memberBirthDate ?? '',
 		sessions_per_week: String(memberSessionsPerWeek),
 		memo: memberMemo ?? '',
+		week_start_date: memberWeekStartDate ?? '',   // ← 추가
 	})
 	const [loading, setLoading] = useState(false)
 	const [deleteLoading, setDeleteLoading] = useState(false)
@@ -55,6 +58,7 @@ export default function EditMemberButton({
 				birth_date: form.birth_date || null,
 				sessions_per_week: Number(form.sessions_per_week),
 				memo: form.memo || null,
+				week_start_date: form.week_start_date || null,
 			})
 			.eq('id', memberId)
 
@@ -116,7 +120,7 @@ export default function EditMemberButton({
 								{ key: 'sessions_per_week', label: '주 수업 횟수', placeholder: '2', type: 'number' },
 							].map(({ key, label, placeholder, type }) => (
 								<div key={key}>
-									<p className="ml-card-label">{label}</p>
+									<p className="ml-card-label mb-1 mt-2">{label}</p>
 									<input
 										className="ml-input"
 										type={type}
@@ -130,7 +134,20 @@ export default function EditMemberButton({
 							))}
 
 							<div>
-								<p className="ml-card-label">특이사항 (선택)</p>
+								<p className="ml-card-label mb-1 mt-2">주간 시작 기준일</p>
+								<input
+									className="ml-input"
+									type="date"
+									value={form.week_start_date}
+									onChange={e => update('week_start_date', e.target.value)}
+								/>
+								<p className="text-[11px] mt-1" style={{ color: 'rgba(255,255,255,0.3)' }}>
+									이 날짜 기준으로 7일 단위 주간 그래프가 표시됩니다
+								</p>
+							</div>
+
+							<div>
+								<p className="ml-card-label mb-1 mt-2">특이사항 (선택)</p>
 								<input
 									className="ml-input"
 									placeholder="예: 허리 디스크 주의, 임신 중"

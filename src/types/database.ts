@@ -93,6 +93,18 @@ export interface NoteWorkout {
 	sort_order: number
 }
 
+export interface NoteVideo {
+	id: string
+	note_id: string
+	video_id: string
+	youtube_url: string
+	title: string | null
+	thumbnail_url: string | null
+	source: 'manual' | 'search'
+	sort_order: number
+	created_at: string
+}
+
 export interface Note {
 	id: string
 	member_id: string
