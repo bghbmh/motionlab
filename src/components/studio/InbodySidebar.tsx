@@ -2,7 +2,7 @@ import type { InbodyRecord } from '@/types/database'
 
 interface Props {
 	memberName: string | undefined
-	latestInbody: InbodyRecord | null
+	curInbody: InbodyRecord | null
 	totalCount: number
 	sentCount: number
 	draftCount: number
@@ -11,7 +11,7 @@ interface Props {
 
 export default function InbodySidebar({
 	memberName,
-	latestInbody,
+	curInbody,
 	totalCount,
 	sentCount,
 	draftCount,
@@ -22,19 +22,19 @@ export default function InbodySidebar({
 			<div className="ml-card mb-3">
 				<p className="ml-card-label">{memberName} · 최근 인바디</p>
 
-				{latestInbody ? (
+				{curInbody ? (
 					<>
 						<p className="font-mono text-[10px] mb-3" style={{ color: 'rgba(255,255,255,0.3)' }}>
-							{latestInbody.measured_at}
+							{curInbody.measured_at}
 						</p>
 						<div className="flex flex-col gap-1.5 text-xs">
 							{([
-								['체중', latestInbody.weight ? `${latestInbody.weight}kg` : '—'],
-								['근육량', latestInbody.muscle_mass ? `${latestInbody.muscle_mass}kg` : '—'],
-								['체지방률', latestInbody.body_fat_pct ? `${latestInbody.body_fat_pct}%` : '—'],
-								['체지방량', latestInbody.body_fat_mass ? `${latestInbody.body_fat_mass}kg` : '—'],
-								['BMI', latestInbody.bmi ? `${latestInbody.bmi}` : '—'],
-								['내장지방', latestInbody.visceral_fat ? `${latestInbody.visceral_fat}` : '—'],
+								['체중', curInbody.weight ? `${curInbody.weight}kg` : '—'],
+								['근육량', curInbody.muscle_mass ? `${curInbody.muscle_mass}kg` : '—'],
+								['체지방률', curInbody.body_fat_pct ? `${curInbody.body_fat_pct}%` : '—'],
+								['체지방량', curInbody.body_fat_mass ? `${curInbody.body_fat_mass}kg` : '—'],
+								['BMI', curInbody.bmi ? `${curInbody.bmi}` : '—'],
+								['내장지방', curInbody.visceral_fat ? `${curInbody.visceral_fat}` : '—'],
 							] as [string, string][]).map(([label, val]) => (
 								<div key={label} className="flex justify-between items-center">
 									<span style={{ color: 'rgba(255,255,255,0.4)' }}>{label}</span>

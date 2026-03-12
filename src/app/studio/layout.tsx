@@ -1,7 +1,10 @@
+
+import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import StudioHeader from '@/components/studio/StudioHeader'
-import MemberListSidebar from '@/components/studio/MemberListSidebar'
+import MemberListSidebarContainer from '@/components/studio/MemberListSidebarContainer';
+import SidebarLoading from '@/components/studio/SidebarLoading';
 
 export default async function StudioLayout({
 	children,
@@ -20,17 +23,6 @@ export default async function StudioLayout({
 		.eq('id', user.id)
 		.single()
 
-	// 회원 목록 (사이드바용 - 운동 기록 포함)
-	const { data: members } = await supabase
-		.from('members')
-		.select(`
-			id, name, sessions_per_week, access_token,
-			workout_logs ( logged_at, mets_score )
-		`)
-		.eq('studio_id', instructor?.studio_id ?? '')
-		.eq('is_active', true)
-		.order('name')
-
 	return (
 		<div className="min-h-screen bg-navy flex flex-col">
 			<StudioHeader instructor={instructor} />
@@ -41,7 +33,10 @@ export default async function StudioLayout({
 				style={{ height: 'calc(100vh - 52px)' }}
 			>
 				{/* 왼쪽: 회원 목록 사이드바 */}
-				<MemberListSidebar members={(members ?? []) as any} />
+				{/* ✅ 사이드바 영역만 독립적으로 로딩 처리 */}
+				<Suspense fallback={<SidebarLoading />}>
+					<MemberListSidebarContainer studioId={instructor?.studio_id ?? ''} />
+				</Suspense>
 
 				{/* 오른쪽: 페이지 콘텐츠 */}
 				<main className="flex-1 overflow-y-auto p-5">

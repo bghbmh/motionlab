@@ -65,7 +65,7 @@ export default function WeeklyBaseDatePicker({ registeredAt, inbodyDates, onBase
 							setCustomDate(e.target.value)
 							onBaseDateChange(e.target.value)
 						}}
-						className={`bg-transparent text-[11px] text-white outline-none w-[110px] transition-opacity ${mode === 'custom' ? 'opacity-100' : 'opacity-20 cursor-not-allowed'
+						className={`bg-transparent text-[11px] text-white outline-none  transition-opacity ${mode === 'custom' ? 'opacity-100' : 'opacity-20 cursor-not-allowed'
 							}`}
 						style={{ colorScheme: 'dark' }} // 브라우저 달력 아이콘 다크모드 대응
 					/>

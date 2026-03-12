@@ -179,3 +179,24 @@ export const VISCERAL_FAT_STATUS_COLORS: Record<VisceralFatStatus, string> = {
 	caution: '#F59E0B',   // 주황계열
 	high_risk: '#EF4444', // 빨강계열
 }
+
+
+
+// ─── 운동 타입 아이콘 ─────────────────────────────────────────────
+export const WORKOUT_ICONS: Record<WorkoutType, string> = {
+	stretching: '🧘',
+	strength: '💪',
+	cardio: '🏃',
+	pilates: '🌿',
+	yoga: '☯️',
+	other: '⚡',
+}
+
+export const WORKOUT_COLORS: Record<WorkoutType, { bg: string; border: string; text: string }> = {
+	stretching: { bg: 'rgba(255,179,71,0.08)', border: 'rgba(255,179,71,0.2)', text: '#FFB347' },
+	strength: { bg: 'rgba(255,107,91,0.08)', border: 'rgba(255,107,91,0.2)', text: '#FF6B5B' },
+	cardio: { bg: 'rgba(61,219,181,0.08)', border: 'rgba(61,219,181,0.2)', text: '#3DDBB5' },
+	pilates: { bg: 'rgba(61,219,181,0.08)', border: 'rgba(61,219,181,0.2)', text: '#3DDBB5' },
+	yoga: { bg: 'rgba(255,179,71,0.08)', border: 'rgba(255,179,71,0.2)', text: '#FFB347' },
+	other: { bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.1)', text: 'rgba(255,255,255,0.4)' },
+}
