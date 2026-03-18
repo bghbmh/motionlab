@@ -105,6 +105,7 @@ export interface NoteWorkout {
 	duration_min: number | null
 	mets: number | null             // 자동 계산: METs/h × (분/60)
 	sort_order: number
+	coach_memo: string | null
 }
 
 export interface NoteVideo {
