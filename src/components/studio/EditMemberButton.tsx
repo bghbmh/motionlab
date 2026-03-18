@@ -11,7 +11,8 @@ interface Props {
 	memberBirthDate: string | null
 	memberSessionsPerWeek: number
 	memberMemo: string | null
-	memberWeekStartDate: string | null   // ← 추가
+	memberWeekStartDate: string | null
+	memberRegisteredAt: string          // ★ 신규
 }
 
 export default function EditMemberButton({
@@ -21,7 +22,8 @@ export default function EditMemberButton({
 	memberBirthDate,
 	memberSessionsPerWeek,
 	memberMemo,
-	memberWeekStartDate
+	memberWeekStartDate,
+	memberRegisteredAt,                 // ★ 신규
 }: Props) {
 	const router = useRouter()
 	const [showModal, setShowModal] = useState(false)
@@ -32,8 +34,9 @@ export default function EditMemberButton({
 		phone: memberPhone ?? '',
 		birth_date: memberBirthDate ?? '',
 		sessions_per_week: String(memberSessionsPerWeek),
+		registered_at: memberRegisteredAt,    // ★ 신규
+		week_start_date: memberWeekStartDate ?? '',
 		memo: memberMemo ?? '',
-		week_start_date: memberWeekStartDate ?? '',   // ← 추가
 	})
 	const [loading, setLoading] = useState(false)
 	const [deleteLoading, setDeleteLoading] = useState(false)
@@ -57,6 +60,7 @@ export default function EditMemberButton({
 				phone: form.phone || null,
 				birth_date: form.birth_date || null,
 				sessions_per_week: Number(form.sessions_per_week),
+				registered_at: form.registered_at,   // ★ 신규
 				memo: form.memo || null,
 				week_start_date: form.week_start_date || null,
 			})
@@ -91,7 +95,6 @@ export default function EditMemberButton({
 				회원정보 수정
 			</button>
 
-			{/* ── 수정 모달 ── */}
 			{showModal && (
 				<div
 					className="fixed inset-0 bg-black/75 z-50 flex items-center justify-center px-4"
@@ -101,7 +104,6 @@ export default function EditMemberButton({
 						className="bg-card border border-white/10 rounded-2xl p-7 w-full max-w-md shadow-2xl"
 						onClick={e => e.stopPropagation()}
 					>
-						{/* 헤더 */}
 						<div className="flex justify-between items-center mb-6">
 							<p className="font-mono text-mint text-base font-medium">회원정보 수정</p>
 							<button
@@ -113,8 +115,27 @@ export default function EditMemberButton({
 						</div>
 
 						<form onSubmit={handleSave} className="flex flex-col gap-3">
+							{/* 이름 */}
+							<div>
+								<p className="ml-card-label mb-1 mt-2">이름</p>
+								<input
+									className="ml-input" type="text" placeholder="홍길동"
+									value={form.name} onChange={e => update('name', e.target.value)}
+								/>
+							</div>
+
+							{/* ★ 등록일 — 이름 바로 아래 */}
+							<div>
+								<p className="ml-card-label mb-1 mt-2">등록일</p>
+								<input
+									className="ml-input" type="date"
+									value={form.registered_at}
+									onChange={e => update('registered_at', e.target.value)}
+								/>
+							</div>
+
+							{/* 나머지 필드 */}
 							{[
-								{ key: 'name', label: '이름', placeholder: '홍길동', type: 'text' },
 								{ key: 'phone', label: '연락처', placeholder: '010-0000-0000', type: 'tel' },
 								{ key: 'birth_date', label: '생년월일', placeholder: '', type: 'date' },
 								{ key: 'sessions_per_week', label: '주 수업 횟수', placeholder: '2', type: 'number' },
@@ -122,9 +143,7 @@ export default function EditMemberButton({
 								<div key={key}>
 									<p className="ml-card-label mb-1 mt-2">{label}</p>
 									<input
-										className="ml-input"
-										type={type}
-										placeholder={placeholder}
+										className="ml-input" type={type} placeholder={placeholder}
 										value={form[key as keyof typeof form]}
 										onChange={e => update(key, e.target.value)}
 										min={type === 'number' ? 1 : undefined}
@@ -136,8 +155,7 @@ export default function EditMemberButton({
 							<div>
 								<p className="ml-card-label mb-1 mt-2">주간 시작 기준일</p>
 								<input
-									className="ml-input"
-									type="date"
+									className="ml-input" type="date"
 									value={form.week_start_date}
 									onChange={e => update('week_start_date', e.target.value)}
 								/>
@@ -149,20 +167,17 @@ export default function EditMemberButton({
 							<div>
 								<p className="ml-card-label mb-1 mt-2">특이사항 (선택)</p>
 								<input
-									className="ml-input"
-									placeholder="예: 허리 디스크 주의, 임신 중"
-									value={form.memo}
-									onChange={e => update('memo', e.target.value)}
+									className="ml-input" placeholder="예: 허리 디스크 주의, 임신 중"
+									value={form.memo} onChange={e => update('memo', e.target.value)}
 								/>
 							</div>
 
 							{error && <p className="text-coral text-xs">{error}</p>}
 
 							<div className="flex gap-2 mt-2">
-								<button type="button" onClick={() => { setShowModal(false); setShowDeleteConfirm(false) }}
-									className="btn-ghost flex-1 py-3">
-									취소
-								</button>
+								<button type="button"
+									onClick={() => { setShowModal(false); setShowDeleteConfirm(false) }}
+									className="btn-ghost flex-1 py-3">취소</button>
 								<button type="submit" disabled={loading}
 									className="btn-primary flex-[2] py-3 disabled:opacity-50">
 									{loading ? '저장 중...' : '저장하기'}
@@ -170,19 +185,12 @@ export default function EditMemberButton({
 							</div>
 						</form>
 
-						{/* ── 회원 삭제 영역 ── */}
+						{/* 회원 삭제 영역 */}
 						<div className="mt-5 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
 							{!showDeleteConfirm ? (
-								<button
-									type="button"
-									onClick={() => setShowDeleteConfirm(true)}
+								<button type="button" onClick={() => setShowDeleteConfirm(true)}
 									className="w-full py-2.5 text-xs font-medium rounded-xl transition-all"
-									style={{
-										background: 'transparent',
-										border: '1px solid rgba(255,107,91,0.2)',
-										color: 'rgba(255,107,91,0.6)',
-									}}
-								>
+									style={{ background: 'transparent', border: '1px solid rgba(255,107,91,0.2)', color: 'rgba(255,107,91,0.6)' }}>
 									회원 삭제
 								</button>
 							) : (
@@ -191,25 +199,11 @@ export default function EditMemberButton({
 										정말 삭제할까요? 데이터는 보존됩니다.
 									</p>
 									<div className="flex gap-2">
-										<button
-											type="button"
-											onClick={() => setShowDeleteConfirm(false)}
-											className="btn-ghost flex-1 py-2 text-xs"
-										>
-											취소
-										</button>
-										<button
-											type="button"
-											onClick={handleDelete}
-											disabled={deleteLoading}
+										<button type="button" onClick={() => setShowDeleteConfirm(false)}
+											className="btn-ghost flex-1 py-2 text-xs">취소</button>
+										<button type="button" onClick={handleDelete} disabled={deleteLoading}
 											className="flex-1 py-2 text-xs font-bold rounded-xl transition-all"
-											style={{
-												background: 'rgba(255,107,91,0.15)',
-												border: '1px solid rgba(255,107,91,0.4)',
-												color: '#FF6B5B',
-												opacity: deleteLoading ? 0.5 : 1,
-											}}
-										>
+											style={{ background: 'rgba(255,107,91,0.15)', border: '1px solid rgba(255,107,91,0.4)', color: '#FF6B5B', opacity: deleteLoading ? 0.5 : 1 }}>
 											{deleteLoading ? '처리 중...' : '삭제 확인'}
 										</button>
 									</div>

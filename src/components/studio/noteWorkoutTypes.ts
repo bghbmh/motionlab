@@ -1,5 +1,5 @@
 import type { Intensity, WorkoutType } from '@/types/database'
-import { WORKOUT_TYPE_METS } from '@/types/database'
+import { WORKOUT_TYPE_METS, WORKOUT_METS_BY_INTENSITY } from '@/types/database'
 
 export const WEEKDAYS = ['월', '화', '수', '목', '금', '토', '일']
 export const ALL_DAYS = ['전체', ...WEEKDAYS]
@@ -32,6 +32,7 @@ export interface WorkoutItem {
 	workout_type: WorkoutType | null
 	intensity: Intensity
 	duration_min: string
+	coach_memo: string
 }
 
 export function uid() {
@@ -39,7 +40,7 @@ export function uid() {
 }
 
 export function newItem(): WorkoutItem {
-	return { localId: uid(), workout_type: null, intensity: 'normal', duration_min: '' }
+	return { localId: uid(), workout_type: null, intensity: 'normal', duration_min: '', coach_memo: '' }
 }
 
 export function cloneItems(items: WorkoutItem[]): WorkoutItem[] {
@@ -48,10 +49,8 @@ export function cloneItems(items: WorkoutItem[]): WorkoutItem[] {
 
 export function calcMets(item: WorkoutItem | null): number | null {
 	if (!item || !item.workout_type || !item.duration_min || Number(item.duration_min) <= 0) return null
-	//return Math.round(WORKOUT_TYPE_METS[item.workout_type] * (Number(item.duration_min) / 60) * 100) / 100
-
-	return Math.round(WORKOUT_TYPE_METS[item.workout_type] * Number(item.duration_min) * 100) / 100;
-
+	const metsPerHour = WORKOUT_METS_BY_INTENSITY[item.workout_type][item.intensity]
+	return Math.round(metsPerHour * Number(item.duration_min) * 100) / 100
 }
 
 // ─── NoteWithTags (모달 Props용) ──────────────────────────────────
@@ -68,7 +67,8 @@ export type NoteWithTags = {
 	note_workouts?: {
 		id: string; day: string; workout_type: WT
 		intensity: Intensity; duration_min: number | null
-		mets: number | null; sort_order: number
+		mets: number | null; sort_order: number;
+		coach_memo: string | null
 	}[]
 	note_videos?: {                  // ← 추가
 		id: string

@@ -39,17 +39,20 @@ export default function MemberListSidebar({ members }: { members: MemberSummary[
 	}, [members, search])
 
 	return (
-		<aside className="w-64 shrink-0 flex flex-col gap-3 border-r border-white/[0.07] p-4 overflow-hidden">
+		<aside className="studio-members">
 			{/* 검색 */}
-			<input
-				className="ml-input"
-				placeholder="🔍  회원 검색..."
-				value={search}
-				onChange={e => setSearch(e.target.value)}
-			/>
+			<label className="flex px-3">
+				<input
+					className="ml-input flex-1"
+					placeholder="🔍  회원 검색..."
+					value={search}
+					onChange={e => setSearch(e.target.value)}
+				/>
+			</label>
+
 
 			{/* 회원 목록 */}
-			<div className="flex flex-col gap-2 overflow-y-auto flex-1">
+			<div className="info-list scrollbar-thin">
 				{filtered.map(m => {
 					const weekLogs = (m.workout_logs ?? []).filter(l => l.logged_at >= weekStart)
 					const avgMets = weekLogs.length

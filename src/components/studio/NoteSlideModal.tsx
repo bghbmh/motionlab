@@ -68,6 +68,7 @@ export default function NoteSlideModal({ memberId, editTarget, onClose, onSaved 
 				workout_type: w.workout_type,
 				intensity: w.intensity,
 				duration_min: w.duration_min != null ? String(w.duration_min) : '',
+				coach_memo: w.coach_memo ?? '',
 			})
 		}
 		return map
@@ -207,6 +208,7 @@ export default function NoteSlideModal({ memberId, editTarget, onClose, onSaved 
 					duration_min: w.duration_min ? Number(w.duration_min) : null,
 					mets: calcMets(w),
 					sort_order: idx,
+					coach_memo: w.coach_memo || null,
 				}))
 		)
 		if (workoutRows.length > 0) {

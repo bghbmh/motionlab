@@ -23,10 +23,15 @@
 		box-sizing: border-box;
 	}
 
+	html {
+		height: 100%;
+	}
+
 	body {
 		background-color: #0d1421;
 		color: #F0F4FF;
 		font-family: 'DM Sans', sans-serif;
+		height: 100%;
 	}
 
 	input,
@@ -87,10 +92,54 @@
 		opacity: 0.7;
 		background-color: red;
 	} */
+
+	/* globals.css에 추가 */
+	.scrollbar-thin::-webkit-scrollbar {
+		width: 5px;
+	}
+
+	.scrollbar-thin::-webkit-scrollbar-track {
+		background: transparent;
+	}
+
+	.scrollbar-thin::-webkit-scrollbar-thumb {
+		background: rgba(255, 255, 255, 0.1);
+		border-radius: 999px;
+	}
+
+	.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+		background: rgba(61, 219, 181, 0.7);
+	}
+
+	.studio-members {
+		flex-shrink: 0;
+
+		display: flex;
+		flex-direction: column;
+		gap: calc(.25rem * 3);
+		width: calc(.25rem * 64);
+		height: 100%;
+		padding: calc(.25rem * 4) 0;
+		overflow: hidden;
+		border-right: 1px solid hsl(0 100% 100% / .05);
+	}
+
+	.info-list {
+		flex: 1;
+
+		display: flex;
+		flex-direction: column;
+		gap: calc(.25rem * 2);
+		height: 1px;
+		padding: 0 calc(.25rem * 3);
+		overflow-y: auto;
+	}
 }
 
 /* ── 컴포넌트 유틸리티 (@apply 대신 직접 CSS 작성) ── */
 @layer components {
+
+
 
 	/* 카드 */
 	.ml-card {

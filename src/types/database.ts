@@ -53,6 +53,9 @@ export interface WorkoutLog {
 	duration_min: number
 	mets_score: number
 	condition_memo: string | null
+	source: 'routine' | 'manual' | 'daily'  // 신규
+	note_workout_id: string | null           // 신규
+	activity_type: string | null             // 신규
 	created_at: string
 }
 
@@ -74,12 +77,23 @@ export const WORKOUT_TYPE_LABELS: Record<WorkoutType, string> = {
 }
 
 export const WORKOUT_TYPE_METS: Record<WorkoutType, number> = {
-	stretching: 2.5,
-	strength: 5.0,
-	cardio: 6.0,
-	pilates: 4.0,
-	yoga: 3.0,
-	other: 3.5,
+	stretching: 2.5,  // 유지
+	strength: 3.4,  // 5.0 → 3.4  (논문 D1931)
+	cardio: 6.4,  // 6.0 → 6.4  (논문 B1141)
+	pilates: 3.4,  // 4.0 → 3.4  (논문 D1931)
+	yoga: 2.5,  // 3.0 → 2.5  (논문 D1921)
+	other: 3.5,  // 유지
+}
+
+// ─── 신규 추가 ────────────────────────────────────────────────────
+// 강도별 METs 테이블 — 한국인 신체활동분류표 (김은경 외, 2021) 기반
+export const WORKOUT_METS_BY_INTENSITY: Record<WorkoutType, Record<Intensity, number>> = {
+	stretching: { recovery: 1.8, normal: 2.5, high: 3.4 },
+	strength: { recovery: 2.5, normal: 3.4, high: 5.3 },
+	cardio: { recovery: 4.8, normal: 6.4, high: 8.0 },
+	pilates: { recovery: 2.5, normal: 3.4, high: 5.3 },
+	yoga: { recovery: 1.9, normal: 2.5, high: 3.4 },
+	other: { recovery: 2.0, normal: 3.5, high: 5.0 },
 }
 
 export interface NoteWorkout {

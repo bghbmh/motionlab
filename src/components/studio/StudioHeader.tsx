@@ -60,7 +60,7 @@ export default function StudioHeader({ instructor }: Props) {
 
 					{/* 신규회원 추가 */}
 					<button
-						onClick={() => setShowModal(true)}
+						onClick={() => router.push('/studio/members/new')}
 						className="btn-primary text-xs py-1.5 px-3 flex items-center gap-1.5"
 					>
 						<span className="text-base leading-none">＋</span>

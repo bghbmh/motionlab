@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { WORKOUT_TYPE_LABELS, type WorkoutLog } from '@/types/database'
+import { WORKOUT_TYPE_LABELS, type WorkoutLog, WORKOUT_METS_BY_INTENSITY } from '@/types/database'
 import WeeklyBaseDatePicker from './WeeklyBaseDatePicker'
 import { createClient } from '@/lib/supabase/client'
 
@@ -108,10 +108,42 @@ export default function WeeklyWorkoutDetail({
 								</div>
 							)}
 						</div>
-						{log && (
-							<span className="text-xs font-mono text-[#3DDBB5]">
-								{log.mets_score?.toFixed(1)} <small className="text-white/20">METs</small>
-							</span>
+						{log ? (
+							<div className="flex flex-col justify-center gap-1 min-h-[37px]">
+								{/* 출처 배지 + 운동 정보 */}
+								<div className="flex items-center gap-1.5 flex-wrap">
+									{/* source 배지 */}
+									{log.source === 'routine' && (
+										<span className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
+											style={{ background: 'rgba(61,219,181,0.12)', color: '#3DDBB5', border: '1px solid rgba(61,219,181,0.25)' }}>
+											● 루틴
+										</span>
+									)}
+									{log.source === 'manual' && (
+										<span className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
+											style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.1)' }}>
+											✎ 직접
+										</span>
+									)}
+									{log.source === 'daily' && (
+										<span className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
+											style={{ background: 'rgba(255,179,71,0.1)', color: '#FFB347', border: '1px solid rgba(255,179,71,0.2)' }}>
+											🏠 일상
+										</span>
+									)}
+									<span className="text-sm">
+										{WORKOUT_TYPE_LABELS[log.workout_type]} {log.duration_min}분
+									</span>
+								</div>
+								{/* 컨디션 메모 */}
+								{log.condition_memo && (
+									<p className="text-[11px] text-white/40">{log.condition_memo}</p>
+								)}
+							</div>
+						) : (
+							<div className="text-xs text-white/50 flex flex-col justify-center min-h-[37px]">
+								기록 없음
+							</div>
 						)}
 					</div>
 				))}

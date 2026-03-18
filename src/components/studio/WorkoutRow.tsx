@@ -1,5 +1,5 @@
 import type { Intensity, WorkoutType } from '@/types/database'
-import { INTENSITY_LABELS, WORKOUT_TYPE_LABELS, WORKOUT_TYPE_METS } from '@/types/database'
+import { INTENSITY_LABELS, WORKOUT_TYPE_LABELS, WORKOUT_METS_BY_INTENSITY } from '@/types/database'
 import {
 	type WorkoutItem, calcMets,
 	INTENSITY_STYLE, WORKOUT_ICONS, WORKOUT_COLORS,
@@ -18,9 +18,10 @@ export default function WorkoutRow({ item, index, showRemove, onChange, onRemove
 	const c = item.workout_type ? WORKOUT_COLORS[item.workout_type] : null
 
 	return (
-		<div className=" flex flex-col gap-4 workout-row-item " >
+		<div className="flex flex-col gap-4 workout-row-item">
 
-			<div className=" flex justify-between items-center">
+			{/* 헤더 */}
+			<div className="flex justify-between items-center">
 				<span className="text-[13px] font-mono" style={{ color: 'rgba(255,255,255,0.5)' }}>
 					운동 {index + 1}
 				</span>
@@ -53,7 +54,6 @@ export default function WorkoutRow({ item, index, showRemove, onChange, onRemove
 				</div>
 			</div>
 
-
 			{/* 운동 종류 */}
 			<div>
 				<p className="ml-card-label mb-2">추천하는 운동 종류</p>
@@ -78,11 +78,11 @@ export default function WorkoutRow({ item, index, showRemove, onChange, onRemove
 				</div>
 			</div>
 
+			{/* 예상 운동 시간 + METs */}
 			<div>
-				{/* 예상 시간 + METs */}
-				<p className="ml-card-label mb-2"> 예상 운동 시간</p>
-				<div className="flex gap-2 ">
-					<label className="flex flex-1 ">
+				<p className="ml-card-label mb-2">예상 운동 시간</p>
+				<div className="flex gap-2">
+					<label className="flex flex-1">
 						<input type="number" min={1} className="ml-input pr-8"
 							placeholder="운동 시간"
 							value={item.duration_min}
@@ -105,9 +105,28 @@ export default function WorkoutRow({ item, index, showRemove, onChange, onRemove
 				</div>
 				{item.workout_type && mets && (
 					<p className="text-[11px] font-mono mt-1 px-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
-						{WORKOUT_TYPE_LABELS[item.workout_type]} {WORKOUT_TYPE_METS[item.workout_type]}METs/h × {item.duration_min}분
+						{WORKOUT_TYPE_LABELS[item.workout_type]} ·{' '}
+						{WORKOUT_METS_BY_INTENSITY[item.workout_type][item.intensity]}METs/h × {item.duration_min}분
 					</p>
 				)}
+			</div>
+
+			{/* ★ 코치 메모 */}
+			<div>
+				<p className="ml-card-label mb-2">
+					코치 메모
+					<span className="font-normal normal-case ml-1" style={{ color: 'rgba(255,255,255,0.3)' }}>
+						· 회원에게 전달할 주의사항 (선택)
+					</span>
+				</p>
+				<textarea
+					className="ml-input"
+					rows={2}
+					style={{ resize: 'none' }}
+					placeholder="예: 허리가 약하신 분은 무릎을 굽혀서 진행해 주세요"
+					value={item.coach_memo}
+					onChange={e => onChange({ ...item, coach_memo: e.target.value })}
+				/>
 			</div>
 
 		</div>

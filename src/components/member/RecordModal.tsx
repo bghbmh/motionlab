@@ -1,26 +1,30 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
-import { useParams } from 'next/navigation'
+import { useState, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
-	WorkoutType, type WorkoutLog, WORKOUT_TYPE_LABELS,
-	WORKOUT_ICONS,
-	WORKOUT_COLORS,
-	WORKOUT_TYPE_METS
-
+	WorkoutType, Intensity, type WorkoutLog,
+	WORKOUT_TYPE_LABELS, WORKOUT_ICONS, WORKOUT_COLORS,
+	WORKOUT_METS_BY_INTENSITY, INTENSITY_LABELS,
 } from '@/types/database'
+
+// ─── 강도 스타일 ──────────────────────────────────────────────────
+const INTENSITY_STYLE: Record<Intensity, React.CSSProperties> = {
+	recovery: { borderColor: '#FFB347', color: '#FFB347', backgroundColor: 'rgba(255,179,71,0.12)' },
+	normal: { borderColor: '#3DDBB5', color: '#3DDBB5', backgroundColor: 'rgba(61,219,181,0.12)' },
+	high: { borderColor: '#FF6B5B', color: '#FF6B5B', backgroundColor: 'rgba(255,107,91,0.12)' },
+}
 
 // ─── 기본 폼 상태 ─────────────────────────────────────────────────
 const DEFAULT_FORM = {
 	workout_type: 'pilates' as WorkoutType,
+	intensity: 'normal' as Intensity,
 	duration: '',
-	mets: '',
 	condition_memo: '',
 	logged_at: new Date().toISOString().split('T')[0],
 }
 
-// ─── 로그 입력 모달 ───────────────────────────────────────────────
+// ─── 모달 컴포넌트 ────────────────────────────────────────────────
 export default function RecordModal({
 	editTarget,
 	onClose,
@@ -36,8 +40,8 @@ export default function RecordModal({
 		editTarget
 			? {
 				workout_type: editTarget.workout_type,
+				intensity: 'normal' as Intensity,  // 기존 기록엔 intensity 없음 → fallback
 				duration: String(editTarget.duration_min),
-				mets: String(editTarget.mets_score),
 				condition_memo: editTarget.condition_memo ?? '',
 				logged_at: editTarget.logged_at,
 			}
@@ -45,67 +49,47 @@ export default function RecordModal({
 	)
 	const [loading, setLoading] = useState(false)
 
-	function selectType(t: WorkoutType) {
-		setForm(prev => ({
-			...prev,
-			workout_type: t,
-			mets: prev.mets || String(WORKOUT_TYPE_METS[t]),
-		}))
-	}
+	// METs 자동 계산 — 운동 종류 + 강도 모두 반영
+	const calculatedMets = useMemo<number | null>(() => {
+		if (!form.workout_type || !form.duration || Number(form.duration) <= 0) return null
+		const metsPerHour = WORKOUT_METS_BY_INTENSITY[form.workout_type][form.intensity]
+		return Math.round(metsPerHour * Number(form.duration) * 100) / 100
+	}, [form.workout_type, form.intensity, form.duration])
 
 	async function handleSubmit(e: React.FormEvent) {
-
-		console.log("handleSubmit - ", memberId, calculatedMets, form);
-
-		e.preventDefault()  // ← 맨 위로 이동
-
-		if (!form.duration || !calculatedMets) return  // form.mets 대신 calculatedMets 사용
+		e.preventDefault()
+		if (!form.duration || !calculatedMets) return
 
 		setLoading(true)
 		const supabase = createClient()
+		const metsScore = WORKOUT_METS_BY_INTENSITY[form.workout_type][form.intensity]
 
 		if (editTarget) {
-			console.log("수정 - ", memberId, form)
-			// 수정
 			await supabase
 				.from('workout_logs')
 				.update({
 					workout_type: form.workout_type,
 					duration_min: Number(form.duration),
-					mets_score: WORKOUT_TYPE_METS[form.workout_type],
+					mets_score: metsScore,
 					condition_memo: form.condition_memo || null,
 					logged_at: form.logged_at,
 				})
 				.eq('id', editTarget.id)
 		} else {
-			// 신규
-
-			console.log("신규 - ", memberId, form)
-			await supabase.from('workout_logs').insert(
-				{
-					member_id: memberId,
-					logged_at: form.logged_at,
-					workout_type: form.workout_type,
-					duration_min: Number(form.duration),
-					mets_score: WORKOUT_TYPE_METS[form.workout_type],
-					condition_memo: form.condition_memo || null,
-				} // ,
-				// { onConflict: 'member_id,logged_at' }
-			)
+			await supabase.from('workout_logs').insert({
+				member_id: memberId,
+				logged_at: form.logged_at,
+				workout_type: form.workout_type,
+				duration_min: Number(form.duration),
+				mets_score: metsScore,
+				condition_memo: form.condition_memo || null,
+				source: 'manual',
+			})
 		}
 
 		setLoading(false)
 		onSaved()
 	}
-
-	// METs 자동 계산 (운동 종류 기준 METs/h × 시간/60), 60으로 나누는건 안함
-	const calculatedMets = useMemo<number | null>(() => {
-		if (!form.workout_type || !form.duration || Number(form.duration) <= 0) return null
-		const base = WORKOUT_TYPE_METS[form.workout_type]  // METs per hour
-		//return Math.round(base * (Number(form.duration) / 60) * 100) / 100 
-
-		return Math.round(base * Number(form.duration) * 100) / 100
-	}, [form.workout_type, form.duration])
 
 	return (
 		<div
@@ -135,12 +119,7 @@ export default function RecordModal({
 						<p className="font-mono text-sm font-medium" style={{ color: '#3DDBB5' }}>
 							{editTarget ? '기록 수정' : '새 운동 기록'}
 						</p>
-						<button
-							onClick={onClose}
-							className="btn-ghost text-xs py-1 px-2.5"
-						>
-							✕
-						</button>
+						<button onClick={onClose} className="btn-ghost text-xs py-1 px-2.5">✕</button>
 					</div>
 
 					{/* 운동 종류 */}
@@ -154,7 +133,7 @@ export default function RecordModal({
 									<button
 										key={t}
 										type="button"
-										onClick={() => selectType(t)}
+										onClick={() => setForm(p => ({ ...p, workout_type: t }))}
 										className="py-2.5 rounded-xl text-sm font-semibold transition-all flex flex-col items-center gap-1"
 										style={{
 											background: isSelected ? colors.bg : '#1a2740',
@@ -167,6 +146,30 @@ export default function RecordModal({
 									</button>
 								)
 							})}
+						</div>
+					</div>
+
+					{/* 운동 강도 */}
+					<div>
+						<p className="ml-card-label">운동 강도</p>
+						<div className="flex gap-2">
+							{(['recovery', 'normal', 'high'] as Intensity[]).map(i => (
+								<button
+									key={i}
+									type="button"
+									onClick={() => setForm(p => ({ ...p, intensity: i }))}
+									className="flex-1 text-[11px] font-semibold rounded-lg py-2.5 transition-all"
+									style={{
+										border: '1px solid',
+										...(form.intensity === i
+											? INTENSITY_STYLE[i]
+											: { borderColor: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.35)', backgroundColor: '#1a2740' }
+										),
+									}}
+								>
+									{INTENSITY_LABELS[i]}
+								</button>
+							))}
 						</div>
 					</div>
 
@@ -183,9 +186,9 @@ export default function RecordModal({
 							/>
 						</div>
 
-						{/* METs + 시간 가로 배치 */}
-						<div className="grid grid-cols-3 gap-1 gap-x-3">
-							<div className='col-span-2'>
+						{/* 운동 시간 + METs */}
+						<div className="grid grid-cols-3 gap-x-3">
+							<div className="col-span-2">
 								<p className="ml-card-label">운동 시간 (분)</p>
 								<input
 									className="ml-input"
@@ -196,31 +199,28 @@ export default function RecordModal({
 									required
 								/>
 							</div>
-							<div className='col-span-1'>
+							<div className="col-span-1">
 								<p className="ml-card-label">METs 점수</p>
-								{/* <input
-									className="ml-input"
-									type="number"
-									step="0.1"
-									placeholder="예: 4.5"
-									value={form.mets}
-									onChange={e => setForm(p => ({ ...p, mets: e.target.value }))}
-									required
-								/> */}
-								<div className="ml-input border-transparent">
-									{calculatedMets ?? '—'}
+								<div className="ml-input border-transparent flex items-center">
+									<span
+										className="font-mono text-base font-bold"
+										style={{ color: calculatedMets ? '#3DDBB5' : 'rgba(255,255,255,0.2)' }}
+									>
+										{calculatedMets ?? '—'}
+									</span>
 								</div>
 							</div>
-
-							{/* 참고 METs */}
-							<div
-								className="text-[11px] col-span-3"
-								style={{ color: 'rgba(255,255,255,0.5) ' }}
-							>참고 · 스트레칭 2.5 / 근력운동 5.0 / 유산소 6.0 / 필라테스 4.0 / 요가 3.0 / 기타 3.5
-							</div>
+							{/* 강도별 METs 참고 */}
+							{form.workout_type && (
+								<div className="col-span-3 text-[11px] font-mono mt-0.5 px-1"
+									style={{ color: 'rgba(255,255,255,0.35)' }}>
+									{WORKOUT_TYPE_LABELS[form.workout_type]} ·{' '}
+									리커버리 {WORKOUT_METS_BY_INTENSITY[form.workout_type].recovery} /{' '}
+									일반 {WORKOUT_METS_BY_INTENSITY[form.workout_type].normal} /{' '}
+									고강도 {WORKOUT_METS_BY_INTENSITY[form.workout_type].high} METs/h
+								</div>
+							)}
 						</div>
-
-
 
 						{/* 컨디션 메모 */}
 						<div>
@@ -243,7 +243,7 @@ export default function RecordModal({
 						</button>
 					</form>
 				</div>
-			</div >
-		</div >
+			</div>
+		</div>
 	)
 }
