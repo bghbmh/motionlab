@@ -9,9 +9,9 @@ export default async function MemberListSidebarContainer({ studioId }: { studioI
 	const { data: members } = await supabase
 		.from('members')
 		.select(`
-            id, name, sessions_per_week, access_token,
-            workout_logs ( logged_at, mets_score )
-        `)
+			id, name, sessions_per_week, access_token,
+			workout_logs ( logged_at, mets_score, duration_min )
+		`)
 		.eq('studio_id', studioId)
 		.eq('is_active', true)
 		.order('name')

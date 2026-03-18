@@ -15,7 +15,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { getActivityStatus, ACTIVITY_STATUS_LABELS } from '@/types/database'
+import { calcTotalMets, getActivityStatus, ACTIVITY_STATUS_LABELS } from '@/lib/metsUtils'
+
 
 function getWeekStart() {
 	const d = new Date()
@@ -70,11 +71,8 @@ export default async function StudioPage() {
 			(l: any) => l.logged_at >= weekStart
 		)
 		const activeDays = new Set(weekLogs.map((l: any) => l.logged_at)).size
-		const totalMets = weekLogs.reduce(
-			(s: number, l: any) => s + l.mets_score * l.duration_min, 0
-		)
-		const avgDailyMets = activeDays > 0 ? totalMets / activeDays : 0
-		const status = getActivityStatus(avgDailyMets)
+		const totalMets = calcTotalMets(weekLogs)
+		const status = getActivityStatus(totalMets)
 
 		// ★ 목표 METs: 최신 전송된 알림장의 recommended_mets → 없으면 600
 		const latestSentNote = (m.notes ?? [])

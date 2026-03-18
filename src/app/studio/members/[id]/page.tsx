@@ -2,15 +2,16 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import {
-	ACTIVITY_STATUS_LABELS,
+
 	WORKOUT_TYPE_LABELS,
-	getActivityStatus,
 	type WorkoutLog,
 	type InbodyRecord,
 } from '@/types/database'
 import CopyLinkButton from '@/components/studio/CopyLinkButton'
 import EditMemberButton from '@/components/studio/EditMemberButton'
 import WeeklyWorkoutDetail from '@/components/studio/WeeklyWorkoutDetail'
+
+import { ACTIVITY_STATUS_LABELS, calcTotalMets, getActivityStatus } from '@/lib/metsUtils'
 
 function getWeekStart() {
 	const d = new Date()
@@ -87,8 +88,8 @@ export default async function MemberDetailPage({
 	const weekLogs: WorkoutLog[] = (member.workout_logs ?? []).filter(
 		(l: WorkoutLog) => l.logged_at >= weekStart
 	)
-	const totalMets = weekLogs.reduce((s: number, l: WorkoutLog) => s + l.mets_score, 0)
-	const status = getActivityStatus(totalMets)
+	const weeklyTotalMets = calcTotalMets(weekLogs)
+	const status = getActivityStatus(weeklyTotalMets)
 
 	const weekDays = Array.from({ length: 7 }, (_, i) => {
 		const d = new Date(weekStart)

@@ -150,21 +150,6 @@ export interface NoteTag {
 	tag: string
 }
 
-// ─── 상태 배지 타입 ────────────────────────────────────────────────
-export type ActivityStatus = 'low' | 'good' | 'high'
-
-export function getActivityStatus(avgMets: number): ActivityStatus {
-	if (avgMets < 2.0) return 'low'
-	if (avgMets > 5.5) return 'high'
-	return 'good'
-}
-
-export const ACTIVITY_STATUS_LABELS: Record<ActivityStatus, string> = {
-	low: '활동 부족',
-	good: '적정',
-	high: '고활동',
-}
-
 
 // ─── 내장지방 상태 타입 정의 ───────────────────────────────────
 

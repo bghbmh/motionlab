@@ -2,6 +2,9 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { getCurrentWeekStart } from '@/lib/weekUtils'
 import TodayRoutineCard from '@/components/member/TodayRoutineCard'
+
+import { calcTotalMets, getActivityStatus } from '@/lib/metsUtils'
+
 // ★ 로컬 타임존 기준 'YYYY-MM-DD' 반환
 function toLocalISO(date: Date): string {
 	const y = date.getFullYear()
@@ -78,7 +81,7 @@ export default async function MemberHomePage({
 
 
 	const today = toLocalISO(new Date());
-	const weekTotalMets = weekLogs?.reduce((s, l) => s + l.mets_score * l.duration_min, 0) ?? 0
+	const weekTotalMets = calcTotalMets(weekLogs ?? [])
 	const recommendedMets = latestNote?.recommended_mets ?? 600
 	const dailyTarget = recommendedMets / 7
 

@@ -2,14 +2,16 @@
 
 import { useState, useMemo } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { getActivityStatus, ACTIVITY_STATUS_LABELS } from '@/types/database'
+import { type WorkoutLog, } from '@/types/database'
+import { calcTotalMets, getActivityStatus, ACTIVITY_STATUS_LABELS } from '@/lib/metsUtils'
 
+// 타입에 duration_min 추가
 interface MemberSummary {
 	id: string
 	name: string
 	sessions_per_week: number
 	access_token: string
-	workout_logs: Array<{ logged_at: string; mets_score: number }>
+	workout_logs: Array<{ logged_at: string; mets_score: number; duration_min: number }>  // ★
 }
 
 function getWeekStart() {
@@ -54,11 +56,10 @@ export default function MemberListSidebar({ members }: { members: MemberSummary[
 			{/* 회원 목록 */}
 			<div className="info-list scrollbar-thin">
 				{filtered.map(m => {
-					const weekLogs = (m.workout_logs ?? []).filter(l => l.logged_at >= weekStart)
-					const avgMets = weekLogs.length
-						? weekLogs.reduce((s, l) => s + l.mets_score, 0) / weekLogs.length
-						: 0
-					const status = getActivityStatus(avgMets)
+					const weekLogs = (m.workout_logs ?? []).filter(l => l.logged_at >= weekStart);
+					const weeklyMets = calcTotalMets(weekLogs)
+					const status = getActivityStatus(weeklyMets)
+
 					const badgeClass = {
 						low: 'badge-low',
 						good: 'badge-good',
@@ -82,7 +83,8 @@ export default function MemberListSidebar({ members }: { members: MemberSummary[
 								</span>
 							</div>
 							<p className="text-xs text-white/50 font-mono mt-1">
-								이번 주 {weekLogs.length}일 · METs {avgMets.toFixed(1)}
+								{/* 고유 날짜 수 */}
+								이번 주 {new Set(weekLogs.map(l => l.logged_at)).size}일 · {Math.round(weeklyMets)} METs
 							</p>
 							<p className="text-xs text-white/50 font-mono mt-0.5">
 								주 {m.sessions_per_week}회 수업
