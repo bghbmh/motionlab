@@ -329,9 +329,6 @@ export default async function MemberDetailPage({
 				</div>
 			</div>
 
-
-
-			{/* ── 우측: 주간 상세 패널 ── */}
 			{/* ── 우측: 주간 상세 패널 ── */}
 			<div className="col-span-3 flex flex-col gap-4">
 				{/* ★ 15번: 일상활동 요약 카드 */}
@@ -349,12 +346,12 @@ export default async function MemberDetailPage({
 								</span>
 							)}
 
-							<a href={`/studio/members/${id}/daily`}
+							{/* <a href={`/studio/members/${id}/daily`}
 								className="text-[11px]"
 								style={{ color: 'rgba(61,219,181,0.6)' }}
 							>
 								수정 →
-							</a>
+							</a> */}
 						</div>
 					</div>
 
