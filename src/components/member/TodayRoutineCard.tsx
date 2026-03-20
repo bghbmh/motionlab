@@ -244,9 +244,10 @@ export default function TodayRoutineCard({
 
 				{/* ── 오늘의 일상활동 ── */}
 				<div className="flex flex-col gap-2">
-					<p className="text-[11px] font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>
+					<p className="text-[11px] font-bold" style={{ color: 'rgba(255,255,255,0.6)' }}>
 						오늘의 일상활동
 					</p>
+
 
 					{dailyItems.length === 0 && (
 						<p className="text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>
