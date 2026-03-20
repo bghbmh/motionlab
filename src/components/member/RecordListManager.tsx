@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useRouter } from 'next/navigation'  // ← 추가
 import { createClient } from '@/lib/supabase/client'
 import {
 	type WorkoutLog,
@@ -16,7 +17,7 @@ interface Props {
 }
 
 export default function RecordListManager({ member, hasLogs }: Props) {
-
+	const router = useRouter()
 	const [logs, setLogs] = useState<WorkoutLog[]>(hasLogs)
 	const [memberId, setMemberId] = useState<string>(member.id)
 	const [loading, setLoading] = useState(false)
@@ -67,6 +68,7 @@ export default function RecordListManager({ member, hasLogs }: Props) {
 	function handleDeleted() {
 		setDeleteTarget(null)
 		fetchLogs()
+		router.refresh()
 	}
 
 	// 월별 그룹 → 그 안에 날짜별 그룹

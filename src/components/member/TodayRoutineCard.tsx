@@ -71,12 +71,33 @@ export default function TodayRoutineCard({
 	const [saved, setSaved] = useState(false);
 	const storageKey = `routine_saved_${memberId}_${today}`; // ★ 로컬 스토리지 기반 저장 여부 확인
 
+
+
 	useEffect(() => {
-		// 마운트 시 오늘 날짜 저장 여부 확인
-		if (localStorage.getItem(storageKey) === 'true') {
-			setSaved(true)
+		// localStorage만 믿지 않고 DB도 확인
+		async function checkTodayLog() {
+			if (localStorage.getItem(storageKey) !== 'true') return
+
+			const supabase = createClient()
+			const { data } = await supabase
+				.from('workout_logs')
+				.select('id')
+				.eq('member_id', memberId)
+				.eq('logged_at', today)
+				.limit(1)
+
+			if (data && data.length > 0) {
+				// DB에 기록이 있으면 저장됨 표시
+				setSaved(true)
+			} else {
+				// DB에 기록이 없으면 localStorage도 초기화
+				localStorage.removeItem(storageKey)
+				setSaved(false)
+			}
 		}
-	}, [storageKey])
+
+		checkTodayLog()
+	}, [storageKey, memberId, today])
 
 	// 완료 버튼 활성화 조건: 루틴 체크 1개 이상 or 일상활동 포함 1개 이상
 	const includedDaily = dailyItems.filter(d => d.status === 'included')

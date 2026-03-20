@@ -19,7 +19,7 @@ export default function DaySection({
 	onUpdate, onAddWorkout, onRemoveWorkout,
 }: Props) {
 	const [copyChoice, setCopyChoice] = useState<'copy' | 'new' | null>(
-		items !== null ? 'new' : null
+		items !== null && items.length > 0 ? 'new' : null
 	)
 
 	const dayMets = (items ?? []).reduce<number>((s, w) => s + (calcMets(w) ?? 0), 0)

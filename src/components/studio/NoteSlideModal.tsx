@@ -119,7 +119,8 @@ export default function NoteSlideModal({ memberId, editTarget, onClose, onSaved 
 				})
 				return next.length === 0 ? ['전체'] : next
 			} else {
-				setDayWorkouts(dw => ({ ...dw, [day]: null as any }))
+				// ← null 대신 빈 배열로 초기화
+				setDayWorkouts(dw => ({ ...dw, [day]: [] }))
 				return [...without, day].sort((a, b) => WEEKDAYS.indexOf(a) - WEEKDAYS.indexOf(b))
 			}
 		})
@@ -158,65 +159,74 @@ export default function NoteSlideModal({ memberId, editTarget, onClose, onSaved 
 
 		let noteId: string
 
-		if (editTarget) {
-			await supabase.from('notes').update(notePayload).eq('id', editTarget.id)
-			noteId = editTarget.id
-			await supabase.from('note_tags').delete().eq('note_id', noteId)
-			await supabase.from('note_workouts').delete().eq('note_id', noteId)
-			await supabase.from('note_videos').delete().eq('note_id', noteId)
-		} else {
-			const { data: note, error } = await supabase
-				.from('notes')
-				.insert({
-					member_id: memberId,
-					instructor_id: user!.id,
-					is_sent: false,
-					written_at: new Date().toISOString().split('T')[0],
-					...notePayload,
-				})
-				.select().single()
-			if (error || !note) { setLoading(false); return }
-			noteId = note.id
-		}
+		try {
+			if (editTarget) {
+				const { error } = await supabase.from('notes').update(notePayload).eq('id', editTarget.id)
+				if (error) { console.error('notes update error:', error); setLoading(false); return }
+				noteId = editTarget.id
+				await supabase.from('note_tags').delete().eq('note_id', noteId)
+				await supabase.from('note_workouts').delete().eq('note_id', noteId)
+				await supabase.from('note_videos').delete().eq('note_id', noteId)
+			} else {
+				const { data: note, error } = await supabase
+					.from('notes')
+					.insert({
+						member_id: memberId,
+						instructor_id: user!.id,
+						is_sent: false,
+						written_at: new Date().toISOString().split('T')[0],
+						...notePayload,
+					})
+					.select().single()
+				if (error || !note) { console.error('notes insert error:', error); setLoading(false); return }
+				noteId = note.id
+			}
 
-		if (tags.length > 0) {
-			await supabase.from('note_tags').insert(tags.map(tag => ({ note_id: noteId, tag })))
-		}
+			if (tags.length > 0) {
+				const { error } = await supabase.from('note_tags').insert(tags.map(tag => ({ note_id: noteId, tag })))
+				if (error) console.error('note_tags error:', error)
+			}
 
-		if (videos.length > 0) {
-			await supabase.from('note_videos').insert(
-				videos.map((v, idx) => ({
-					note_id: noteId,
-					video_id: v.videoId,
-					youtube_url: v.youtubeUrl,
-					title: v.title || null,
-					thumbnail_url: v.thumbnailUrl || null,
-					source: v.source,
-					sort_order: idx,
-				}))
+			if (videos.length > 0) {
+				const { error } = await supabase.from('note_videos').insert(
+					videos.map((v, idx) => ({
+						note_id: noteId,
+						video_id: v.videoId,
+						youtube_url: v.youtubeUrl,
+						title: v.title || null,
+						thumbnail_url: v.thumbnailUrl || null,
+						source: v.source,
+						sort_order: idx,
+					}))
+				)
+				if (error) console.error('note_videos error:', error)
+			}
+
+			const workoutRows = Object.entries(dayWorkouts).flatMap(([day, items]) =>
+				(items ?? [])
+					.filter(w => w.workout_type)
+					.map((w, idx) => ({
+						note_id: noteId,
+						day,
+						workout_type: w.workout_type!,
+						intensity: w.intensity,
+						duration_min: w.duration_min ? Number(w.duration_min) : null,
+						mets: calcMets(w),
+						sort_order: idx,
+					}))
 			)
-		}
+			if (workoutRows.length > 0) {
+				const { error } = await supabase.from('note_workouts').insert(workoutRows)
+				if (error) console.error('note_workouts error:', error)
+			}
 
-		const workoutRows = Object.entries(dayWorkouts).flatMap(([day, items]) =>
-			(items ?? [])
-				.filter(w => w.workout_type)
-				.map((w, idx) => ({
-					note_id: noteId,
-					day,
-					workout_type: w.workout_type!,
-					intensity: w.intensity,
-					duration_min: w.duration_min ? Number(w.duration_min) : null,
-					mets: calcMets(w),
-					sort_order: idx,
-					coach_memo: w.coach_memo || null,
-				}))
-		)
-		if (workoutRows.length > 0) {
-			await supabase.from('note_workouts').insert(workoutRows)
-		}
+			setLoading(false)
+			onSaved()
 
-		setLoading(false)
-		onSaved()
+		} catch (err) {
+			console.error('handleSubmit caught error:', err)
+			setLoading(false)
+		}
 	}
 
 	const activeDays = selectedDays.includes('전체') ? ['전체'] : selectedDays

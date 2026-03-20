@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 
 interface Props {
 	token: string
@@ -16,6 +16,7 @@ const TABS = [
 
 export default function MemberTabBar({ token }: Props) {
 	const pathname = usePathname()
+	const router = useRouter()
 
 	return (
 		<nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto
@@ -27,9 +28,13 @@ export default function MemberTabBar({ token }: Props) {
 					: pathname.startsWith(href)
 
 				return (
-					<Link
+					<button
 						key={tab.label}
-						href={href}
+						onClick={() => {
+							router.push(href)
+							// 홈 탭은 항상 최신 데이터로 새로고침
+							if (tab.path === '') router.refresh()
+						}}
 						className="flex-1 flex flex-col items-center gap-1 py-2.5"
 					>
 						<span className="text-lg">{tab.icon}</span>
@@ -37,7 +42,7 @@ export default function MemberTabBar({ token }: Props) {
               ${isActive ? 'text-mint' : 'text-white/30'}`}>
 							{tab.label}
 						</span>
-					</Link>
+					</button>
 				)
 			})}
 		</nav>
