@@ -342,8 +342,8 @@ export default function TodayRoutineCard({
 						className="w-full py-2.5 text-[12px] font-semibold rounded-xl transition-all"
 						style={{
 							background: 'transparent',
-							border: '1px dashed rgba(255,255,255,0.2)',
-							color: 'rgba(255,255,255,0.5)',
+							border: '1px dashed rgba(255,255,255,0.4)',
+							color: 'rgba(255,255,255,0.6)',
 						}}
 					>
 						+ 다른 활동 추가
