@@ -71,6 +71,8 @@ export default function NoteSlideModal({ memberId, editTarget, onClose, onSaved 
 				coach_memo: w.coach_memo ?? '',
 			})
 		}
+
+		console.log("test - ", map)
 		return map
 	})
 
@@ -213,6 +215,7 @@ export default function NoteSlideModal({ memberId, editTarget, onClose, onSaved 
 						duration_min: w.duration_min ? Number(w.duration_min) : null,
 						mets: calcMets(w),
 						sort_order: idx,
+						coach_memo: w.coach_memo,
 					}))
 			)
 			if (workoutRows.length > 0) {

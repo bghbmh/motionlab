@@ -30,6 +30,8 @@ export default function DaySection({
 		onUpdate(choice === 'copy' ? cloneItems(previousItems) : [newItem()])
 	}
 
+	console.log("zz -", items)
+
 	const label = day === '전체' ? '전체' : `${day}요일`
 
 	return (
