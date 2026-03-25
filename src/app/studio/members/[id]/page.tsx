@@ -11,6 +11,8 @@ import CopyLinkButton from '@/components/studio/CopyLinkButton'
 import EditMemberButton from '@/components/studio/EditMemberButton'
 import WeeklyWorkoutDetail from '@/components/studio/WeeklyWorkoutDetail'
 
+import NoteCardView from '@/components/studio/NoteCard-view'
+
 import { ACTIVITY_STATUS_LABELS, calcTotalMets, getActivityStatus } from '@/lib/metsUtils'
 
 function getWeekStart() {
@@ -51,9 +53,9 @@ export default async function MemberDetailPage({
 				id, logged_at, workout_type, duration_min, mets_score, condition_memo, source
 			),
 			notes (
-				id, content, intensity, written_at, is_sent, recommended_mets,
+				id, content, intensity, written_at, is_sent, days, recommended_mets,
 				note_tags ( tag ),
-				note_workouts ( id, day, workout_type, intensity, duration_min, mets, sort_order ),
+				note_workouts ( id, day, workout_type, intensity, duration_min, mets, sort_order, coach_memo ),
 				note_videos ( id, title, video_id )
 			)
 		`)
@@ -113,7 +115,9 @@ export default async function MemberDetailPage({
 	const recentNotes = (member.notes ?? [])
 		.filter((n: any) => n.is_sent)
 		.sort((a: any, b: any) => b.written_at.localeCompare(a.written_at))
-		.slice(0, 3)
+		.slice(0, 3);
+
+	console.log("ttt - ", recentNotes)
 
 	const badgeClass = { low: 'badge-low', good: 'badge-good', high: 'badge-high' }[status]
 
@@ -262,64 +266,8 @@ export default async function MemberDetailPage({
 							{recentNotes.map((note: any) => {
 								const days: string[] = note.days ?? ['전체']
 								const videoCount = note.note_videos?.length ?? 0
-								return (
-									<div key={note.id}
-										className="rounded-xl p-3"
-										style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-										{/* 날짜 + 강도 */}
-										<div className="flex justify-between items-center mb-2">
-											<span className="font-mono text-[11px]" style={{ color: '#3DDBB5' }}>
-												{note.written_at}
-											</span>
-											<div className="flex items-center gap-1.5">
-												{videoCount > 0 && (
-													<span className="text-[10px] px-1.5 py-0.5 rounded"
-														style={{ background: 'rgba(255,107,91,0.1)', color: 'rgba(255,107,91,0.7)' }}>
-														🎬 {videoCount}
-													</span>
-												)}
-												<span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
-													style={{
-														background: note.intensity === 'high' ? 'rgba(255,107,91,0.1)' : note.intensity === 'recovery' ? 'rgba(255,179,71,0.1)' : 'rgba(61,219,181,0.1)',
-														color: note.intensity === 'high' ? '#FF6B5B' : note.intensity === 'recovery' ? '#FFB347' : '#3DDBB5',
-													}}>
-													{note.intensity === 'high' ? '고강도' : note.intensity === 'recovery' ? '리커버리' : '일반'}
-												</span>
-											</div>
-										</div>
-										{/* 본문 */}
-										<p className="text-xs leading-relaxed mb-2"
-											style={{ color: 'rgba(255,255,255,0.65)' }}>
-											{note.content}
-										</p>
-										{/* 요일별 운동처방 */}
-										{note.note_workouts?.length > 0 && (
-											<div className="flex flex-col gap-1 mt-1">
-												{days.map((d: string) => {
-													const dws = (note.note_workouts ?? [])
-														.filter((w: any) => w.day === d)
-														.sort((a: any, b: any) => a.sort_order - b.sort_order)
-													if (dws.length === 0) return null
-													return (
-														<div key={d} className="flex items-center gap-1.5 flex-wrap">
-															<span className="text-[10px] font-bold"
-																style={{ color: 'rgba(255,255,255,0.3)', minWidth: 20 }}>
-																{d === '전체' ? '매일' : d}
-															</span>
-															{dws.map((w: any) => (
-																<span key={w.id}
-																	className="text-[10px] px-1.5 py-0.5 rounded"
-																	style={{ background: 'rgba(61,219,181,0.08)', color: 'rgba(61,219,181,0.8)' }}>
-																	{WORKOUT_TYPE_LABELS[w.workout_type as keyof typeof WORKOUT_TYPE_LABELS]} {w.duration_min}분
-																</span>
-															))}
-														</div>
-													)
-												})}
-											</div>
-										)}
-									</div>
-								)
+								return <NoteCardView key={note.id} note={note} />
+
 							})}
 						</div>
 					) : (

@@ -117,12 +117,16 @@ export default function NoteSlideModal({ memberId, editTarget, onClose, onSaved 
 				setDayWorkouts(dw => {
 					const updated = { ...dw }
 					delete updated[day]
+					delete updated['전체']  // ← 이 줄 추가
 					return next.length === 0 ? { '전체': [newItem()] } : updated
 				})
 				return next.length === 0 ? ['전체'] : next
 			} else {
-				// ← null 대신 빈 배열로 초기화
-				setDayWorkouts(dw => ({ ...dw, [day]: [] }))
+				setDayWorkouts(dw => {
+					const updated = { ...dw }
+					delete updated['전체']  // ← 이 줄 추가
+					return { ...updated, [day]: null as any }
+				})
 				return [...without, day].sort((a, b) => WEEKDAYS.indexOf(a) - WEEKDAYS.indexOf(b))
 			}
 		})

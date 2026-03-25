@@ -7,23 +7,18 @@ const INTENSITY_STYLE: Record<string, { color: string; bg: string; border: strin
 	high: { color: '#FF6B5B', bg: 'rgba(255,107,91,0.1)', border: 'rgba(255,107,91,0.3)' },
 }
 
-export type NoteWithTags = Omit<Note, 'note_tags'> & {
-	note_tags: { tag: string }[],
+export type NoteWithVideos = Omit<Note, 'note_videos'> & {
 	note_videos: NoteVideo[]
 }
 
 interface Props {
-	note: NoteWithTags
-	onEdit: () => void
-	onDelete: () => void
-	onSend: () => void
-	onUnsend: () => void
+	note: NoteWithVideos
 }
 
-export default function NoteCard({ note, onEdit, onDelete, onSend, onUnsend }: Props) {
+export default function NoteCardView({ note }: Props) {
 	const st = INTENSITY_STYLE[note.intensity]
-	const noteDays = note.days ?? ['전체'];
 
+	console.log("NoteCardView - ", note)
 
 	return (
 		<div
@@ -46,6 +41,7 @@ export default function NoteCard({ note, onEdit, onDelete, onSend, onUnsend }: P
 						</>
 					)}
 
+
 					{
 						(note.note_videos && note.note_videos.length > 0) && (
 							<>
@@ -53,9 +49,10 @@ export default function NoteCard({ note, onEdit, onDelete, onSend, onUnsend }: P
 							</>
 						)
 					}
+
 				</div>
 
-				{/* 액션 버튼 */}
+				{/* 액션 버튼
 				<div className="flex gap-1.5 shrink-0">
 					<button onClick={onEdit} className="rounded-lg px-2.5 py-1 text-[11px] font-medium transition-all"
 						style={{ background: 'rgba(61,219,181,0.08)', border: '1px solid rgba(61,219,181,0.2)', color: 'rgba(61,219,181,0.75)' }}>
@@ -76,7 +73,7 @@ export default function NoteCard({ note, onEdit, onDelete, onSend, onUnsend }: P
 							전송
 						</button>
 					)}
-				</div>
+				</div> */}
 			</div>
 
 			{/* 내용 */}
@@ -93,7 +90,7 @@ export default function NoteCard({ note, onEdit, onDelete, onSend, onUnsend }: P
 					)}
 					{/* 요일 배지 */}
 					<div className="day-list mt-1">
-						{noteDays.map(d => {
+						{note.days.map(d => {
 							//const dayWorkouts = (note.note_workouts ?? []).filter(w => w.day === d);
 							const dayWorkouts = note.note_workouts?.filter(w => w.day === d);
 							return (
@@ -110,7 +107,7 @@ export default function NoteCard({ note, onEdit, onDelete, onSend, onUnsend }: P
 					</div>
 
 					{/* <div className="flex flex-col gap-1 mt-2">
-						{noteDays.map(d => {
+						{note.days.map(d => {
 							// 해당 요일의 운동들만 필터링
 							const dayWorkouts = (note.note_workouts ?? []).filter(w => w.day === d);
 
@@ -146,7 +143,7 @@ export default function NoteCard({ note, onEdit, onDelete, onSend, onUnsend }: P
 
 			{/* 태그 */}
 			{
-				note.note_tags?.length > 0 && (
+				note.note_tags && note.note_tags.length > 0 && (
 					<div className="flex flex-wrap gap-3">
 						{/* 강도 배지 */}
 						<span className="text-[10px] px-2 py-0.5 rounded-full font-semibold flex items-center flex-none"

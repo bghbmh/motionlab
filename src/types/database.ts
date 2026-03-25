@@ -130,8 +130,7 @@ export interface Note {
 	is_sent: boolean
 	days: string[]                  // ['전체'] or ['월','화','수'...]
 	recommended_mets: number | null // note_workouts METs 합산 총점
-	created_at: string
-	// join
+	created_at: string // join
 	note_tags?: NoteTag[]
 	note_workouts?: NoteWorkout[]
 }
