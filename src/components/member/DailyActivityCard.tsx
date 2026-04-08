@@ -1,10 +1,15 @@
 // src/components/member/DailyActivityCard.tsx
 // Figma: home > 일상생활활동 카드
-// Figma: 섹션 "일상생활활동" > 일상생활활동-아이템
+//
+// 자동 기록 로직:
+//   - 과거에 한 번이라도 daily로 저장된 적 있는 항목 (everLoggedTypes)
+//   - 오늘은 아직 저장 안 된 항목 (todayLoggedTypes에 없는)
+//   - 위 두 조건을 만족하면 마운트 시 자동으로 오늘 날짜로 workout_logs INSERT
+//   - 처음 체크하는 경우에만 저장 버튼 표시
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -37,7 +42,8 @@ interface Props {
 	memberId: string
 	patterns: PatternItem[]
 	today: string
-	todayLoggedTypes: string[]
+	todayLoggedTypes: string[]    // 오늘 이미 저장된 타입
+	everLoggedTypes: string[]     // 과거에 한 번이라도 저장된 타입 (자동 기록 판단용)
 }
 
 export default function DailyActivityCard({
@@ -45,6 +51,7 @@ export default function DailyActivityCard({
 	patterns,
 	today,
 	todayLoggedTypes,
+	everLoggedTypes,
 }: Props) {
 	const router = useRouter()
 
@@ -64,11 +71,52 @@ export default function DailyActivityCard({
 	)
 
 	const [showModal, setShowModal] = useState(false)
-	const [editTarget, setEditTarget] = useState<DailyItem | null>(null)  // ← 수정 대상
+	const [editTarget, setEditTarget] = useState<DailyItem | null>(null)
 	const [saving, setSaving] = useState(false)
 	const [savedTypes, setSavedTypes] = useState<Set<string>>(
 		new Set(todayLoggedTypes)
 	)
+
+	// ── 자동 기록 — 마운트 시 1회 실행 ────────────────────────
+	// 과거에 저장된 적 있고 오늘은 아직 없는 항목 → 자동 INSERT
+	useEffect(() => {
+		const toAutoSave = items.filter(
+			i => everLoggedTypes.includes(i.activity_type)
+				&& !todayLoggedTypes.includes(i.activity_type)
+				&& i.actualDuration > 0
+		)
+		if (toAutoSave.length === 0) return
+
+		async function autoSave() {
+			const supabase = createClient()
+			await supabase.from('workout_logs').insert(
+				toAutoSave.map(i => ({
+					member_id: memberId,
+					logged_at: today,
+					workout_type: 'other' as WorkoutType,
+					duration_min: i.actualDuration,
+					mets_score: i.mets_value,
+					condition_memo: null,
+					source: 'daily',
+					activity_type: i.activity_type,
+					note_workout_id: null,
+				}))
+			)
+			// 자동 저장된 항목 → savedTypes에 추가 + 체크 상태로 표시
+			setSavedTypes(prev => new Set([...prev, ...toAutoSave.map(i => i.activity_type)]))
+			setItems(prev =>
+				prev.map(i =>
+					toAutoSave.some(s => s.activity_type === i.activity_type)
+						? { ...i, isIncluded: true }
+						: i
+				)
+			)
+			router.refresh()
+		}
+
+		autoSave()
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])  // 마운트 시 1회만 실행
 
 	const existingTypes = items.map(i => i.activity_type)
 
@@ -131,7 +179,6 @@ export default function DailyActivityCard({
 	async function handleEditConfirm(opt: DailyActivityOption, durationMin: number) {
 		if (!editTarget) return
 
-		// DB UPDATE
 		if (editTarget.dailyActivityId) {
 			const supabase = createClient()
 			await supabase
@@ -140,7 +187,6 @@ export default function DailyActivityCard({
 				.eq('id', editTarget.dailyActivityId)
 		}
 
-		// 상태 반영
 		setItems(prev =>
 			prev.map(i =>
 				i.activity_type === editTarget.activity_type
@@ -162,7 +208,7 @@ export default function DailyActivityCard({
 		)
 	}
 
-	// ── 포함 항목 저장 → workout_logs INSERT ──────────────────
+	// ── 수동 저장 (처음 체크하는 항목) → workout_logs INSERT ───
 	async function save() {
 		const toSave = items.filter(
 			i => i.isIncluded && i.actualDuration > 0 && !savedTypes.has(i.activity_type)
@@ -190,11 +236,16 @@ export default function DailyActivityCard({
 		router.refresh()
 	}
 
-	const hasUnsaved = items.some(i => i.isIncluded && !savedTypes.has(i.activity_type))
+	// 처음 체크하는 항목(과거 기록 없음)만 저장 버튼 표시
+	const hasUnsaved = items.some(
+		i => i.isIncluded
+			&& !savedTypes.has(i.activity_type)
+			&& !everLoggedTypes.includes(i.activity_type)
+	)
 
 	return (
 		<>
-			<div className="m-card flex flex-col gap-2 mt-5 ">
+			<div className="m-card flex flex-col gap-2 mt-5 mb-5">
 
 				{/* 카드 헤더 */}
 				<div className="m-card-header">
@@ -233,7 +284,7 @@ export default function DailyActivityCard({
 					)}
 				</div>
 
-				{/* 저장 버튼 */}
+				{/* 저장 버튼 — 처음 체크하는 항목 있을 때만 */}
 				{hasUnsaved && (
 					<button
 						type="button"
@@ -256,9 +307,8 @@ export default function DailyActivityCard({
 					className="btn-add"
 					onClick={() => setShowModal(true)}
 				>
+					<Plus size={16} style={{ color: 'var(--m-gray-600)' }} />
 					<span>일상생활활동 추가</span>
-					<Plus size={16} />
-
 				</button>
 
 			</div>
@@ -272,7 +322,7 @@ export default function DailyActivityCard({
 				/>
 			)}
 
-			{/* 수정 모달 — DailyActivityDurationModal 재사용 */}
+			{/* 수정 모달 */}
 			{editTarget && (
 				<DailyActivityDurationModal
 					option={{

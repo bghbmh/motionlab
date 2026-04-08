@@ -222,24 +222,58 @@ export default async function NotePage({ params }: PageProps) {
 			return acc
 		}, {})
 
-		const noteDays: string[] = Array.isArray(note.days) ? note.days : ['전체']
+		const rawDays: string[] = Array.isArray(note.days) ? note.days : ['전체']
+
+		// '전체' → 발송일 기준 7일 각각의 날짜로 분리
+		// ex) '전체' → ['전체_0', '전체_1', ..., '전체_6'] (내부 처리용 키)
+		const isAllDays = rawDays.length === 1 && rawDays[0] === '전체'
 
 		// 각 주차 슬라이스를 카드로 변환
 		// slices는 오래된 순 — 최신이 위로 오도록 reverse 후 noteCards 앞에 삽입
 		const sliceCards: NoteCardData[] = slices.map((slice) => {
 			const isCurrentSlice = slice.start <= today && today <= slice.end
 
+			// '전체'인 경우 slice 기간의 각 날짜를 별도 섹션으로 분리
+			// 그 외 요일은 기존 방식 유지
+			let noteDays: string[]
+			if (isAllDays) {
+				// slice.start ~ slice.end 사이의 날짜를 하루씩 생성
+				noteDays = []
+				let cursor = parseDate(slice.start)
+				const sliceEndDate = parseDate(slice.end)
+				while (toISO(cursor) <= toISO(sliceEndDate)) {
+					noteDays.push(toISO(cursor))  // 'YYYY-MM-DD' 형식으로 저장
+					cursor = addDays(cursor, 1)
+				}
+			} else {
+				noteDays = rawDays
+			}
+
 			// 해당 주차에서 완료된 workout 판단
 			// completed_date가 이 주차 기간 안에 있으면 완료로 간주
 			const daySections: NoteDaySectionData[] = noteDays
-				.filter(d => dayMap[d]?.length > 0)
+				.filter(d => isAllDays ? true : dayMap[d]?.length > 0)
 				.map(d => {
-					// 요일의 실제 날짜 계산
-					const dayDate = getDayDate(slice.start, d)
-					const dayName = DAY_NAMES[d] ?? d
-					const dayLabel = formatDayLabel(dayDate, dayName)
+					let dayDate: string
+					let dayLabel: string
 
-					const items: NoteWorkoutItemData[] = (dayMap[d] ?? []).map((w: any) => {
+					if (isAllDays) {
+						// d가 'YYYY-MM-DD' 형식 날짜
+						dayDate = d
+						const [, mm, dd] = d.split('-').map(Number)
+						const dow = ['일', '월', '화', '수', '목', '금', '토'][parseDate(d).getDay()]
+						const dowFull = DAY_NAMES[dow] ?? dow
+						dayLabel = `${mm}/${dd} ${dowFull}`
+					} else {
+						// d가 요일 약자 ('월', '화' 등)
+						dayDate = getDayDate(slice.start, d)
+						const dayName = DAY_NAMES[d] ?? d
+						dayLabel = formatDayLabel(dayDate, dayName)
+					}
+
+					// isAllDays면 dayMap['전체'] 사용, 아니면 요일 약자로 조회
+					const workoutKey = isAllDays ? '전체' : d
+					const items: NoteWorkoutItemData[] = (dayMap[workoutKey] ?? []).map((w: any) => {
 						// 이 주차 기간 안에 완료된 기록이 있는지 확인
 						const entries = completionMap.get(w.id) ?? []
 						const matchedEntry = entries.find(
@@ -261,7 +295,7 @@ export default async function NotePage({ params }: PageProps) {
 					})
 
 					return {
-						id: `${note.id}-${d}-${slice.start}`,
+						id: isAllDays ? `${note.id}-${d}` : `${note.id}-${d}-${slice.start}`,
 						day: dayLabel,   // '4/7 월요일' 형식
 						dayDate,         // 정렬용 날짜 'YYYY-MM-DD'
 						items,

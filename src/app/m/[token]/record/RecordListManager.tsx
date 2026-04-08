@@ -131,7 +131,16 @@ export default function RecordListManager({ member, initialLogs }: Props) {
 				<PageHeader title="내 운동 기록" count={totalDays} unit="일" />
 
 				{logs.length === 0 && (
-					<p className="text-sm text-[#7f847d] pt-4">아직 운동 기록이 없어요.</p>
+					<>
+						<div className='flex flex-col p-2 items-center justify-center h-[70vh]  bg-white'>
+							<img src='/images/workout/none_workout.png' width={130} className='-mt-16' />
+							<p className="text-sm text-neutral-600 pt-4">
+
+								아직 운동 기록이 없어요.</p>
+						</div>
+
+					</>
+
 				)}
 
 				{months.map(month => {

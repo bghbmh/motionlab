@@ -51,6 +51,7 @@ export default async function MemberHomePage({
 		todayManualLogsRes,
 		dailyActivitiesRes,
 		todayDailyLogsRes,
+		everDailyLogsRes,        // ← 추가: 과거 daily 기록 타입
 	] = await Promise.all([
 		// 주간 운동 로그
 		supabase
@@ -104,16 +105,32 @@ export default async function MemberHomePage({
 			.eq('member_id', member.id)
 			.eq('logged_at', today)
 			.eq('source', 'daily'),
+
+		// 과거에 한 번이라도 저장된 일상생활 activity_type (자동 기록 판단용)
+		supabase
+			.from('workout_logs')
+			.select('activity_type')
+			.eq('member_id', member.id)
+			.eq('source', 'daily')
+			.lt('logged_at', today)
+			.not('activity_type', 'is', null),
 	])
 
 	const weekLogs = weekLogsRes.data ?? []
-	const latestNote = latestNoteRes.data   // null = 알림장 없음
+	const latestNote = latestNoteRes.data
 	const todayRoutineLogs = todayRoutineLogsRes.data ?? []
 	const todayManualLogs = todayManualLogsRes.data ?? []
 	const dailyActivities = dailyActivitiesRes.data ?? []
 	const todayLoggedDailyTypes = (todayDailyLogsRes.data ?? [])
 		.map(l => l.activity_type)
 		.filter(Boolean) as string[]
+
+	// 과거 daily 기록 타입 — 중복 제거
+	const everLoggedDailyTypes = [...new Set(
+		(everDailyLogsRes.data ?? [])
+			.map(l => l.activity_type)
+			.filter(Boolean) as string[]
+	)]
 
 	// ─── 통계 계산 ─────────────────────────────────────────────────
 	const weekTotalMets = weekLogs.reduce((s, l) => s + l.mets_score * l.duration_min, 0)
@@ -162,10 +179,7 @@ export default async function MemberHomePage({
 				activeDays={activeDays}
 			/> */}
 
-			{/* 오늘 알림장
-			    - 항상 렌더링 (조건 없음)
-			    - empty 상태는 TodayNoteCard 내부에서 처리
-			    - hasNote: latestNote가 null이면 false */}
+			{/* 오늘 알림장 */}
 			<TodayNoteCard
 				memberId={member.id}
 				token={token}
@@ -175,9 +189,7 @@ export default async function MemberHomePage({
 				hasNote={latestNote !== null}
 			/>
 
-			{/* 오늘의 운동 — 직접 기록
-			    - 항상 렌더링 (empty 상태는 카드 내부에서 처리)
-			    - initialRecords: 오늘 이미 기록된 manual 로그 */}
+			{/* 오늘의 운동 — 직접 기록 */}
 			<TodayWorkoutCard
 				memberId={member.id}
 				token={token}
@@ -191,6 +203,7 @@ export default async function MemberHomePage({
 				patterns={dailyActivities as any}
 				today={today}
 				todayLoggedTypes={todayLoggedDailyTypes}
+				everLoggedTypes={everLoggedDailyTypes}
 			/>
 		</>
 	)
