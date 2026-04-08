@@ -1,16 +1,17 @@
 'use client'
 // src/components/member/PushPermissionModal.tsx
-// standalone 모드(홈 화면 앱)로 실행 시 1회 표시
+// standalone 모드(홈 화면 앱)로 실행 시 표시
 // 푸시 알림 허용 요청 커스텀 모달
 //
 // 표시 조건:
 //   - standalone 모드일 때만
 //   - 푸시 알림 미허용 상태
-//   - 이미 구독 중이 아닌 경우
-//   - "나중에" 클릭으로 닫지 않은 경우
+//   - 이미 구독 완료 기록이 없는 경우 (localStorage)
 
 import { useState, useEffect } from 'react'
 import { usePushNotification } from '@/hooks/usePushNotification'
+
+const SUBSCRIBED_KEY = 'push_subscribed'
 
 interface Props {
 	token: string
@@ -31,21 +32,17 @@ export default function PushPermissionModal({ token }: Props) {
 	const [visible, setVisible] = useState(false)
 
 	useEffect(() => {
-
-		console.log('standalone:', isStandalone())
-		console.log('isSupported:', isSupported)
-		console.log('permission:', permission)
-		console.log('isSubscribed:', isSubscribed)
-
-		alert(`standalone: ${isStandalone()}\nisSupported: ${isSupported}\npermission: ${permission}\nisSubscribed: ${isSubscribed}`)
 		// standalone 모드가 아니면 표시 안 함
 		if (!isStandalone()) return
 
 		// 푸시 미지원이면 표시 안 함
 		if (!isSupported) return
 
-		// 이미 허용됐거나 구독 중이면 표시 안 함
-		if (permission === 'granted' || isSubscribed) return
+		// 이미 브라우저에서 허용된 상태면 표시 안 함
+		if (permission === 'granted') return
+
+		// 이미 구독 완료 기록이 있으면 표시 안 함
+		if (localStorage.getItem(SUBSCRIBED_KEY) === 'true') return
 
 		setVisible(true)
 	}, [permission, isSubscribed, isSupported])
@@ -58,6 +55,8 @@ export default function PushPermissionModal({ token }: Props) {
 
 	async function handleAllow() {
 		await subscribe()
+		// 구독 완료 기록 — 다음 실행 시 모달 안 뜸
+		localStorage.setItem(SUBSCRIBED_KEY, 'true')
 		setVisible(false)
 	}
 
@@ -69,7 +68,7 @@ export default function PushPermissionModal({ token }: Props) {
 			{/* 모달 */}
 			<div
 				className="fixed z-50 left-1/2 -translate-x-1/2"
-				style={{ top: '46%', transform: 'translateY(-50%)', width: 'calc(100% - 32px)', maxWidth: '400px' }}
+				style={{ bottom: '80px', width: 'calc(100% - 32px)', maxWidth: '400px' }}
 			>
 				<div className="bg-white rounded-[24px] shadow-[0px_20px_25px_0px_rgba(0,0,0,0.1),0px_10px_10px_0px_rgba(0,0,0,0.04)] overflow-hidden">
 					<div className="flex flex-col gap-[16px] p-[24px]">
