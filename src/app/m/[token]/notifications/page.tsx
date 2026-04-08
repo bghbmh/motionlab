@@ -1,7 +1,9 @@
+// src/app/m/[token]/notifications/page.tsx
+
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import NotificationsClient from '@/components/member/NotificationsClient'
+import NotificationsClient from '@/app/m/[token]/notifications/NotificationsClient'
 
 export default async function NotificationsPage({
 	params,
@@ -27,12 +29,13 @@ export default async function NotificationsPage({
 		.limit(50)
 
 	return (
-		<div className="p-4 flex flex-col gap-3">
-			<div className="flex items-center gap-3 pt-1">
-				<Link href={`/m/${token}`} className="btn-ghost text-xs py-1.5 px-3">
-					← 뒤로
-				</Link>
-				<h2 className="text-base font-bold text-white">알림</h2>
+		<div className="flex flex-col gap-3 px-2 pt-2 pb-8">
+			{/* 페이지 헤더 */}
+			<div className="flex items-center justify-between px-1 pt-1 pb-1">
+				<h1 className="text-[18px] font-bold text-gray-700">알림</h1>
+				<span className="text-xs text-gray-400">
+					총 {notifications?.length ?? 0}개
+				</span>
 			</div>
 
 			<NotificationsClient

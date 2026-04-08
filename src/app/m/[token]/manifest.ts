@@ -15,8 +15,8 @@ export default function manifest(
 		description: '데이터 기반 온-오프라인 연동 운동 루틴 매니지먼트',
 		start_url: `/m/${token}`,   // ← 토큰 포함된 URL
 		display: 'standalone',
-		background_color: '#0d1421',
-		theme_color: '#0d1421',
+		background_color: '#0bb489',
+		theme_color: '#0bb489',
 		orientation: 'portrait',
 		icons: [
 			{ src: '/icons/icon-72x72.png', sizes: '72x72', type: 'image/png' },
