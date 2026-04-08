@@ -41,7 +41,7 @@ export default function MemberHeader({ token, today, unreadCount = 0 }: Props) {
 				{/* 알림 벨 + 미읽음 dot___. inline-grid */}
 				<Link
 					href={`/m/${token}/notifications`}
-					className="relative  place-items-start hidden"
+					className="relative  place-items-start"
 					style={{ textDecoration: 'none', lineHeight: 0 }}
 					aria-label="알림"
 				>
@@ -61,14 +61,14 @@ export default function MemberHeader({ token, today, unreadCount = 0 }: Props) {
 					{/* 미읽음 dot */}
 					{unreadCount > 0 && (
 						<div
-							className="col-start-1 row-start-1"
+							className="col-start-1 row-start-1 absolute"
 							style={{
 								width: 11,
 								height: 11,
+								top: 0,
+								right: 0,
 								borderRadius: '50%',
 								backgroundColor: 'var(--color-primary)',
-								marginLeft: 25,
-								marginTop: 0,
 							}}
 						/>
 					)}
