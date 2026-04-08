@@ -1,0 +1,306 @@
+@reference "../globals.css";
+
+/* ================================================================
+   스튜디오(관리자) 전용 스타일
+   src/app/studio/studio.css
+
+   import: src/app/studio/layout.tsx 상단에서
+   import './studio.css'
+
+   - @layer components 안에 스튜디오 전용 클래스 정의
+   - Tailwind 기본 유틸 클래스와 충돌 없음
+   - --color-navy, --color-mint 등은 globals.css @theme 에서 옴
+   ================================================================ */
+
+@layer components {
+
+	/* ── 레이아웃 ─────────────────────────────────────────────── */
+
+	.s-layout {
+		background-color: #0d1421;
+		/* bg-navy */
+		color: #F0F4FF;
+		font-family: 'DM Sans', sans-serif;
+		min-height: 100vh;
+	}
+
+	/* 스튜디오 사이드바 */
+	.s-sidebar {
+		flex-shrink: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+		width: 256px;
+		height: 100%;
+		padding: 16px 0;
+		overflow: hidden;
+		border-right: 1px solid hsl(0 100% 100% / .05);
+	}
+
+	.s-content {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		height: 1px;
+		padding: 0 12px;
+		overflow-y: auto;
+	}
+
+	/* 스크롤바 */
+	.scrollbar-thin::-webkit-scrollbar {
+		width: 5px;
+	}
+
+	.scrollbar-thin::-webkit-scrollbar-track {
+		background: transparent;
+	}
+
+	.scrollbar-thin::-webkit-scrollbar-thumb {
+		background: rgba(255, 255, 255, 0.1);
+		border-radius: 999px;
+	}
+
+	.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+		background: rgba(61, 219, 181, 0.7);
+	}
+
+	/* ── 카드 ──────────────────────────────────────────────────── */
+
+	.ml-card {
+		background-color: #141e2e;
+		/* bg-card */
+		border: 1px solid rgba(255, 255, 255, 0.07);
+		border-radius: 1rem;
+		padding: 1rem;
+	}
+
+	.ml-card-label {
+		font-size: 11px;
+		font-weight: 600;
+		color: rgba(255, 255, 255, 0.7);
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		margin-bottom: 0.75rem;
+		display: block;
+	}
+
+	/* ── 인풋 ──────────────────────────────────────────────────── */
+
+	.ml-input {
+		width: 100%;
+		background-color: #1a2740;
+		border: 1px solid rgba(255, 255, 255, 0.07);
+		border-radius: 0.5rem;
+		padding: 0.625rem 0.75rem;
+		color: rgba(255, 255, 255, 0.9);
+		font-size: 0.875rem;
+		font-family: 'DM Mono', monospace;
+		transition: border-color 0.2s, color 0.2s;
+	}
+
+	.ml-input::placeholder {
+		color: rgba(255, 255, 255, 0.2);
+	}
+
+	.ml-input:focus {
+		border-color: rgba(61, 219, 181, 0.5);
+		color: #F0F4FF;
+	}
+
+	/* ── 버튼 ──────────────────────────────────────────────────── */
+
+	/* primary — 민트 배경 */
+	.btn-primary {
+		background-color: #3DDBB5;
+		/* bg-mint */
+		color: #0d1421;
+		/* text-navy */
+		font-weight: 700;
+		font-size: 0.875rem;
+		border-radius: 0.75rem;
+		padding: 0.625rem 1.25rem;
+		border: none;
+		cursor: pointer;
+		transition: background-color 0.2s;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		text-decoration: none;
+	}
+
+	.btn-primary:hover {
+		background-color: rgba(61, 219, 181, 0.9);
+	}
+
+	/* ghost */
+	.btn-ghost {
+		background-color: #1a2740;
+		color: rgba(255, 255, 255, 0.5);
+		border: 1px solid rgba(255, 255, 255, 0.07);
+		font-size: 0.875rem;
+		font-weight: 500;
+		border-radius: 0.75rem;
+		padding: 0.5rem 1rem;
+		cursor: pointer;
+		transition: border-color 0.2s, color 0.2s;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		text-decoration: none;
+	}
+
+	.btn-ghost:hover {
+		border-color: rgba(255, 255, 255, 0.2);
+		color: rgba(255, 255, 255, 0.7);
+	}
+
+	/* ── 배지 ──────────────────────────────────────────────────── */
+
+	.badge-low {
+		background-color: rgba(255, 107, 91, 0.15);
+		color: #FF6B5B;
+		font-size: 0.6875rem;
+		font-weight: 600;
+		padding: 0.1875rem 0.625rem;
+		border-radius: 9999px;
+		display: inline-flex;
+		align-items: center;
+	}
+
+	.badge-good {
+		background-color: rgba(61, 219, 181, 0.12);
+		color: #3DDBB5;
+		font-size: 0.6875rem;
+		font-weight: 600;
+		padding: 0.1875rem 0.625rem;
+		border-radius: 9999px;
+		display: inline-flex;
+		align-items: center;
+	}
+
+	.badge-high {
+		background-color: rgba(255, 179, 71, 0.15);
+		color: #FFB347;
+		font-size: 0.6875rem;
+		font-weight: 600;
+		padding: 0.1875rem 0.625rem;
+		border-radius: 9999px;
+		display: inline-flex;
+		align-items: center;
+	}
+
+	/* ── 태그 ──────────────────────────────────────────────────── */
+
+	.ml-tag {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		padding: 0.3125rem 0.75rem;
+		background-color: #1a2740;
+		border: 1px solid rgba(61, 219, 181, 0.25);
+		border-radius: 9999px;
+		font-size: 0.6875rem;
+		color: #3DDBB5;
+		font-weight: 500;
+	}
+
+	.ml-tag-default {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		padding: 0.3125rem 0.75rem;
+		background-color: #1a2740;
+		border: 1px solid rgba(61, 219, 181, 0.05);
+		border-radius: 9999px;
+		font-size: 0.6875rem;
+		color: #dee9e7;
+		font-weight: 500;
+	}
+
+	/* ── 구분선 ────────────────────────────────────────────────── */
+
+	.ml-divider {
+		border: none;
+		border-top: 1px solid rgba(255, 255, 255, 0.07);
+		margin: 0.5rem 0;
+	}
+
+	/* ── 기타 ──────────────────────────────────────────────────── */
+
+	.alarm-banner-1 {
+		background: rgba(61, 219, 181, 0.08);
+		border: 1px solid rgba(61, 219, 181, 0.2);
+		color: rgb(61, 219, 181);
+	}
+
+	.workout-row-item+.workout-row-item {
+		border-top: 1px dashed hsl(0 100% 100% / .1);
+		padding-top: 1rem;
+		margin-top: 0.5rem;
+	}
+
+	/* 요일 목록 */
+	.day-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px 12px;
+	}
+
+	.day-list-item {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+	}
+
+	.day-list-item .day {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		color: rgba(61, 219, 182, 1);
+		font-size: 0.75rem;
+		font-weight: 500;
+		line-height: 1;
+		min-width: 1.5em;
+		height: 1.5em;
+		padding: 2px 3px;
+		background-color: rgba(61, 219, 182, .1);
+		border-radius: 4px;
+		margin-right: 4px;
+	}
+
+	.day-list-item .dw {
+		color: hsl(0, 0%, 70%);
+	}
+
+	.day-list-item .dw+.dw::before {
+		content: '/';
+		padding: 0 4px;
+		opacity: .3;
+	}
+
+
+	.studio-members {
+		flex-shrink: 0;
+
+		display: flex;
+		flex-direction: column;
+		gap: calc(.25rem * 3);
+		width: calc(.25rem * 64);
+		height: 100%;
+		padding: calc(.25rem * 4) 0;
+		overflow: hidden;
+		border-right: 1px solid hsl(0 100% 100% / .05);
+	}
+
+	.info-list {
+		flex: 1;
+
+		display: flex;
+		flex-direction: column;
+		gap: calc(.25rem * 2);
+		height: 1px;
+		padding: 0 calc(.25rem * 3);
+		overflow-y: auto;
+	}
+}

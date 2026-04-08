@@ -193,6 +193,7 @@ export default function RecordModal({
 								<input
 									className="ml-input"
 									type="number"
+									inputMode="numeric"
 									placeholder="예: 30"
 									value={form.duration}
 									onChange={e => setForm(p => ({ ...p, duration: e.target.value }))}

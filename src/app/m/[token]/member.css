@@ -1,0 +1,494 @@
+@reference "../../globals.css";
+
+/* ================================================================
+   회원앱 전용 스타일
+   src/app/m/[token]/member.css
+
+   import: src/app/m/[token]/layout.tsx 상단에서
+   import './member.css'
+
+   - @layer components 안에 회원앱 전용 클래스 정의
+   - Tailwind 기본 유틸 클래스와 충돌 없음
+   - --color-primary 는 globals.css @theme 에서 옴
+   ================================================================ */
+
+@layer components {
+
+	/* ── 레이아웃 ─────────────────────────────────────────────── */
+
+	.m-layout {
+		max-width: 402px;
+		margin: 0 auto;
+		min-height: 100dvh;
+		background-color: #f8faf8;
+		/* olive/2 */
+		color: #1d211c;
+		/* olive/12 */
+		font-family: 'DM Sans', sans-serif;
+		position: relative;
+	}
+
+	.m-content {
+		padding-top: 58px;
+		/* 헤더 높이 */
+		padding-bottom: 72px;
+		/* GNB 높이 */
+		padding-left: 8px;
+		padding-right: 8px;
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+	}
+
+	/* ── 카드 ──────────────────────────────────────────────────── */
+
+	.m-card {
+		background-color: #ffffff;
+		border-radius: 18px;
+		padding: 16px;
+	}
+
+	.m-card-header {
+		@apply flex justify-between px-2
+	}
+
+	.m-card-label {
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--color-gray-800);
+		line-height: 16px;
+	}
+
+	/* 카드 내부 아이템 (neutral-50 배경) */
+	.m-card-item {
+		background-color: #fafafa;
+		border-radius: 14px;
+		padding: 16px;
+		overflow: hidden;
+	}
+
+	.m-card-item-header {
+		@apply flex justify-between items-center gap-4;
+	}
+
+	.m-card-item-title {
+
+		@apply text-sm font-medium;
+
+		color: var(--color-gray-800);
+	}
+
+	/* ── 타이포그래피 ──────────────────────────────────────────── */
+
+	/* 카드 섹션 타이틀 */
+	.m-label {
+		font-size: 12px;
+		font-weight: 400;
+		color: var(--color-gray-800);
+		line-height: 16px;
+	}
+
+	/* 카드 서브 타이틀 */
+	.m-sublabel {
+		font-size: 11px;
+		font-weight: 400;
+		color: #7f847d;
+		/* olive/10 */
+		line-height: 16px;
+	}
+
+	/* ── 버튼 ──────────────────────────────────────────────────── */
+
+	/* + 추가 버튼 (둥근 아웃라인) */
+	.btn-add {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		width: 100%;
+		padding: 13px 10px;
+		border-radius: 9999px;
+		border: 1px solid #b9bcb8;
+		/* olive/8 */
+		background-color: #ffffff;
+		color: #4a5565;
+		/* gray-600 */
+		font-size: 14px;
+		font-weight: 400;
+		cursor: pointer;
+		text-decoration: none;
+		transition: background-color 0.15s;
+		line-height: 1;
+	}
+
+	.btn-add:hover {
+		background-color: #fafafa;
+	}
+
+	/* primary — 브랜드 컬러 */
+	.btn-primary {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		flex: 1;
+		padding: 8px 12px;
+		border-radius: 8px;
+		background-color: var(--color-primary);
+		border: 1px solid var(--color-primary);
+		color: #ffffff;
+		font-size: 14px;
+		font-weight: 400;
+		cursor: pointer;
+		box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.06),
+			0px 4px 6px -1px rgba(0, 0, 0, 0.10);
+		transition: background-color 0.15s;
+		line-height: 1;
+	}
+
+	.btn-primary:hover {
+		background-color: var(--color-primary-dark);
+	}
+
+	.btn-primary:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	/* ghost */
+	.btn-ghost {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		flex: 1;
+		padding: 8px 12px;
+		border-radius: 8px;
+		background-color: transparent;
+		color: #4a5565;
+		font-size: 14px;
+		font-weight: 400;
+		cursor: pointer;
+		border: none;
+		transition: background-color 0.15s;
+		line-height: 1;
+	}
+
+	.btn-ghost:hover {
+		background-color: #fafafa;
+	}
+
+	/* dark (미완료 상태 활성 버튼) */
+	.btn-dark {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		flex: 1;
+		padding: 8px 12px;
+		border-radius: 8px;
+		background-color: #4a5565;
+		color: #f9fafb;
+		font-size: 14px;
+		cursor: pointer;
+		border: none;
+		box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.06),
+			0px 4px 6px -1px rgba(0, 0, 0, 0.10);
+		line-height: 1;
+	}
+
+	/* outline (수정 버튼) */
+	.btn-outline {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		height: 36px;
+		padding: 8px 16px;
+		border-radius: 8px;
+		border: 1px solid #e2e8f0;
+		background-color: #ffffff;
+		color: #364153;
+		font-size: 14px;
+		font-weight: 500;
+		cursor: pointer;
+		transition: background-color 0.15s;
+		line-height: 1;
+	}
+
+	.btn-outline:hover {
+		background-color: #fafafa;
+	}
+
+	/* danger (삭제 버튼) */
+	.btn-danger {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		height: 36px;
+		padding: 8px 16px;
+		border-radius: 8px;
+		border: 1px solid #ff2056;
+		background-color: #fff1f2;
+		color: #ff2056;
+		font-size: 14px;
+		font-weight: 500;
+		cursor: pointer;
+		line-height: 1;
+	}
+
+	/* 아이콘 전용 정사각 버튼 */
+	.btn-icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 36px;
+		height: 36px;
+		border-radius: 8px;
+		flex-shrink: 0;
+		cursor: pointer;
+	}
+
+	.btn-icon-outline {
+		border: 1px solid #e2e8f0;
+		background-color: #ffffff;
+	}
+
+	.btn-icon-danger {
+		border: 1px solid #ff2056;
+		background-color: #fff1f2;
+	}
+
+	/* 커스텀 체크박스 (일상생활활동 포함 여부) */
+	.btn-check {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 36px;
+		height: 36px;
+		border-radius: 8px;
+		border: 1px solid #e2e8f0;
+		background-color: #ffffff;
+		cursor: pointer;
+		flex-shrink: 0;
+		transition: background-color 0.15s, border-color 0.15s;
+	}
+
+	.btn-check-active {
+		background-color: var(--color-primary);
+		border-color: var(--color-primary);
+	}
+
+	/* ── 뱃지 ──────────────────────────────────────────────────── */
+
+	.badge {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		height: 22px;
+		padding: 2px 10px;
+		border-radius: 10px;
+		font-size: 12px;
+		font-weight: bold;
+	}
+
+	.badge-muted {
+		font-size: 12px;
+		color: #6a7282;
+		font-weight: bold;
+	}
+
+	.badge-success {
+		font-size: 12px;
+		color: #46a758;
+		font-weight: bold;
+	}
+
+	.badge-add {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		color: #46a758;
+		font-size: 12px;
+		font-weight: bold;
+	}
+
+	/* ── 인풋 ──────────────────────────────────────────────────── */
+
+	.m-input {
+		width: 100%;
+		background-color: #ffffff;
+		border: 1px solid #e2e8f0;
+		border-radius: 8px;
+		padding: 10px 14px;
+		color: #1d211c;
+		font-size: 16px;
+		font-family: 'DM Sans', sans-serif;
+		outline: none;
+		transition: border-color 0.15s;
+	}
+
+	.m-input:focus {
+		border-color: var(--color-primary);
+	}
+
+	.m-input::placeholder {
+		color: #a1a1a1;
+	}
+
+	/* ── 코치 메모 ─────────────────────────────────────────────── */
+
+	.coach-memo {
+		display: flex;
+		gap: 4px;
+		align-items: flex-start;
+		background-color: var(--color-orange-50);
+		/* orange-50 */
+		color: var(--color-orange-700);
+		border-radius: 10px;
+		padding: 8px;
+		width: 100%;
+	}
+
+	.coach-memo-icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 20px;
+		height: 20px;
+		background-color: #ffffff;
+		border-radius: 9999px;
+		flex-shrink: 0;
+		padding: 4px;
+		margin-top: -2px;
+	}
+
+	.member-memo {
+		display: flex;
+		gap: 8px;
+		align-items: flex-start;
+		background-color: var(--color-neutral-100);
+		color: var(--color-neutral-900);
+		border-radius: 10px;
+		padding: 8px;
+		width: 100%;
+	}
+
+	.member-memo-icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 20px;
+		height: 20px;
+		background-color: #ffffff;
+		border-radius: 9999px;
+		flex-shrink: 0;
+		padding: 4px;
+		margin-top: -2px;
+	}
+
+	/* ── 워크아웃 타입 아이콘 래퍼 ─────────────────────────────── */
+
+	.workout-icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 12px;
+		flex-shrink: 0;
+		overflow: visible;
+		position: relative;
+
+	}
+
+	.workout-icon>img {
+		max-width: none;
+		width: auto;
+		height: 100%;
+	}
+
+	/* ── 공통 헤더 ─────────────────────────────────────────────── */
+
+	.m-header {
+		position: fixed;
+		top: 0;
+		left: 50%;
+		transform: translateX(-50%);
+		width: 100%;
+		max-width: 402px;
+		background-color: #ffffff;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 12px 20px;
+		z-index: 50;
+	}
+
+	/* ── GNB ───────────────────────────────────────────────────── */
+
+	.m-gnb {
+		position: fixed;
+		bottom: 0;
+		left: 50%;
+		transform: translateX(-50%);
+		width: 100%;
+		max-width: 402px;
+		background-color: #ffffff;
+		box-shadow: 0px -1px 13px 0px rgba(0, 0, 0, 0.07);
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 12px 28px;
+		z-index: 50;
+	}
+
+	.m-gnb-item {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		min-width: 100px;
+		padding: 12px 8px;
+		border-radius: 8px;
+		font-size: 12px;
+		color: #1d211c;
+		cursor: pointer;
+		text-decoration: none;
+		transition: background-color 0.15s;
+	}
+
+	.m-gnb-item-active {
+		background-color: var(--color-neutral-100);
+	}
+
+	/* ── 구분선 ────────────────────────────────────────────────── */
+
+	.m-divider {
+		border: none;
+		border-top: 1px solid #e2e8f0;
+		margin: 0;
+	}
+
+
+	.hello-user-info {
+		@apply flex items-center px-2;
+
+		.user-hi {
+			@apply flex items-center gap-1 text-sm text-gray-500;
+
+		}
+	}
+}
+
+
+@keyframes slide-up {
+	from {
+		transform: translateY(100%);
+	}
+
+	to {
+		transform: translateY(0);
+	}
+}
+
+.animate-slide-up {
+	animation: slide-up 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}

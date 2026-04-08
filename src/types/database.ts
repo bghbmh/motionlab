@@ -57,6 +57,8 @@ export interface WorkoutLog {
 	note_workout_id: string | null           // 신규
 	activity_type: string | null             // 신규
 	created_at: string
+	intensity: Intensity | null  // 신규
+	prescribed_duration_min: number | null
 }
 
 export type WorkoutType =
@@ -149,6 +151,24 @@ export interface NoteTag {
 	tag: string
 }
 
+export interface CompletedLog {
+	note_workout_id: string
+	log_id: string
+	duration_min: number
+	prescribed_duration_min: number | null
+	mets_score: number
+}
+
+
+// ─── note_workout_completions ─────────────────────────────────
+export interface NoteWorkoutCompletion {
+	id: string
+	note_workout_id: string    // note_workouts.id 참조
+	member_id: string
+	completed_date: string     // 'YYYY-MM-DD'
+	created_at: string
+}
+
 
 // ─── 내장지방 상태 타입 정의 ───────────────────────────────────
 
@@ -194,6 +214,15 @@ export const VISCERAL_FAT_STATUS_COLORS: Record<VisceralFatStatus, string> = {
 
 
 // ─── 운동 타입 아이콘 ─────────────────────────────────────────────
+export const WORKOUT_ICON_PATHS: Record<WorkoutType, string> = {
+	stretching: '/images/workout/stretching.png',
+	strength: '/images/workout/strength.png',
+	cardio: '/images/workout/cardio.png',
+	pilates: '/images/workout/pilates.png',
+	yoga: '/images/workout/yoga.png',
+	other: '/images/workout/other.png',
+}
+
 export const WORKOUT_ICONS: Record<WorkoutType, string> = {
 	stretching: '🧘',
 	strength: '💪',

@@ -54,7 +54,41 @@ export default function NotesListClient({ id, initialMember, latestInbody, initi
 
 	async function handleSend(note: NoteWithTags) {
 		const supabase = createClient()
+
+		// 1. 알림장 전송 상태 업데이트
 		await supabase.from('notes').update({ is_sent: true }).eq('id', note.id)
+
+		// 2. 회원의 access_token 조회 (푸시 URL에 필요)
+		const { data: memberInfo } = await supabase
+			.from('members')
+			.select('access_token')
+			.eq('id', id)
+			.single()
+
+		// 3. 푸시 알림 발송 + notifications INSERT (push/send API에서 통합 처리)
+		if (memberInfo?.access_token) {
+			fetch('/api/push/send', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					memberId: id,
+					noteId: note.id,
+					message: `강사님이 새 알림장을 보냈어요 📋  ${note.written_at}`,
+					token: memberInfo.access_token,
+				}),
+			}).catch(err => console.error('[push/send]', err))
+			// fetch는 fire-and-forget — UI는 즉시 갱신
+		} else {
+			// access_token 없는 예외 케이스: 알림만 DB 저장
+			await supabase.from('notifications').insert({
+				member_id: id,
+				type: 'note_sent',
+				note_id: note.id,
+				message: `강사님이 새 알림장을 보냈어요 📋  ${note.written_at}`,
+				is_read: false,
+			})
+		}
+
 		refreshData()
 	}
 

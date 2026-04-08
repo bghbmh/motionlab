@@ -219,9 +219,10 @@ export default function NoteSlideModal({ memberId, editTarget, onClose, onSaved 
 						duration_min: w.duration_min ? Number(w.duration_min) : null,
 						mets: calcMets(w),
 						sort_order: idx,
-						coach_memo: w.coach_memo,
+						coach_memo: w.coach_memo?.trim() || null,   // ★ 신규
 					}))
 			)
+
 			if (workoutRows.length > 0) {
 				const { error } = await supabase.from('note_workouts').insert(workoutRows)
 				if (error) console.error('note_workouts error:', error)

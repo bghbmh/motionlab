@@ -1,3 +1,6 @@
+import './studio.css'
+
+//import '../globals.css'
 
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'

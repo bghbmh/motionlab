@@ -1,14 +1,26 @@
+// src/components/member/DailyActivityModal.tsx
+// 일상생활 활동 선택 BottomSheet
+// Figma: Dialog-일상생활활동추가
+// 활동 선택 → DailyActivityDurationModal(중앙 모달)로 연결
+
 'use client'
 
 import { useState } from 'react'
+import BottomSheet from './ui/BottomSheet'
+import DailyActivityDurationModal from './DailyActivityDurationModal'
 
-export interface DailyActivityOption {
+import DailyActivityModalItem from './DailyActivityModalItem'
+
+
+interface DailyActivityOption {
 	activity_type: string
 	activity_label: string
 	mets_value: number
 	paper_code: string
 	category: string
 }
+
+// ── 활동 목록 데이터 ──────────────────────────────────────────
 
 const ALL_OPTIONS: DailyActivityOption[] = [
 	// 가사
@@ -38,131 +50,122 @@ const ALL_OPTIONS: DailyActivityOption[] = [
 ]
 
 const CATEGORIES = ['전체', '가사', '이동', '직장', '운동'] as const
+type Category = typeof CATEGORIES[number]
+
+// ── Props ─────────────────────────────────────────────────────
 
 interface Props {
-	excludeTypes: string[]   // 이미 카드에 있는 항목 제외
-	onAdd: (opt: DailyActivityOption, durationMin: number) => void
+	excludeTypes: string[]
+	onAdd: (option: DailyActivityOption, durationMin: number) => void
 	onClose: () => void
 }
 
+// ── 컴포넌트 ─────────────────────────────────────────────────
+
 export default function DailyActivityModal({ excludeTypes, onAdd, onClose }: Props) {
-	const [tab, setTab] = useState<typeof CATEGORIES[number]>('전체')
-	const [pendingType, setPendingType] = useState<string | null>(null)
-	const [duration, setDuration] = useState('30')
+	const [tab, setTab] = useState<Category>('전체')
+	const [selected, setSelected] = useState<DailyActivityOption | null>(null)
 
 	const filtered = ALL_OPTIONS.filter(o =>
 		(tab === '전체' || o.category === tab) &&
 		!excludeTypes.includes(o.activity_type)
 	)
 
-	function handleAdd(opt: DailyActivityOption) {
-		const min = Number(duration)
-		if (!min || min <= 0) return
-		onAdd(opt, min)
-		onClose()
+	function handleSelectActivity(option: DailyActivityOption) {
+		setSelected(option)
+	}
+
+	function handleBackToList() {
+		setSelected(null)
+	}
+
+	function handleConfirm(option: DailyActivityOption, durationMin: number) {
+		onAdd(option, durationMin)
+		// 모달 닫기는 부모에서 처리
 	}
 
 	return (
-		<div
-			className="fixed inset-0 z-50 flex items-end justify-center"
-			style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}
-			onClick={onClose}
-		>
-			<div
-				className="w-full max-w-md flex flex-col"
-				style={{
-					background: '#141e2e',
-					border: '1px solid rgba(255,255,255,0.08)',
-					borderBottom: 'none',
-					borderRadius: '1.5rem 1.5rem 0 0',
-					maxHeight: '80vh',
-				}}
-				onClick={e => e.stopPropagation()}
-			>
-				{/* 핸들 */}
-				<div className="flex justify-center pt-3 pb-2">
-					<div className="w-10 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.15)' }} />
-				</div>
+		<>
+			{/* ── 활동 선택 BottomSheet ── */}
+			<BottomSheet onClose={onClose}>
 
 				{/* 헤더 */}
-				<div className="flex justify-between items-center px-5 pb-3">
-					<p className="font-mono text-sm font-medium" style={{ color: '#3DDBB5' }}>
-						활동 추가
+				<div className="flex items-center justify-between px-5 pt-2 pb-3 shrink-0">
+					<p className="text-[16px] font-medium text-[#1d211c]">
+						활동 선택
 					</p>
-					<button onClick={onClose} className="btn-ghost text-xs py-1 px-2.5">✕</button>
+					<button
+						type="button"
+						onClick={onClose}
+						className="opacity-70 hover:opacity-100 transition-opacity"
+						aria-label="닫기"
+					>
+						<svg width="20" height="20" viewBox="0 0 11.5 11.5" fill="none">
+							<path
+								d="M10.75 0.75004L0.750042 10.75M0.75 0.75L10.75 10.75"
+								stroke="#020618"
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth="1.5"
+							/>
+						</svg>
+					</button>
 				</div>
 
 				{/* 카테고리 탭 */}
-				<div className="flex gap-1.5 px-5 pb-3 overflow-x-auto">
-					{CATEGORIES.map(c => (
-						<button
-							key={c}
-							type="button"
-							onClick={() => setTab(c)}
-							className="shrink-0 text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all"
-							style={{
-								background: tab === c ? 'rgba(61,219,181,0.12)' : '#1a2740',
-								border: `1px solid ${tab === c ? 'rgba(61,219,181,0.4)' : 'rgba(255,255,255,0.08)'}`,
-								color: tab === c ? '#3DDBB5' : 'rgba(255,255,255,0.4)',
-							}}
-						>
-							{c}
-						</button>
-					))}
+				<div className="flex gap-1.5 px-5 pb-3 overflow-x-auto shrink-0">
+					{CATEGORIES.map(c => {
+						const isActive = tab === c
+						return (
+							<button
+								key={c}
+								type="button"
+								onClick={() => setTab(c)}
+								className="shrink-0 text-[12px] font-medium px-3 py-1.5 rounded-[8px] transition-all"
+								style={{
+									backgroundColor: isActive ? '#e6faf5' : '#fafafa',
+									border: `1px solid ${isActive ? 'rgba(11,180,137,0.7)' : '#e5e7eb'}`,
+									color: isActive ? '#099970' : '#4a5565',
+								}}
+							>
+								{c}
+							</button>
+						)
+					})}
 				</div>
 
-				{/* 시간 입력 (상단 고정) */}
-				<div className="px-5 pb-3"
-					style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-					<div className="flex items-center gap-2">
-						<p className="text-[11px] shrink-0" style={{ color: 'rgba(255,255,255,0.4)' }}>
-							오늘 수행 시간
-						</p>
-						<input
-							type="number" min={1}
-							className="ml-input py-1.5 text-sm"
-							style={{ maxWidth: 80 }}
-							value={duration}
-							onChange={e => setDuration(e.target.value)}
-						/>
-						<p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.4)' }}>분</p>
-					</div>
-				</div>
+				<hr className="m-divider mx-5 shrink-0" />
 
-				{/* 활동 목록 */}
-				<div className="overflow-y-auto flex-1 px-5 py-3 flex flex-col gap-2">
+				{/* 활동 목록 — 스크롤 영역 */}
+				<div className="flex-1 overflow-y-auto px-5 py-3 flex flex-col gap-2">
 					{filtered.length === 0 ? (
-						<p className="text-xs text-center py-8" style={{ color: 'rgba(255,255,255,0.3)' }}>
+						<p className="text-sm text-center py-8 text-[#7f847d]">
 							추가할 활동이 없습니다.
 						</p>
 					) : (
 						filtered.map(opt => (
-							<div key={opt.activity_type}
-								className="flex items-center justify-between py-2.5 px-3 rounded-xl"
-								style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-								<div>
-									<p className="text-sm text-white">{opt.activity_label}</p>
-									<p className="text-[10px] font-mono mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
-										{opt.mets_value} METs/h · {opt.paper_code}
-									</p>
-								</div>
-								<button
-									type="button"
-									onClick={() => handleAdd(opt)}
-									className="shrink-0 ml-3 text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all"
-									style={{
-										background: 'rgba(61,219,181,0.1)',
-										border: '1px solid rgba(61,219,181,0.3)',
-										color: '#3DDBB5',
-									}}
-								>
-									+ 추가
-								</button>
-							</div>
+							<DailyActivityModalItem
+								key={opt.activity_type}
+								option={opt}
+								onSelect={handleSelectActivity}
+							/>
 						))
 					)}
 				</div>
-			</div>
-		</div>
+			</BottomSheet>
+
+			{/* ── 수행시간 입력 중앙 모달 ── */}
+			{selected && (
+				<DailyActivityDurationModal
+					option={selected}
+					onConfirm={handleConfirm}
+					onBack={handleBackToList}
+					onClose={handleBackToList}  // X·취소 클릭 시 목록으로만 돌아감
+				/>
+			)}
+		</>
 	)
 }
+
+// 외부에서 타입 재사용할 수 있도록 re-export
+export type { DailyActivityOption }
