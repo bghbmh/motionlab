@@ -5,6 +5,7 @@
 import Link from 'next/link'
 import { ChevronRight, Bell } from 'lucide-react'
 import PwaInstallModal from '@/components/member/PwaInstallModal'
+import PushPermissionModal from '@/components/member/PushPermissionModal'
 
 interface Props {
 	token: string
@@ -19,8 +20,11 @@ export default function HelloUserInfo({
 }: Props) {
 	return (
 		<>
-			{/* PWA 설치 유도 모달 — 클라이언트에서만 렌더링
-			<PwaInstallModal /> */}
+			{/* PWA 설치 유도 모달 — 클라이언트에서만 렌더링 */}
+			<PwaInstallModal />
+
+			{/* 푸시 알림 허용 모달 — standalone 모드일 때만 표시 */}
+			<PushPermissionModal token={token} />
 
 			<div className="hello-user-info mt-2">
 				{/* 유저 정보 */}

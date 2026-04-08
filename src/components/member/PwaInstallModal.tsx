@@ -86,7 +86,7 @@ export default function PwaInstallModal() {
 	return (
 		<>
 			{/* 모달 컨테이너 — 헤더 높이(약 56px) 바로 아래, 우측 정렬 */}
-			<div className=" relative mt-3 " style={{ marginBottom: '-20px' }}>
+			<div className=" relative  " style={{ marginBottom: '-10px' }}>
 
 
 				{/* 모달 본체 */}

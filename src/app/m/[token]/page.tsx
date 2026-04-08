@@ -51,7 +51,8 @@ export default async function MemberHomePage({
 		todayManualLogsRes,
 		dailyActivitiesRes,
 		todayDailyLogsRes,
-		everDailyLogsRes,        // ← 추가: 과거 daily 기록 타입
+		everDailyLogsRes,
+		unreadCountRes,          // ← 추가: 읽지 않은 알림 개수
 	] = await Promise.all([
 		// 주간 운동 로그
 		supabase
@@ -114,6 +115,13 @@ export default async function MemberHomePage({
 			.eq('source', 'daily')
 			.lt('logged_at', today)
 			.not('activity_type', 'is', null),
+
+		// 읽지 않은 알림 개수 (hasNews 판단용)
+		supabase
+			.from('notifications')
+			.select('id', { count: 'exact', head: true })
+			.eq('member_id', member.id)
+			.eq('is_read', false),
 	])
 
 	const weekLogs = weekLogsRes.data ?? []
@@ -131,6 +139,9 @@ export default async function MemberHomePage({
 			.map(l => l.activity_type)
 			.filter(Boolean) as string[]
 	)]
+
+	const unreadCount = unreadCountRes.count ?? 0
+	console.log('unreadCount:', unreadCount, 'res:', unreadCountRes)
 
 	// ─── 통계 계산 ─────────────────────────────────────────────────
 	const weekTotalMets = weekLogs.reduce((s, l) => s + l.mets_score * l.duration_min, 0)
@@ -167,7 +178,7 @@ export default async function MemberHomePage({
 			<HelloUserInfo
 				token={token}
 				memberName={member.name}
-				hasNews={false}
+				hasNews={unreadCount > 0}
 			/>
 
 			{/* 기간별 활동 통계
