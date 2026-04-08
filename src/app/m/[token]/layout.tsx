@@ -42,6 +42,15 @@ export async function generateMetadata({
 		},
 		// ← 토큰별 동적 manifest 링크 추가
 		manifest: `/m/${token}/manifest.webmanifest`,
+		// ← iOS Safari는 manifest를 무시하므로 별도 설정 필요
+		appleWebApp: {
+			capable: true,
+			title: 'motion-log',
+			statusBarStyle: 'default',
+		},
+		icons: {
+			apple: '/icons/icon-192x192.png',
+		},
 	}
 }
 
