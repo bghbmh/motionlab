@@ -1,11 +1,12 @@
 // src/app/m/[token]/manifest.webmanifest/route.ts
+
 import { NextResponse } from 'next/server'
 
 export async function GET(
 	_req: Request,
-	{ params }: { params: { token: string } }
+	{ params }: { params: Promise<{ token: string }> }  // ← Promise로 변경
 ) {
-	const { token } = params
+	const { token } = await params  // ← await 추가
 
 	const manifest = {
 		name: 'motion-log',
