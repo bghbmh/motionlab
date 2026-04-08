@@ -9,11 +9,11 @@ import { sendPushNotification } from '@/lib/webpush'
 export async function POST(req: NextRequest) {
 	// 강사 인증 확인
 	const supabase = await createClient()
-	const { data: { user } } = await supabase.auth.getUser()
+	// const { data: { user } } = await supabase.auth.getUser()
 
-	if (!user) {
-		return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-	}
+	// if (!user) {
+	// 	return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+	// }
 
 	try {
 		const { memberId, noteId, message, token } = await req.json()
