@@ -69,7 +69,7 @@ export default function PushPermissionModal({ token }: Props) {
 			{/* 모달 */}
 			<div
 				className="fixed z-50 left-1/2 -translate-x-1/2"
-				style={{ bottom: '80px', width: 'calc(100% - 32px)', maxWidth: '400px' }}
+				style={{ top: '46%', transform: 'translateY(-50%)', width: 'calc(100% - 32px)', maxWidth: '400px' }}
 			>
 				<div className="bg-white rounded-[24px] shadow-[0px_20px_25px_0px_rgba(0,0,0,0.1),0px_10px_10px_0px_rgba(0,0,0,0.04)] overflow-hidden">
 					<div className="flex flex-col gap-[16px] p-[24px]">
