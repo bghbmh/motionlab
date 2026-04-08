@@ -100,18 +100,28 @@ function splitIntoWeeks(
 ): WeekSlice[] {
 	const slices: WeekSlice[] = []
 	let cursor = parseDate(startStr)
+
 	const hardEnd = endExclusive
 		? addDays(parseDate(endExclusive), -1)  // 다음 알림장 하루 전
-		: parseDate(today)                       // 오늘
+		: null  // 진행 중 — 오늘이 포함된 주차까지 생성
 
-	while (toISO(cursor) <= toISO(hardEnd)) {
-		const sliceEnd = addDays(cursor, 6)      // cursor + 6일 = 7일 구간
-		const actualEnd = toISO(sliceEnd) <= toISO(hardEnd) ? sliceEnd : hardEnd
-		slices.push({
-			start: toISO(cursor),
-			end: toISO(actualEnd),
-		})
-		cursor = addDays(cursor, 7)              // 다음 주차 시작
+	while (true) {
+		const sliceStart = toISO(cursor)
+		const sliceEnd = toISO(addDays(cursor, 6))  // 7일 구간
+
+		if (hardEnd && sliceStart > toISO(hardEnd)) break
+
+		if (hardEnd) {
+			// 다음 알림장 있음 — hardEnd에서 끊기
+			const actualEnd = sliceEnd <= toISO(hardEnd) ? sliceEnd : toISO(hardEnd)
+			slices.push({ start: sliceStart, end: actualEnd })
+		} else {
+			// 진행 중 — 오늘이 포함된 주차까지만 생성
+			slices.push({ start: sliceStart, end: sliceEnd })
+			if (sliceStart <= today && today <= sliceEnd) break  // 오늘 포함된 주차에서 종료
+		}
+
+		cursor = addDays(cursor, 7)
 	}
 
 	return slices
