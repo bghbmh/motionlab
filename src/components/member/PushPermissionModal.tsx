@@ -57,7 +57,8 @@ export default function PushPermissionModal({ token }: Props) {
 		await subscribe()
 		// 구독 완료 기록 — 다음 실행 시 모달 안 뜸
 		localStorage.setItem(SUBSCRIBED_KEY, 'true')
-		setVisible(false)
+		// 임시: 디버그 메시지 확인 위해 3초 후 닫힘
+		setTimeout(() => setVisible(false), 3000)
 	}
 
 	return (
