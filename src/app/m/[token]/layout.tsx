@@ -87,7 +87,9 @@ export default async function MemberLayout({
 		.eq('member_id', member.id)
 		.eq('is_read', false)
 
-	const today = formatToday()
+	const today = formatToday();
+
+	console.log("unreadCount - ", unreadCount)
 
 	return (
 		<div className="m-layout pb-5">
