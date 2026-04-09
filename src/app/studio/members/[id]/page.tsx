@@ -117,7 +117,7 @@ export default async function MemberDetailPage({
 		.sort((a: any, b: any) => b.written_at.localeCompare(a.written_at))
 		.slice(0, 3);
 
-	console.log("ttt - ", recentNotes)
+	//console.log("ttt - ", recentNotes)
 
 	const badgeClass = { low: 'badge-low', good: 'badge-good', high: 'badge-high' }[status]
 

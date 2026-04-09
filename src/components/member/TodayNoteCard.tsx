@@ -124,7 +124,7 @@ export default function TodayNoteCard({
 				{hasNote && totalCount > 0 && (
 					<div className="flex flex-col gap-1">
 						{noteWorkouts.map(w => {
-							console.log("TodayNoteCard - ", w, completedMap)
+							//console.log("TodayNoteCard - ", w, completedMap)
 
 							return (<TodayNoteCardItem
 								key={w.id}

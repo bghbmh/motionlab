@@ -8,6 +8,8 @@ import MemberHeader from '@/components/member/MemberHeader'
 import MemberGnb from '@/components/member/MemberGnb'
 import PullToRefresh from '@/components/member/PullToRefresh'
 
+import { unstable_noStore as noStore } from 'next/cache'
+
 // ─── 날짜 포맷 ─────────────────────────────────────────────────
 function formatToday(): string {
 	const date = new Date()
@@ -67,6 +69,9 @@ export default async function MemberLayout({
 	children: React.ReactNode
 	params: Promise<{ token: string }>
 }) {
+
+	noStore()  // ← 추가
+
 	const { token } = await params
 	const supabase = await createClient()
 

@@ -4,6 +4,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
 
 interface Notification {
 	id: string
@@ -35,7 +36,10 @@ export default function NotificationsClient({
 	memberId,
 	initialNotifications,
 }: Props) {
+
+	const router = useRouter()
 	const [notifications, setNotifications] = useState(initialNotifications)
+
 
 	// 마운트 시 모든 알림 읽음 처리
 	useEffect(() => {
@@ -43,19 +47,37 @@ export default function NotificationsClient({
 			.filter(n => !n.is_read)
 			.map(n => n.id)
 
+
 		if (unreadIds.length === 0) return
 
+
+		console.log('[읽음처리 1] unreadIds:', unreadIds, notifications)
+
 		const supabase = createClient()
-		supabase
-			.from('notifications')
-			.update({ is_read: true })
-			.in('id', unreadIds)
-			.then(() => {
-				setNotifications(prev =>
-					prev.map(n => ({ ...n, is_read: true }))
-				)
-			})
+		// supabase
+		// 	.from('notifications')
+		// 	.update({ is_read: true })
+		// 	.in('id', unreadIds)
+		// 	.then(() => {
+		// 		setNotifications(prev =>
+		// 			prev.map(n => ({ ...n, is_read: true }))
+		// 		)
+		// 		router.refresh()
+		// 	})
+		fetch('/api/notifications/read-all', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ memberId }),
+		}).then(async (res) => {
+			const data = await res.json()
+			console.log('[읽음처리] API 응답:', res.status, data)  // ← 추가
+			setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
+			router.refresh()
+		})
+
 	}, [])
+
+	console.log('[읽음처리 2 notifications:', notifications)
 
 	if (notifications.length === 0) {
 		return (

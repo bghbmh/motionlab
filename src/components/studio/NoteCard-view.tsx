@@ -18,7 +18,7 @@ interface Props {
 export default function NoteCardView({ note }: Props) {
 	const st = INTENSITY_STYLE[note.intensity]
 
-	console.log("NoteCardView - ", note)
+	//console.log("NoteCardView - ", note)
 
 	return (
 		<div
