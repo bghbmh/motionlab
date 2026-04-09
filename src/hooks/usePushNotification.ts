@@ -13,6 +13,7 @@ export function usePushNotification({ token }: UsePushNotificationOptions) {
 	const [permission, setPermission] = useState<NotificationPermission>('default')
 	const [isSubscribed, setIsSubscribed] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
+	const [debugMessage, setDebugMessage] = useState<string>('')
 
 	// 현재 구독 상태 확인
 	useEffect(() => {
@@ -53,8 +54,10 @@ export function usePushNotification({ token }: UsePushNotificationOptions) {
 
 		try {
 			// 1. 알림 권한 요청
+			setDebugMessage('1. 권한 요청 중...')
 			const result = await Notification.requestPermission()
 			setPermission(result)
+			setDebugMessage(`1. 권한 결과: ${result}`)
 
 			if (result !== 'granted') {
 				setIsLoading(false)
@@ -62,28 +65,36 @@ export function usePushNotification({ token }: UsePushNotificationOptions) {
 			}
 
 			// 2. SW 등록
+			setDebugMessage('2. SW 등록 중...')
 			const reg = await registerSW()
 			if (!reg) {
+				setDebugMessage('2. SW 등록 실패')
 				setIsLoading(false)
 				return
 			}
+			setDebugMessage('2. SW 등록 완료')
 
 			// 3. 푸시 구독 생성
+			setDebugMessage('3. 푸시 구독 생성 중...')
 			const keyArray = urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!)
 			const subscription = await reg.pushManager.subscribe({
 				userVisibleOnly: true,
 				applicationServerKey: keyArray.buffer as ArrayBuffer,
 			})
+			setDebugMessage('3. 구독 생성 완료')
 
 			// 4. 서버에 구독 정보 저장
+			setDebugMessage('4. 서버 저장 중...')
 			await fetch('/api/push/subscribe', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ token, subscription }),
 			})
+			setDebugMessage('4. 완료! ✅')
 
 			setIsSubscribed(true)
-		} catch (err) {
+		} catch (err: any) {
+			setDebugMessage(`❌ 오류: ${err?.message ?? String(err)}`)
 			console.error('[Push] 구독 실패:', err)
 		} finally {
 			setIsLoading(false)
@@ -126,6 +137,7 @@ export function usePushNotification({ token }: UsePushNotificationOptions) {
 		isSupported,
 		subscribe,
 		unsubscribe,
+		debugMessage,
 	}
 }
 

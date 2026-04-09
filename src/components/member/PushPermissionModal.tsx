@@ -26,7 +26,7 @@ function isStandalone(): boolean {
 }
 
 export default function PushPermissionModal({ token }: Props) {
-	const { permission, isSubscribed, isLoading, isSupported, subscribe } =
+	const { permission, isSubscribed, isLoading, isSupported, subscribe, debugMessage } =
 		usePushNotification({ token })
 
 	const [visible, setVisible] = useState(false)
@@ -117,6 +117,13 @@ export default function PushPermissionModal({ token }: Props) {
 								{isLoading ? '설정 중...' : '알림 허용'}
 							</button>
 						</div>
+
+						{/* 임시 디버그 메시지 — 테스트 후 삭제 */}
+						{debugMessage && (
+							<p className="text-[11px] text-center break-all mt-1" style={{ color: '#888' }}>
+								{debugMessage}
+							</p>
+						)}
 
 					</div>
 				</div>
