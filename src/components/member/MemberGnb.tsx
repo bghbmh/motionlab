@@ -60,6 +60,8 @@ export default function MemberGnb({ token }: Props) {
 						key={href}
 						href={href}
 						className={`m-gnb-item${active ? ' m-gnb-item-active' : ''}`}
+						// touch-action: manipulation — 더블탭 줌 비활성화로 300ms 딜레이 제거
+						style={{ touchAction: 'manipulation' }}
 					>
 						<Icon active={active} />
 						<span style={{ fontSize: 12, color: 'var(--m-text)' }}>{label}</span>
