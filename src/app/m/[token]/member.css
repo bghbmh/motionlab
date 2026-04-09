@@ -476,6 +476,83 @@
 
 		}
 	}
+
+	.animate-slide-up {
+		animation: slide-up 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+	}
+
+	/* ── Splash Screen ─────────────────────────────────── */
+	.splash-screen {
+		position: fixed;
+		inset: 0;
+		background: #1a2031;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 48px;
+		z-index: 9999;
+	}
+
+	.splash-icon {
+		width: 160px;
+		height: 154px;
+		animation: splash-appear 0.4s ease forwards;
+	}
+
+	.splash-icon svg {
+		width: 100%;
+		height: 100%;
+	}
+
+	.splash-loader {
+		width: 120px;
+		height: 2px;
+		background: rgba(255, 255, 255, 0.1);
+		border-radius: 2px;
+		overflow: hidden;
+		animation: splash-appear 0.4s ease 0.2s both;
+	}
+
+	.splash-loader-bar {
+		height: 100%;
+		width: 0%;
+		background: linear-gradient(90deg, #06EDC4, #FEBC12);
+		border-radius: 2px;
+		animation: splash-progress 2s cubic-bezier(0.4, 0, 0.2, 1) 0.3s forwards;
+	}
+
+	@keyframes splash-appear {
+		from {
+			opacity: 0;
+			transform: translateY(8px);
+		}
+
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	@keyframes splash-progress {
+		0% {
+			width: 0%;
+		}
+
+		50% {
+			width: 60%;
+		}
+
+		80% {
+			width: 85%;
+		}
+
+		100% {
+			width: 100%;
+		}
+	}
+
+
 }
 
 
@@ -487,8 +564,4 @@
 	to {
 		transform: translateY(0);
 	}
-}
-
-.animate-slide-up {
-	animation: slide-up 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
 }

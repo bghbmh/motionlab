@@ -24,6 +24,11 @@ export default async function MemberHomePage({
 }: {
 	params: Promise<{ token: string }>
 }) {
+
+
+	//  await new Promise(resolve => setTimeout(resolve, 30000))
+
+
 	const { token } = await params
 	const supabase = await createClient()
 
