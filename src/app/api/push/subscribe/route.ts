@@ -3,6 +3,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { sendPushNotification } from '@/lib/webpush'
 
 export async function POST(req: NextRequest) {
 	try {
@@ -38,6 +39,20 @@ export async function POST(req: NextRequest) {
 			console.error('[push/subscribe]', error)
 			return NextResponse.json({ error: 'DB error' }, { status: 500 })
 		}
+
+		// 구독 완료 즉시 웰컴 알림 발송
+		await sendPushNotification(
+			{
+				endpoint: subscription.endpoint,
+				p256dh: subscription.keys.p256dh,
+				auth: subscription.keys.auth,
+			},
+			{
+				title: 'motion-log',
+				body: '운동 알림이 설정됐어요! 강사님 알림장을 바로 받아볼 수 있어요 💪',
+				url: `/m/${token}`,
+			}
+		)
 
 		return NextResponse.json({ ok: true })
 	} catch (err) {
