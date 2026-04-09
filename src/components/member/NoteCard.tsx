@@ -1,8 +1,11 @@
 'use client'
 // src/components/member/NoteCard.tsx
 // 알림장 탭 > 알림장 1개 카드
-// isLatest: true  → 펼쳐진 상태 고정 (스위치 활성)
-// isLatest: false → 드롭다운 (접힘/펼침 토글), 접힌 상태에서 [기간] 완료 n/n 표시
+//
+// [수정 내용]
+//   - onFutureCheck prop 추가
+//   - 각 섹션의 dayDate와 오늘을 비교해 isFuture 계산
+//   - NoteDaySection으로 isFuture, onFutureCheck 전달
 
 import { useState } from 'react'
 import NoteDaySection from './NoteDaySection'
@@ -10,17 +13,18 @@ import type { NoteWorkoutItemData } from './NoteWorkoutItem'
 
 export interface NoteDaySectionData {
 	id: string
-	day: string                    // '4/7 월요일' 등
+	day: string       // '4/7 월요일' 등
+	dayDate: string   // 'YYYY-MM-DD' — isFuture 판단용
 	items: NoteWorkoutItemData[]
 }
 
 export interface NoteCardData {
 	id: string
-	sentAt: string                 // 'YYYY-MM-DD'
+	sentAt: string
 	direction: string
 	targetMets: number
-	periodStart: string            // 'YY.MM.DD'
-	periodEnd: string              // 'YY.MM.DD'
+	periodStart: string
+	periodEnd: string
 	daySections: NoteDaySectionData[]
 }
 
@@ -28,13 +32,23 @@ interface Props {
 	note: NoteCardData
 	isLatest: boolean
 	onToggle?: (workoutId: string, completed: boolean, item: NoteWorkoutItemData) => void
+	onFutureCheck?: () => void  // 미래 날짜 체크 시도 시 토스트 표시
 }
 
-export default function NoteCard({ note, isLatest, onToggle }: Props) {
-	// 과거 카드는 기본 접힘, 현재 카드는 항상 펼침
+// 오늘 날짜 'YYYY-MM-DD' (로컬 기준)
+function getTodayISO(): string {
+	const d = new Date()
+	const y = d.getFullYear()
+	const m = String(d.getMonth() + 1).padStart(2, '0')
+	const day = String(d.getDate()).padStart(2, '0')
+	return `${y}-${m}-${day}`
+}
+
+export default function NoteCard({ note, isLatest, onToggle, onFutureCheck }: Props) {
 	const [expanded, setExpanded] = useState(isLatest)
 
-	// 전체 완료 개수 계산
+	const today = getTodayISO()
+
 	const totalItems = note.daySections.reduce((s, sec) => s + sec.items.length, 0)
 	const completedItems = note.daySections.reduce(
 		(s, sec) => s + sec.items.filter(i => i.completed).length, 0
@@ -44,44 +58,42 @@ export default function NoteCard({ note, isLatest, onToggle }: Props) {
 		<div className="bg-white rounded-[16px] w-full">
 			<div className="flex flex-col gap-[8px] px-[16px] py-[12px] w-full">
 
-				{/* 카드 헤더 — 클릭 시 토글 (과거 카드만) */}
+				{/* 카드 헤더 */}
 				<div
 					className="flex items-center justify-between pb-[8px] w-full border-b border-[#f0f0f0]"
 					onClick={() => !isLatest && setExpanded(prev => !prev)}
 					style={{ cursor: isLatest ? 'default' : 'pointer' }}
 				>
-					{isLatest && <span
-						className="text-xs font-bold text-primary"
-					>
-						{note.periodStart}
-					</span>}
+					{isLatest && (
+						<span className="text-xs font-bold text-primary">
+							{note.periodStart}
+						</span>
+					)}
 
-
-					{/* 접힌 상태: 기간 + 완료 개수 표시 */}
 					{!isLatest && (
 						<div className="flex items-center gap-[8px] flex-1 text-neutral-500">
-							<span className="text-xs font-bold font-mono ">
+							<span className="text-xs font-bold font-mono">
 								{note.periodStart} ~ {note.periodEnd}
 							</span>
-							<span className="text-xs font-semibold font-mono pl-3 text-neutral-400" >
-								{/* 완료 */} ({completedItems}/{totalItems})
+							<span className="text-xs font-semibold font-mono pl-3 text-neutral-400">
+								({completedItems}/{totalItems})
 							</span>
 						</div>
 					)}
 
-					{/* 펼친 상태 (과거 카드): 접기 아이콘 */}
 					{!isLatest && (
 						expanded ? (
 							<svg width="14" height="14" viewBox="0 0 14 14" fill="none">
 								<path d="M3 9l4-4 4 4" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
 							</svg>
-						) : (<svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-							<path d="M3 5l4 4 4-4" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-						</svg>)
+						) : (
+							<svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+								<path d="M3 5l4 4 4-4" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+							</svg>
+						)
 					)}
 				</div>
 
-				{/* 펼쳐진 상태일 때만 상세 내용 표시 */}
 				{expanded && (
 					<>
 						{/* 운동 방향 */}
@@ -103,9 +115,12 @@ export default function NoteCard({ note, isLatest, onToggle }: Props) {
 							</div>
 						</div>
 
-						{/* 요일별 알림장 목록 */}
+						{/* 요일별 섹션 */}
 						{note.daySections.map((section) => {
+							// dayDate가 오늘보다 미래면 체크 불가
+							const isFuture = section.dayDate > today
 							const completedCount = section.items.filter(i => i.completed).length
+
 							return (
 								<NoteDaySection
 									key={section.id}
@@ -114,7 +129,9 @@ export default function NoteCard({ note, isLatest, onToggle }: Props) {
 									totalCount={section.items.length}
 									items={section.items}
 									isLatest={isLatest}
+									isFuture={isFuture}
 									onToggle={onToggle}
+									onFutureCheck={onFutureCheck}
 								/>
 							)
 						})}

@@ -1,4 +1,4 @@
-// src/app/m/[token]/note/page.tsx
+// src/app/m/[token]/notes/page.tsx
 // 서버 컴포넌트 — notes + note_workouts + workout_logs 조회
 // 완료 여부는 workout_logs(source='routine', note_workout_id) 기준으로 판단
 // note_workout_completions 테이블 미사용
@@ -11,6 +11,15 @@
 // 요일 날짜 표시:
 //   - 각 주차 시작일 기준으로 요일별 실제 날짜 계산
 //   - ex) '월요일' → '4/7 월요일'
+//
+// [수정 내용 - 버그 수정]
+//   완료 판단 로직 변경
+//   기존: entries.find(e => e.logged_at >= slice.start && e.logged_at <= slice.end)
+//         → 주차 범위 안에 기록이 하나라도 있으면 완료로 판단
+//         → '전체' 타입은 일주일치 카드가 같은 note_workout_id를 공유하므로
+//            금요일 하나만 체크해도 전체 주차 카드가 완료로 표시되는 버그
+//   수정: entries.find(e => e.logged_at === dayDate)
+//         → 이 카드의 날짜(dayDate)와 logged_at이 정확히 일치해야 완료로 판단
 
 import { createClient } from '@/lib/supabase/server'
 import type { WorkoutType, Intensity } from '@/types/database'
@@ -197,7 +206,7 @@ export default async function NotePage({ params }: PageProps) {
 			.in('note_workout_id', allWorkoutIds)
 		: { data: [] }
 
-	// Map<note_workout_id, { logged_at, duration_min }[]> — 주차별 완료 여부 + 실제 시간 판단용
+	// Map<note_workout_id, { logged_at, duration_min }[]>
 	const completionMap = new Map<string, { logged_at: string; duration_min: number }[]>()
 	for (const log of routineLogs ?? []) {
 		if (!log.note_workout_id) continue
@@ -207,8 +216,6 @@ export default async function NotePage({ params }: PageProps) {
 	}
 
 	// 4. 알림장별로 주차 분리 → NoteCardData[] 생성
-	// notes는 최신순 정렬 — notes[i]의 다음 알림장은 notes[i-1] (더 최신)
-	// 주차 카드는 최신이 위로 오도록 최종 배열을 앞에 unshift
 	const noteCards: NoteCardData[] = []
 
 	for (let i = 0; i < notes.length; i++) {
@@ -233,18 +240,11 @@ export default async function NotePage({ params }: PageProps) {
 		}, {})
 
 		const rawDays: string[] = Array.isArray(note.days) ? note.days : ['전체']
-
-		// '전체' → 발송일 기준 7일 각각의 날짜로 분리
-		// ex) '전체' → ['전체_0', '전체_1', ..., '전체_6'] (내부 처리용 키)
 		const isAllDays = rawDays.length === 1 && rawDays[0] === '전체'
 
-		// 각 주차 슬라이스를 카드로 변환
-		// slices는 오래된 순 — 최신이 위로 오도록 reverse 후 noteCards 앞에 삽입
 		const sliceCards: NoteCardData[] = slices.map((slice) => {
 			const isCurrentSlice = slice.start <= today && today <= slice.end
 
-			// '전체'인 경우 slice 기간의 각 날짜를 별도 섹션으로 분리
-			// 그 외 요일은 기존 방식 유지
 			let noteDays: string[]
 			if (isAllDays) {
 				// slice.start ~ slice.end 사이의 날짜를 하루씩 생성
@@ -252,15 +252,13 @@ export default async function NotePage({ params }: PageProps) {
 				let cursor = parseDate(slice.start)
 				const sliceEndDate = parseDate(slice.end)
 				while (toISO(cursor) <= toISO(sliceEndDate)) {
-					noteDays.push(toISO(cursor))  // 'YYYY-MM-DD' 형식으로 저장
+					noteDays.push(toISO(cursor))
 					cursor = addDays(cursor, 1)
 				}
 			} else {
 				noteDays = rawDays
 			}
 
-			// 해당 주차에서 완료된 workout 판단
-			// completed_date가 이 주차 기간 안에 있으면 완료로 간주
 			const daySections: NoteDaySectionData[] = noteDays
 				.filter(d => isAllDays ? true : dayMap[d]?.length > 0)
 				.map(d => {
@@ -268,27 +266,32 @@ export default async function NotePage({ params }: PageProps) {
 					let dayLabel: string
 
 					if (isAllDays) {
-						// d가 'YYYY-MM-DD' 형식 날짜
 						dayDate = d
 						const [, mm, dd] = d.split('-').map(Number)
 						const dow = ['일', '월', '화', '수', '목', '금', '토'][parseDate(d).getDay()]
 						const dowFull = DAY_NAMES[dow] ?? dow
 						dayLabel = `${mm}/${dd} ${dowFull}`
 					} else {
-						// d가 요일 약자 ('월', '화' 등)
 						dayDate = getDayDate(slice.start, d)
 						const dayName = DAY_NAMES[d] ?? d
 						dayLabel = formatDayLabel(dayDate, dayName)
 					}
 
-					// isAllDays면 dayMap['전체'] 사용, 아니면 요일 약자로 조회
 					const workoutKey = isAllDays ? '전체' : d
 					const items: NoteWorkoutItemData[] = (dayMap[workoutKey] ?? []).map((w: any) => {
-						// 이 주차 기간 안에 완료된 기록이 있는지 확인
 						const entries = completionMap.get(w.id) ?? []
+
+						// ─── [버그 수정] 완료 판단 ────────────────────────────────
+						// 기존: 주차 범위(slice.start ~ slice.end) 안에 기록이 하나라도 있으면 완료
+						//       → 같은 note_workout_id를 공유하는 '전체' 타입에서
+						//          금요일 체크 시 나머지 요일 카드도 완료로 표시되는 버그
+						// 수정: 이 카드의 날짜(dayDate)와 logged_at이 정확히 일치해야 완료
+						//       → 요일별로 독립적으로 완료 여부 판단
 						const matchedEntry = entries.find(
-							e => e.logged_at >= slice.start && e.logged_at <= slice.end
+							e => e.logged_at === dayDate
 						)
+						// ─────────────────────────────────────────────────────────
+
 						const completed = !!matchedEntry
 						const actualMin = matchedEntry ? matchedEntry.duration_min : null
 						return {
@@ -306,40 +309,36 @@ export default async function NotePage({ params }: PageProps) {
 
 					return {
 						id: isAllDays ? `${note.id}-${d}` : `${note.id}-${d}-${slice.start}`,
-						day: dayLabel,   // '4/7 월요일' 형식
-						dayDate,         // 정렬용 날짜 'YYYY-MM-DD'
+						day: dayLabel,
+						dayDate,
 						items,
 					}
 				})
-				// 날짜 기준 오름차순 정렬 (4/3 금 → 4/6 월 → 4/8 수)
 				.sort((a: any, b: any) => a.dayDate.localeCompare(b.dayDate))
 
 			return {
 				id: `${note.id}-${slice.start}`,
-				sentAt: writtenAt,          // 알림장 원본 발송일 (카드 상단 표시)
+				sentAt: writtenAt,
 				direction: note.content ?? '',
 				targetMets: note.recommended_mets ?? 0,
 				periodStart: toShortDate(slice.start),
 				periodEnd: toShortDate(slice.end),
 				daySections,
-				isCurrentSlice,             // isLatest 판단용 (NoteListManager에서 사용)
+				isCurrentSlice,
 			} as NoteCardData & { isCurrentSlice: boolean }
 		})
 
-		// slices는 오래된 순(3/1→3/8→3/15) — 그대로 push
 		noteCards.push(...sliceCards)
 	}
 
-	// id = `${note.id}-${slice.start}` 형식이므로 slice.start(YYYY-MM-DD) 기준 내림차순 정렬
-	// → 최신 주차 카드가 배열 앞으로
+	// 최신 주차 카드가 배열 앞으로
 	noteCards.sort((a, b) => {
-		const aDate = a.id.slice(-10)  // 'YYYY-MM-DD'
+		const aDate = a.id.slice(-10)
 		const bDate = b.id.slice(-10)
 		return bDate.localeCompare(aDate)
 	})
 
 	// 5. isLatest 판단 — 오늘이 포함된 주차 카드 1개만 true
-	// noteCards는 이미 최신순 정렬
 	const latestIdx = noteCards.findIndex(
 		(c) => (c as any).isCurrentSlice === true
 	)

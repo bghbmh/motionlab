@@ -1,7 +1,14 @@
 // src/components/member/NoteWorkoutItem.tsx
 // 알림장 탭 > 요일별 목록 안의 운동 1개 아이템
-// Figma: 알림장페이지-목록-아이템
+//
+// [수정 내용]
+//   - isFuture prop 추가
+//   - 미래 날짜 체크 시도 시:
+//     1. document.body에 --toast-y 인라인 변수로 Y좌표 기록
+//     2. onFutureCheck() 호출 → NoteListManager에서 토스트 표시
+//   - onFutureCheck 시그니처는 () => void 유지 (좌표는 CSS 변수로 전달)
 
+import { useRef } from 'react'
 import type { WorkoutType, Intensity } from '@/types/database'
 import { WORKOUT_TYPE_LABELS } from '@/types/database'
 import WorkoutTypeIcon from './ui/WorkoutTypeIcon'
@@ -11,7 +18,6 @@ import StatusSwitch from './ui/StatusSwitch'
 
 function StatusIcon({ completed }: { completed: boolean }) {
 	if (completed) {
-		// 체크 아이콘 (초록)
 		return (
 			<svg width="18" height="18" viewBox="0 0 18 18" fill="none">
 				<rect width="18" height="18" rx="4.5" fill="#E6FAF5" />
@@ -24,7 +30,6 @@ function StatusIcon({ completed }: { completed: boolean }) {
 			</svg>
 		)
 	}
-	// X 아이콘 (빨강)
 	return (
 		<svg width="12" height="12" viewBox="0 0 12 12" fill="none">
 			<path
@@ -42,41 +47,62 @@ export interface NoteWorkoutItemData {
 	workoutType: WorkoutType
 	intensity: Intensity
 	durationMin: number
-	actualMin?: number | null  // 실제 수행 시간 (처방과 다른 경우)
+	actualMin?: number | null
 	mets: number
 	coachMemo?: string | null
 	completed: boolean
-	dayDate: string   // 해당 요일의 실제 날짜 'YYYY-MM-DD' — workout_logs logged_at에 사용
+	dayDate: string   // 'YYYY-MM-DD'
 }
 
 interface Props {
 	item: NoteWorkoutItemData
-	isLatest: boolean               // 최근 알림장 여부 — true면 스위치, false면 아이콘
-	onToggle?: (id: string, completed: boolean, item: NoteWorkoutItemData) => void  // ← item 추가
+	isLatest: boolean
+	isFuture?: boolean
+	onToggle?: (id: string, completed: boolean, item: NoteWorkoutItemData) => void
+	onFutureCheck?: () => void   // () => void 유지 — 좌표는 CSS 변수로 전달
 	hasDivider?: boolean
 }
 
-export default function NoteWorkoutItem({ item, isLatest, onToggle, hasDivider = false }: Props) {
+export default function NoteWorkoutItem({
+	item,
+	isLatest,
+	isFuture = false,
+	onToggle,
+	onFutureCheck,
+	hasDivider = false,
+}: Props) {
 	const label = WORKOUT_TYPE_LABELS[item.workoutType] ?? item.workoutType
+
+	function handleSwitchChange(v: boolean) {
+		// 완료 → 미완료(해제)는 미래여도 허용
+		if (v && isFuture) {
+			onFutureCheck?.()
+			return
+		}
+		onToggle?.(item.id, v, item)
+	}
+
+	// 터치/클릭 시 Y좌표를 body CSS 변수에 기록
+	// FutureCheckToast가 이 값을 읽어서 위치 결정
+	function captureY(clientY: number) {
+		document.body.style.setProperty('--toast-y', String(clientY))
+	}
 
 	return (
 		<div className="relative w-full">
-			{/* 상단 점선 구분선 */}
 			{hasDivider && (
 				<div className="absolute top-0 inset-x-0 border-t border-dashed border-neutral-200" />
 			)}
 
 			<div className="flex items-center gap-3 overflow-hidden py-[16px] w-full">
 
-				{/*  아이콘 + 운동명 · 상태 */}
 				<div className="flex-1">
-					<div className='flex items-center gap-4 '>
-						<WorkoutTypeIcon workoutType={item.workoutType} size={34} />
-						<div className=" ">
-
+					<div className="flex items-center gap-4">
+						<div  >
+							<WorkoutTypeIcon workoutType={item.workoutType} size={34} />
+						</div>
+						<div >
 							<span className="m-card-item-title">{label}</span>
-
-							{/* 옵션: 강도 · 시간 · METs */}
 							<WorkoutOptions
 								intensity={item.intensity}
 								prescribedMin={item.durationMin}
@@ -86,29 +112,32 @@ export default function NoteWorkoutItem({ item, isLatest, onToggle, hasDivider =
 						</div>
 					</div>
 
-					{/* 코치 메모 */}
 					{item.coachMemo && (
-						<div className="w-full mt-2">
+						<div className="w-full mt-2" >
 							<CoachMemo memo={item.coachMemo} />
 						</div>
 					)}
-
 				</div>
 
 				{/* 우측: 스위치 or 상태 아이콘 */}
 				<div className="flex items-center h-full">
 					{isLatest ? (
-						<StatusSwitch
-							checked={item.completed}
-							onChange={(v) => onToggle?.(item.id, v, item)}  // ← item 추가
-						/>
+						<div
+							style={{ opacity: isFuture && !item.completed ? 0.35 : 1 }}
+							onTouchStart={e => captureY(e.touches[0].clientY)}
+							onClick={e => captureY(e.clientY)}
+						>
+							<StatusSwitch
+								checked={item.completed}
+								onChange={handleSwitchChange}
+							/>
+						</div>
 					) : (
 						<StatusIcon completed={item.completed} />
 					)}
 				</div>
 
 			</div>
-
 		</div>
 	)
 }
