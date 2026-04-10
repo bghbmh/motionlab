@@ -24,7 +24,7 @@ self.addEventListener('push', e => {
 			body: data.body,
 			icon: '/icons/icon-192x192.png',
 			badge: '/icons/badge-72x72.png',
-			tag: 'motion-log-notification',      // 같은 tag는 덮어씀 (중복 방지)
+			tag: 'motion-log-notification',
 			renotify: true,
 			data: { url: data.url },
 			vibrate: [200, 100, 200],
@@ -35,20 +35,23 @@ self.addEventListener('push', e => {
 // ─── 알림 클릭 ───────────────────────────────────────────────
 self.addEventListener('notificationclick', e => {
 	e.notification.close()
+
 	const targetUrl = e.notification.data?.url || '/'
+	const fullUrl = self.location.origin + targetUrl
 
 	e.waitUntil(
-		self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
-			// 이미 열린 탭이 있으면 포커스
-			for (const client of clients) {
-				if (client.url.includes(targetUrl) && 'focus' in client) {
-					return client.focus()
+		self.clients
+			.matchAll({ type: 'window', includeUncontrolled: true })
+			.then(clients => {
+				// 앱이 이미 열려 있으면 → 홈으로 이동 후 포커스
+				if (clients.length > 0) {
+					const client = clients[0]
+					return client.navigate(fullUrl).then(c => c?.focus())
 				}
-			}
-			// 없으면 새 탭
-			if (self.clients.openWindow) {
-				return self.clients.openWindow(targetUrl)
-			}
-		})
+				// 앱이 꺼져 있으면 → 새로 실행
+				if (self.clients.openWindow) {
+					return self.clients.openWindow(fullUrl)
+				}
+			})
 	)
 })
