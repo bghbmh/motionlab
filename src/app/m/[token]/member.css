@@ -485,7 +485,7 @@
 	.splash-screen {
 		position: fixed;
 		inset: 0;
-		background: #1a2031;
+		background: #f8faf8;
 		display: flex;
 		flex-direction: column;
 		align-items: center;

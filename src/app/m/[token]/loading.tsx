@@ -11,7 +11,7 @@ export default function MemberLoading() {
               animation: draw 1.0s cubic-bezier(0.4, 0, 0.2, 1) forwards;
             }
             @keyframes draw { to { stroke-dashoffset: 0; } }
-            .p1  { animation-delay: 0.10s; }
+            .p1  { animation-delay: 0s; }
             .p2  { animation-delay: 0.18s; }
             .p3  { animation-delay: 0.26s; }
             .p4  { animation-delay: 0.34s; }

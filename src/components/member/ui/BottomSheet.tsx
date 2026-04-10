@@ -18,7 +18,9 @@ export default function BottomSheet({ onClose, children }: Props) {
 			}}
 			onClick={onClose}
 		>
+			{/* data-no-pull: PullToRefresh가 이 영역 내 터치를 무시 */}
 			<div
+				data-no-pull="true"
 				className="w-full relative flex flex-col"
 				style={{
 					maxWidth: '98vw',               // m-layout 최대 너비와 동일

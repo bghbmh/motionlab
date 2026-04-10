@@ -86,12 +86,12 @@ export default function PwaInstallModal() {
 	return (
 		<>
 			{/* 모달 컨테이너 — 헤더 높이(약 56px) 바로 아래, 우측 정렬 */}
-			<div className=" relative  " style={{ marginBottom: '-10px' }}>
+			<div className=" relative mt-5 " style={{ marginBottom: '-10px' }}>
 
 
 				{/* 모달 본체 */}
-				{/** shadow-[0px_20px_25px_0px_rgba(0,0,0,0.1),0px_10px_10px_0px_rgba(0,0,0,0.04)] */}
-				<div className="bg-white rounded-[24px] border border-neutral-300  overflow-hidden ">
+				{/** border border-neutral-300 */}
+				<div className="bg-white rounded-[24px]  overflow-hidden shadow-[0px_0px_16px_0px_rgba(0,0,0,0.1),0px_10px_10px_0px_rgba(0,0,0,0.04)] ">
 
 					{!showIosGuide ? (
 						/* ── 기본 모달 ── */
@@ -194,7 +194,8 @@ export default function PwaInstallModal() {
 				<div className="absolute flex justify-end pr-[12px]"
 					style={{ bottom: "-6px", right: '32px' }}>
 					<div className="rotate-45 w-[12px] h-[12px] bg-white mt-[6px]"
-						style={{ borderRight: '1px solid var(--color-neutral-300)', borderBottom: '1px solid var(--color-neutral-300)' }} />
+					/>
+					{/** style={{ borderRight: '1px solid var(--color-neutral-300)', borderBottom: '1px solid var(--color-neutral-300)' }}  */}
 				</div>
 			</div>
 		</>

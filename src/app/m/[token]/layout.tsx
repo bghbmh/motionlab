@@ -1,4 +1,5 @@
 // src/app/m/[token]/layout.tsx
+// PullToRefresh 포함 버전 (BottomSheet data-no-pull로 모달 충돌 해결)
 import './member.css'                      // ← 회원앱 전용 라이트모드 CSS
 
 import { redirect } from 'next/navigation'
