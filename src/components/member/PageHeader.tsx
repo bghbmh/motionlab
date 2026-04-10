@@ -13,7 +13,7 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, count, unit }: PageHeaderProps) {
 	return (
-		<div className="flex items-center justify-between px-2 pt-2 pb-1">
+		<div className="flex items-center justify-between px-2 pt-2 pb-1 mt-5">
 			<h1 className="text-[18px] font-bold text-gray-700">{title}</h1>
 			<span className="text-xs text-gray-600">총 {count}{unit}</span>
 		</div>

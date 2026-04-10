@@ -26,7 +26,7 @@ export default function HelloUserInfo({
 			{/* 푸시 알림 허용 모달 — standalone 모드일 때만 표시 */}
 			<PushPermissionModal token={token} />
 
-			<div className="hello-user-info mt-2">
+			<div className="hello-user-info mt-5">
 				{/* 유저 정보 */}
 				<div className="flex-1 flex flex-col items-start">
 
