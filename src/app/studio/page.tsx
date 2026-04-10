@@ -105,7 +105,7 @@ export default async function StudioPage() {
 	})
 
 	return (
-		<div className="flex flex-col gap-5">
+		<div className="flex flex-col gap-5 ">
 
 			{/* ── 상단 요약 카드 3개 ── */}
 			<div className="grid grid-cols-3 gap-3">

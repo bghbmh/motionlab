@@ -27,7 +27,7 @@ export default async function StudioLayout({
 		.single()
 
 	return (
-		<div className="h-full bg-navy flex flex-col">
+		<div className="h-full bg-navy flex flex-col" style={{ minWidth: '1200px' }}>
 			<StudioHeader instructor={instructor} />
 
 			{/* 헤더 아래 전체 영역 */}
