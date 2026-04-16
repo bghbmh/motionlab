@@ -7,6 +7,8 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Plus, Home, UserPlus, UserPlus2, LogOut } from 'lucide-react'
 import Logo from '../ui/Logo'
+import { formatTodayKo } from '@/lib/weekUtils'
+import { useState, useEffect } from 'react'
 
 interface Props {
 	instructor: {
@@ -20,9 +22,12 @@ interface Props {
 export default function StudioHeader({ instructor }: Props) {
 	const router = useRouter()
 
-	const today = new Date().toLocaleDateString('ko-KR', {
-		month: 'long', day: 'numeric', weekday: 'short',
-	})
+	const [today, setToday] = useState('')
+
+	useEffect(() => {
+		setToday(formatTodayKo())
+	}, [])
+
 
 	async function handleLogout() {
 		const supabase = createClient()

@@ -34,6 +34,14 @@ export function formatDisplayDate(dateStr: string): string {
 	return `${y}.${m}.${d}`
 }
 
+export function formatTodayKo(): string {
+	return new Date().toLocaleDateString('ko-KR', {
+		month: 'long',
+		day: 'numeric',
+		weekday: 'short',
+	})
+}
+
 /**
  * 'YYYY-MM-DD' → 'YY.MM.DD' 표시용 포맷
  */
