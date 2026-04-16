@@ -8,13 +8,24 @@
    → 자동으로 bg-*, text-*, border-* 유틸 클래스 생성
    ================================================================ */
 @theme {
-	/* 공통 브랜드 */
-	--color-primary: #0bb489;
-	/* bg-primary, text-primary, border-primary */
-	--color-primary-dark: #099970;
-	/* hover */
+	/* 공통 브랜드 — primary 스케일 */
 	--color-primary-50: #e6faf5;
-	/* bg-primary-50 */
+	--color-primary-100: #c0f0e1;
+	--color-primary-200: #8de3ca;
+	--color-primary-300: #56d0b0;
+	--color-primary-400: #1fbd97;
+	--color-primary-500: #0bb489;
+	--color-primary-600: #099970;
+	--color-primary-700: #077a58;
+	--color-primary-800: #055c42;
+	--color-primary-900: #033d2c;
+	--color-primary-950: #022018;
+
+	/* 편의 alias */
+	--color-primary: var(--color-primary-500);
+	/* bg-primary = bg-primary-500 */
+	--color-primary-dark: var(--color-primary-600);
+	/* hover용 */
 
 	/* 스튜디오 전용 */
 	--color-navy: #0d1421;

@@ -1,24 +1,9 @@
 import type { Config } from 'tailwindcss'
 
+// Tailwind v4 — 색상·폰트 등 토큰은 globals.css @theme 에서 관리
+// 이 파일은 content 경로만 유지
 const config: Config = {
-  content: ['./src/**/*.{js,ts,jsx,tsx,mdx}'],
-  theme: {
-    extend: {
-      colors: {
-        navy:   '#0d1421',
-        card:   '#141e2e',
-        card2:  '#1a2740',
-        mint:   '#3DDBB5',
-        coral:  '#FF6B5B',
-        amber:  '#FFB347',
-      },
-      fontFamily: {
-        sans: ['DM Sans', 'sans-serif'],
-        mono: ['DM Mono', 'monospace'],
-      },
-    },
-  },
-  plugins: [],
+	content: ['./src/**/*.{js,ts,jsx,tsx,mdx}'],
 }
 
 export default config

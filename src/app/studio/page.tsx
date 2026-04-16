@@ -108,7 +108,7 @@ export default async function StudioPage() {
 		<div className="flex flex-col gap-5 ">
 
 			{/* ── 상단 요약 카드 3개 ── */}
-			<div className="grid grid-cols-3 gap-3">
+			<div className="grid grid-cols-3 gap-1 md:gap-3">
 				{[
 					{
 						label: '전체 회원',
@@ -129,10 +129,10 @@ export default async function StudioPage() {
 						color: avgAchieveRate >= 70 ? '#3DDBB5' : avgAchieveRate >= 40 ? '#FFB347' : '#FF6B5B',
 					},
 				].map(({ label, value, sub, color }) => (
-					<div key={label} className="ml-card text-center">
-						<p className="ml-card-label m-0 mb-1">{label}</p>
-						<p className="font-mono text-2xl font-bold" style={{ color }}>{value}</p>
-						<p className="text-[11px] mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>{sub}</p>
+					<div key={label} className="rounded-xl px-1 py-2 md:py-5 text-center border border-neutral-300 bg-white">
+						<p className="m-card-label m-0 mb-1">{label}</p>
+						<p className="font-mono text-2xl font-bold text-primary" >{value}</p>
+						<p className="text-[11px] mt-1"  >{sub}</p>
 					</div>
 				))}
 			</div>
@@ -140,13 +140,13 @@ export default async function StudioPage() {
 			{/* ── 회원별 수행 현황 그리드 ── */}
 			<div>
 				<div className="flex items-center justify-between mb-3">
-					<p className="ml-card-label m-0">이번 주 회원별 수행 현황</p>
+					<p className="m-card-label m-0">이번 주 회원별 수행 현황</p>
 					<p className="text-[11px] font-mono" style={{ color: 'rgba(255,255,255,0.3)' }}>
 						{weekStart} ~
 					</p>
 				</div>
 
-				<div className="grid grid-cols-2 gap-2">
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 ">
 					{sorted.map(m => {
 						const isInactive = m.activeDays === 0
 						const badgeClass = {
@@ -157,12 +157,8 @@ export default async function StudioPage() {
 							<Link
 								key={m.id}
 								href={`/studio/members/${m.id}`}
-								className="ml-card flex flex-col gap-2.5 transition-all hover:border-mint/40"
-								style={{
-									borderColor: isInactive
-										? 'rgba(255,107,91,0.2)'
-										: 'rgba(255,255,255,0.07)',
-								}}
+								className={`m-card flex flex-col gap-2.5 transition-all bg-white hover:border-mint/70 
+									  ${isInactive ? 'border-red-300' : 'border-gray-300'}`}
 							>
 								{/* 이름 + 배지 */}
 								<div className="flex justify-between items-center">
@@ -173,7 +169,7 @@ export default async function StudioPage() {
 												미수행
 											</span>
 										)}
-										<span className="text-sm font-bold text-white">{m.name}</span>
+										<span className="text-sm font-bold  ">{m.name}</span>
 									</div>
 									<span className={`text-[10px] px-2 py-0.5 rounded-full shrink-0 ${badgeClass}`}>
 										{ACTIVITY_STATUS_LABELS[m.status]}
@@ -183,7 +179,7 @@ export default async function StudioPage() {
 								{/* 달성률 프로그레스 바 */}
 								<div>
 									<div className="flex justify-between items-center mb-1">
-										<span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
+										<span className="text-[10px]" >
 											주간 달성률
 										</span>
 										<span className="text-[10px] font-mono font-bold"
@@ -194,8 +190,7 @@ export default async function StudioPage() {
 											{m.achieveRate}%
 										</span>
 									</div>
-									<div className="w-full h-1.5 rounded-full"
-										style={{ background: 'rgba(255,255,255,0.07)' }}>
+									<div className="w-full h-1.5 rounded-full bg-gray-200" >
 										<div
 											className="h-1.5 rounded-full transition-all"
 											style={{
@@ -208,17 +203,16 @@ export default async function StudioPage() {
 								</div>
 
 								{/* 하단 통계 */}
-								<div className="flex justify-between text-[11px] font-mono"
-									style={{ color: 'rgba(255,255,255,0.4)' }}>
+								<div className="flex justify-between text-[11px] font-mono" >
 									<span>
 										{m.activeDays}일 수행
 										<span className="ml-1" style={{ color: 'rgba(255,255,255,0.2)' }}>
 											/ 주 {m.sessions_per_week}회
 										</span>
 									</span>
-									<span style={{ color: m.totalMets > 0 ? 'rgba(61,219,181,0.7)' : 'rgba(255,255,255,0.2)' }}>
+									<span className={` ${m.totalMets > 0 ? 'text-primary' : 'text-gray-500'} `}>
 										{Math.round(m.totalMets)}
-										<span style={{ color: 'rgba(255,255,255,0.25)' }}> / {m.targetMets} METs</span>
+										<span className='text-gray-500'> / {m.targetMets} METs</span>
 									</span>
 								</div>
 							</Link>
@@ -226,6 +220,6 @@ export default async function StudioPage() {
 					})}
 				</div>
 			</div>
-		</div>
+		</div >
 	)
 }

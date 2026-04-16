@@ -106,7 +106,7 @@ export default function RootLayout({
 					dangerouslySetInnerHTML={{ __html: splashScript }}
 				/>
 			</head>
-			<body className=" text-white font-sans antialiased" style={{ backgroundColor: '#f8faf8' }}>
+			<body className=" font-sans antialiased" style={{ backgroundColor: '#f8faf8' }}>
 				{children}
 			</body>
 		</html>

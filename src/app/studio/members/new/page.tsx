@@ -1,10 +1,12 @@
-import { createClient } from '@/lib/supabase/server'
+// app/studio/members/new/page.tsx
+// 신규회원 등록 페이지
+
 import { redirect } from 'next/navigation'
-import MemberRegisterForm from '@/components/studio/MemberRegisterForm'
+import { createClient } from '@/lib/supabase/server'
+import MemberRegisterForm from '@/components/admin/member/MemberRegisterForm'
 
 export default async function NewMemberPage() {
 	const supabase = await createClient()
-
 	const { data: { user } } = await supabase.auth.getUser()
 	if (!user) redirect('/login')
 
@@ -17,16 +19,11 @@ export default async function NewMemberPage() {
 	if (!instructor) redirect('/login')
 
 	return (
-		<div className="max-w-xl mx-auto py-8 px-4">
-			<div className="flex items-center gap-3 mb-6">
-				<a href="/studio"
-					className="text-xs font-mono px-2.5 py-1 rounded-lg transition-all"
-					style={{ color: 'rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.05)' }}>
-					← 뒤로
-				</a>
-				<h1 className="text-base font-bold text-white">신규 회원 등록</h1>
+		<div className=" py-6 ">
+			<div className="mb-6">
+				<h1 className="text-lg font-bold ">신규회원 등록</h1>
+				<p className="text-sm  mt-1">기본 정보와 생활 패턴을 입력해주세요</p>
 			</div>
-
 			<MemberRegisterForm
 				studioId={instructor.studio_id}
 				instructorId={instructor.id}

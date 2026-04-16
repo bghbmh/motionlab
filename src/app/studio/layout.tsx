@@ -1,13 +1,13 @@
+// app/studio/layout.tsx
 import './studio.css'
-
-//import '../globals.css'
 
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import StudioHeader from '@/components/studio/StudioHeader'
-import MemberListSidebarContainer from '@/components/studio/MemberListSidebarContainer';
-import SidebarLoading from '@/components/studio/SidebarLoading';
+import StudioHeader from '@/components/admin/layout/StudioHeader'
+import StudioShell from '@/components/admin/layout/StudioShell'
+import MemberListSidebarContainer from '@/components/admin/sidebar/MemberListSidebarContainer'
+import SidebarLoading from '@/components/studio/SidebarLoading'
 
 export default async function StudioLayout({
 	children,
@@ -16,36 +16,26 @@ export default async function StudioLayout({
 }) {
 	const supabase = await createClient()
 	const { data: { user } } = await supabase.auth.getUser()
-
 	if (!user) redirect('/login')
 
-	// 강사 정보
 	const { data: instructor } = await supabase
 		.from('instructors')
 		.select('*, studios(name)')
 		.eq('id', user.id)
 		.single()
 
+	if (!instructor) redirect('/login')
+
 	return (
-		<div className="h-full bg-navy flex flex-col" style={{ minWidth: '1200px' }}>
-			<StudioHeader instructor={instructor} />
-
-			{/* 헤더 아래 전체 영역 */}
-			<div
-				className="flex flex-1 overflow-hidden"
-				style={{ height: 'calc(100vh - 52px)' }}
-			>
-				{/* 왼쪽: 회원 목록 사이드바 */}
-				{/* ✅ 사이드바 영역만 독립적으로 로딩 처리 */}
+		<StudioShell
+			header={<StudioHeader instructor={instructor} />}
+			sidebar={
 				<Suspense fallback={<SidebarLoading />}>
-					<MemberListSidebarContainer studioId={instructor?.studio_id ?? ''} />
+					<MemberListSidebarContainer studioId={instructor.studio_id} />
 				</Suspense>
-
-				{/* 오른쪽: 페이지 콘텐츠 */}
-				<main className="flex-1 overflow-y-auto p-5">
-					{children}
-				</main>
-			</div>
-		</div>
+			}
+		>
+			{children}
+		</StudioShell>
 	)
 }

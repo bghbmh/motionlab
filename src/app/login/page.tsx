@@ -42,11 +42,12 @@ export default function LoginPage() {
 				</div>
 
 				{/* 폼 */}
-				<form onSubmit={handleLogin} className="ml-card flex flex-col gap-4">
+				<form onSubmit={handleLogin} className="flex flex-col gap-4 px-10 py-8 border border-gray-600 rounded-2xl">
 					<div>
-						<p className="ml-card-label">이메일</p>
+						<p className="text-sm text-gray-400 mb-2">이메일</p>
 						<input
-							className="ml-input"
+							className="px-2 py-3 w-full border-b text-lg text-white bg-transparent"
+							style={{ borderColor: 'hsl(0 100% 100% / .7)' }}
 							type="email"
 							placeholder="instructor@motion-log.com"
 							value={email}
@@ -54,10 +55,11 @@ export default function LoginPage() {
 							required
 						/>
 					</div>
-					<div>
-						<p className="ml-card-label">비밀번호</p>
+					<div className='mt-3'>
+						<p className="text-sm text-gray-400 mb-2">비밀번호</p>
 						<input
-							className="ml-input"
+							className="px-2 py-3 w-full border-b text-lg text-white bg-transparent"
+							style={{ borderColor: 'hsl(0 100% 100% / .7)' }}
 							type="password"
 							placeholder="••••••••"
 							value={password}
@@ -73,7 +75,7 @@ export default function LoginPage() {
 					<button
 						type="submit"
 						disabled={loading}
-						className="btn-primary w-full mt-2 disabled:opacity-50"
+						className="btn-primary w-full mt-2 py-4 disabled:opacity-50"
 					>
 						{loading ? '로그인 중...' : '로그인'}
 					</button>

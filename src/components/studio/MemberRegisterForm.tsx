@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { Check } from 'lucide-react'
 
 // ── 논문 기반 일상활동 기본 목록 ──────────────────────────────────
 const DAILY_ACTIVITY_OPTIONS = [
@@ -142,11 +143,11 @@ export default function MemberRegisterForm({ studioId, instructorId }: Props) {
 	const categories = ['가사', '이동', '직장'] as const
 
 	return (
-		<form onSubmit={handleSubmit} className="flex flex-col gap-5">
+		<form onSubmit={handleSubmit} className="flex flex-col gap-5 px-2 py-2 bg-white">
 
 			{/* ── 기본 정보 ── */}
-			<div className="ml-card flex flex-col gap-3">
-				<p className="ml-card-label text-base font-bold text-white m-0">기본 정보</p>
+			<div className="m-card flex flex-col gap-3">
+				<p className="m-card-label text-base font-bold  m-0">기본 정보</p>
 
 				{[
 					{ key: 'name', label: '이름 *', placeholder: '홍길동', type: 'text' },
@@ -156,9 +157,9 @@ export default function MemberRegisterForm({ studioId, instructorId }: Props) {
 					{ key: 'sessions_per_week', label: '주 수업 횟수 *', placeholder: '2', type: 'number' },
 				].map(({ key, label, placeholder, type }) => (
 					<div key={key}>
-						<p className="ml-card-label mb-1">{label}</p>
+						<p className="m-card-label mb-1">{label}</p>
 						<input
-							className="ml-input" type={type} placeholder={placeholder}
+							className="m-input" type={type} placeholder={placeholder}
 							value={form[key as keyof typeof form]}
 							onChange={e => update(key, e.target.value)}
 							required={label.includes('*')}
@@ -169,24 +170,24 @@ export default function MemberRegisterForm({ studioId, instructorId }: Props) {
 				))}
 
 				<div>
-					<p className="ml-card-label mb-1">특이사항 (선택)</p>
+					<p className="m-card-label mb-1">특이사항 (선택)</p>
 					<input
-						className="ml-input" placeholder="예: 허리 디스크 주의"
+						className="m-input" placeholder="예: 허리 디스크 주의"
 						value={form.memo} onChange={e => update('memo', e.target.value)}
 					/>
 				</div>
 			</div>
 
 			{/* ── 비방문일 생활 패턴 ── */}
-			<div className="ml-card flex flex-col gap-4">
+			<div className="m-card flex flex-col gap-4">
 				<div>
-					<p className="ml-card-label text-base font-bold text-white m-0">
+					<p className="m-card-label text-base font-bold  m-0">
 						비방문일 생활 패턴
-						<span className="font-normal text-[11px] ml-2" style={{ color: 'rgba(255,255,255,0.3)' }}>
+						<span className="font-normal text-xs ml-2" >
 							선택 · 상담 내용 기반
 						</span>
 					</p>
-					<p className="text-[11px] mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
+					<p className="text-xs mt-1" >
 						활동을 선택하고 하루 평균 시간과 주 빈도를 입력해 주세요.
 					</p>
 				</div>
@@ -194,7 +195,7 @@ export default function MemberRegisterForm({ studioId, instructorId }: Props) {
 				{/* 카테고리별 선택 버튼 */}
 				{categories.map(cat => (
 					<div key={cat}>
-						<p className="text-[11px] font-bold mb-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
+						<p className="text-xs font-bold mb-2" >
 							{cat}
 						</p>
 						<div className="flex flex-wrap gap-1.5">
@@ -207,15 +208,12 @@ export default function MemberRegisterForm({ studioId, instructorId }: Props) {
 											key={opt.activity_type}
 											type="button"
 											onClick={() => isAdded ? removeActivity(opt.activity_type) : addActivity(opt)}
-											className="text-[11px] font-semibold px-2.5 py-1.5 rounded-lg transition-all"
-											style={{
-												background: isAdded ? 'rgba(61,219,181,0.12)' : '#1a2740',
-												border: `1px solid ${isAdded ? 'rgba(61,219,181,0.4)' : 'rgba(255,255,255,0.08)'}`,
-												color: isAdded ? '#3DDBB5' : 'rgba(255,255,255,0.5)',
-											}}
+											className={`btn-ghost gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-all 
+												${isAdded ? ' bg-blue-50 text-blue-600 ' : 'bg-gray-300/40 text-gray-600 '} 
+													`}
 										>
-											{isAdded ? '✓ ' : ''}{opt.activity_label}
-											<span className="ml-1 font-mono opacity-60">{opt.mets_value}</span>
+											{isAdded ? <Check size={16} /> : ''}{opt.activity_label}
+											<span className="ml-1 font-mono ">{opt.mets_value}</span>
 										</button>
 									)
 								})}
@@ -225,35 +223,35 @@ export default function MemberRegisterForm({ studioId, instructorId }: Props) {
 
 				{/* 선택된 활동 상세 입력 */}
 				{activities.length > 0 && (
-					<div className="flex flex-col gap-2 mt-1">
-						<p className="text-[11px] font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>
+					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mt-1">
+						<p className="col-span-full text-xs font-bold"  >
 							선택된 활동 상세
 						</p>
 						{activities.map(a => (
 							<div key={a.activity_type}
-								className="rounded-xl p-3 flex flex-col gap-2"
-								style={{ background: 'rgba(61,219,181,0.04)', border: '1px solid rgba(61,219,181,0.12)' }}>
+								className="bg-blue-50 border border-blue-200 rounded-xl p-3 flex flex-col gap-2"
+							>
 
 								<div className="flex justify-between items-center">
-									<span className="text-sm font-semibold text-white">{a.activity_label}</span>
-									<span className="font-mono text-[11px]" style={{ color: 'rgba(61,219,181,0.7)' }}>
+									<span className="text-sm font-semibold ">{a.activity_label}</span>
+									<span className="font-mono text-xs"  >
 										{a.mets_value} METs/h
 									</span>
 								</div>
 
 								<div className="grid grid-cols-2 gap-2">
 									<div>
-										<p className="ml-card-label mb-1">하루 평균 시간(분)</p>
+										<p className="m-card-label mb-1">하루 평균 시간(분)</p>
 										<input
-											className="ml-input py-2" type="number" min={1} placeholder="30"
+											className="m-input py-2" type="number" min={1} placeholder="30"
 											value={a.duration_min_per_day}
 											onChange={e => updateActivity(a.activity_type, 'duration_min_per_day', e.target.value)}
 										/>
 									</div>
 									<div>
-										<p className="ml-card-label mb-1">주 빈도(일)</p>
+										<p className="m-card-label mb-1">주 빈도(일)</p>
 										<input
-											className="ml-input py-2" type="number" min={1} max={7} placeholder="7"
+											className="m-input py-2" type="number" min={1} max={7} placeholder="7"
 											value={a.frequency_per_week}
 											onChange={e => updateActivity(a.activity_type, 'frequency_per_week', e.target.value)}
 										/>
@@ -261,9 +259,9 @@ export default function MemberRegisterForm({ studioId, instructorId }: Props) {
 								</div>
 
 								<div>
-									<p className="ml-card-label mb-1">메모 (선택)</p>
+									<p className="m-card-label mb-1">메모 (선택)</p>
 									<input
-										className="ml-input py-2" placeholder="예: 직장 5층 계단 이용"
+										className="m-input py-2" placeholder="예: 직장 5층 계단 이용"
 										value={a.note}
 										onChange={e => updateActivity(a.activity_type, 'note', e.target.value)}
 									/>
@@ -271,8 +269,8 @@ export default function MemberRegisterForm({ studioId, instructorId }: Props) {
 
 								{/* 주간 METs 기여 미리보기 */}
 								{Number(a.duration_min_per_day) > 0 && (
-									<p className="text-[10px] font-mono" style={{ color: 'rgba(255,255,255,0.3)' }}>
-										주간 기여 ≈ {Math.round(a.mets_value * Number(a.duration_min_per_day) * Number(a.frequency_per_week))} METs
+									<p className="text-xs font-mono" >
+										주간 기여 ≈ <span className='text-blue-600'>{Math.round(a.mets_value * Number(a.duration_min_per_day) * Number(a.frequency_per_week))}</span> METs
 									</p>
 								)}
 							</div>
@@ -282,7 +280,7 @@ export default function MemberRegisterForm({ studioId, instructorId }: Props) {
 			</div>
 
 			{error && (
-				<p className="text-xs text-center" style={{ color: '#FF6B5B' }}>{error}</p>
+				<p className="text-xs text-center" >{error}</p>
 			)}
 
 			<button

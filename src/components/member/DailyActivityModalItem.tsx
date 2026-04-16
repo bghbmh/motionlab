@@ -2,13 +2,7 @@
 // 일상생활 활동 목록 1개 아이템
 // 아이템 전체 클릭 시 DailyActivityDurationModal 열기
 
-export interface DailyActivityOption {
-	activity_type: string
-	activity_label: string
-	mets_value: number
-	paper_code: string
-	category: string
-}
+import type { DailyActivityOption } from '@/data/dailyActivityOptions'
 
 interface Props {
 	option: DailyActivityOption

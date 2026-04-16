@@ -160,6 +160,22 @@ export interface CompletedLog {
 }
 
 
+export interface DailyActivity {
+	id: string
+	member_id: string
+	activity_type: string
+	activity_label: string
+	mets_value: number
+	duration_min_per_day: number
+	frequency_per_week: number
+	selected_days: string[] | null  // text[] 컬럼
+	paper_code: string | null
+	note: string | null
+	recorded_at: string             // 'YYYY-MM-DD'
+	created_at: string
+}
+
+
 // ─── note_workout_completions ─────────────────────────────────
 export interface NoteWorkoutCompletion {
 	id: string

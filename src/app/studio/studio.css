@@ -19,7 +19,6 @@
 	.s-layout {
 		background-color: #0d1421;
 		/* bg-navy */
-		color: #F0F4FF;
 		font-family: 'DM Sans', sans-serif;
 		min-height: 100vh;
 	}
@@ -67,52 +66,68 @@
 
 	/* ── 카드 ──────────────────────────────────────────────────── */
 
-	.ml-card {
-		background-color: #141e2e;
+	.m-card {
 		/* bg-card */
 		border: 1px solid rgba(255, 255, 255, 0.07);
 		border-radius: 1rem;
 		padding: 1rem;
 	}
 
-	.ml-card-label {
+	.m-card-label {
 		font-size: 11px;
 		font-weight: 600;
-		color: rgba(255, 255, 255, 0.7);
 		text-transform: uppercase;
 		letter-spacing: 0.1em;
 		margin-bottom: 0.75rem;
 		display: block;
 	}
 
+	/* 카드 섹션 타이틀 */
+	.m-label {
+		font-size: 12px;
+		font-weight: 400;
+		color: var(--color-gray-800);
+		line-height: 16px;
+	}
+
+	/* 카드 서브 타이틀 */
+	.m-sublabel {
+		font-size: 11px;
+		font-weight: 400;
+		color: #7f847d;
+		/* olive/10 */
+		line-height: 16px;
+	}
+
 	/* ── 인풋 ──────────────────────────────────────────────────── */
 
-	.ml-input {
+	.m-input {
 		width: 100%;
-		background-color: #1a2740;
-		border: 1px solid rgba(255, 255, 255, 0.07);
-		border-radius: 0.5rem;
-		padding: 0.625rem 0.75rem;
-		color: rgba(255, 255, 255, 0.9);
-		font-size: 0.875rem;
-		font-family: 'DM Mono', monospace;
-		transition: border-color 0.2s, color 0.2s;
+		background-color: #ffffff;
+		border: 1px solid #e2e8f0;
+		border-radius: 8px;
+		padding: 10px 14px;
+		color: #1d211c;
+		font-size: 16px;
+		font-family: 'DM Sans', sans-serif;
+		outline: none;
+		transition: border-color 0.15s;
 	}
 
-	.ml-input::placeholder {
-		color: rgba(255, 255, 255, 0.2);
+	.m-input:focus {
+		border-color: var(--color-primary);
 	}
 
-	.ml-input:focus {
-		border-color: rgba(61, 219, 181, 0.5);
-		color: #F0F4FF;
+	.m-input::placeholder {
+		color: #a1a1a1;
+		font-size: calc(1em - 1px);
 	}
 
 	/* ── 버튼 ──────────────────────────────────────────────────── */
 
 	/* primary — 민트 배경 */
 	.btn-primary {
-		background-color: #3DDBB5;
+		background-color: var(--color-primary);
 		/* bg-mint */
 		color: #0d1421;
 		/* text-navy */
@@ -130,20 +145,39 @@
 	}
 
 	.btn-primary:hover {
-		background-color: rgba(61, 219, 181, 0.9);
+		background-color: var(--color-primary-600);
+	}
+
+	.btn-default {
+		color: var(--color-gray-600);
+		font-size: 0.875rem;
+		font-weight: 600;
+		padding: 0.625rem 1.25rem;
+		border-radius: 0.75rem;
+		cursor: pointer;
+		transition: border-color 0.2s, color 0.2s;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		text-decoration: none;
+		border: 1px solid var(--color-gray-400);
+		background-color: transparent
+	}
+
+	.btn-default:hover {
+		color: var(--color-gray-700);
+		background-color: var(--color-gray-200);
 	}
 
 	/* ghost */
 	.btn-ghost {
-		background-color: #1a2740;
-		color: rgba(255, 255, 255, 0.5);
-		border: 1px solid rgba(255, 255, 255, 0.07);
+		color: var(--color-gray-600);
 		font-size: 0.875rem;
-		font-weight: 500;
+		font-weight: 600;
+		padding: 0.625rem 1.25rem;
 		border-radius: 0.75rem;
-		padding: 0.5rem 1rem;
 		cursor: pointer;
-		transition: border-color 0.2s, color 0.2s;
+		transition: background-color 0.2s, color 0.2s;
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
@@ -151,8 +185,7 @@
 	}
 
 	.btn-ghost:hover {
-		border-color: rgba(255, 255, 255, 0.2);
-		color: rgba(255, 255, 255, 0.7);
+		color: var(--color-gray-800);
 	}
 
 	/* ── 배지 ──────────────────────────────────────────────────── */
@@ -281,6 +314,8 @@
 
 
 	.studio-members {
+		@apply bg-white;
+
 		flex-shrink: 0;
 
 		display: flex;
@@ -293,6 +328,8 @@
 		border-right: 1px solid hsl(0 100% 100% / .05);
 	}
 
+	.studio-container {}
+
 	.info-list {
 		flex: 1;
 
@@ -302,5 +339,22 @@
 		height: 1px;
 		padding: 0 calc(.25rem * 3);
 		overflow-y: auto;
+	}
+
+	@keyframes loading {
+		0% {
+			transform: translateX(-100%);
+			width: 40%;
+		}
+
+		50% {
+			transform: translateX(150%);
+			width: 60%;
+		}
+
+		100% {
+			transform: translateX(300%);
+			width: 40%;
+		}
 	}
 }

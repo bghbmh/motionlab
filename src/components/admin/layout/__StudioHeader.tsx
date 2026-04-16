@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import NewMemberModal from './NewMemberModal'
+import NewMemberModal from '../../studio/NewMemberModal'
 
 interface Props {
 	instructor: {
@@ -33,8 +33,7 @@ export default function StudioHeader({ instructor }: Props) {
 
 	return (
 		<>
-			<header className="bg-card border-b border-white/[0.07] px-5 py-3
-                         flex items-center justify-between">
+			<header className="w-full px-5 py-3 bg-white border-b border-neutral-200 flex justify-between items-center gap-6">
 				<div className="flex items-center gap-3">
 					<span className="font-mono text-sm text-mint tracking-wider font-medium">
 						motion-log Studio
