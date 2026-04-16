@@ -19,6 +19,10 @@ import DaySection from './DaySection'
 import NoteVideoSelector from './NoteVideoSelector'
 
 import { Calendar, X, Plus, Check } from 'lucide-react'
+import { toLocalISO, parseLocalDate, formatDisplayDate, getDayKoShort } from '@/lib/weekUtils'
+
+
+// formatDisplayDate 함수 삭제
 
 export interface VideoItem {
 	videoId: string
@@ -37,38 +41,25 @@ interface Props {
 }
 
 // ─── 날짜 유틸 ───────────────────────────────────────────────────
-function toDateStr(date: Date) {
-	return date.toISOString().split('T')[0]
-}
-
 function addDays(dateStr: string, n: number): string {
-	const d = new Date(dateStr)
+	const d = parseLocalDate(dateStr)  // ← 로컬 기준 파싱
 	d.setDate(d.getDate() + n)
-	return toDateStr(d)
+	return toLocalISO(d)
 }
 
-function formatDisplayDate(dateStr: string) {
-	const [y, m, d] = dateStr.split('-')
-	return `${y}. ${m}. ${d}`
-}
 
 const DAY_KO = ['일', '월', '화', '수', '목', '금', '토']
 
 // "2/29 금" 형태 칩 레이블
 function formatChipLabel(dateStr: string): string {
 	const [, m, d] = dateStr.split('-')
-	const dayOfWeek = DAY_KO[new Date(dateStr).getDay()]
+	const dayOfWeek = getDayKoShort(dateStr)  // ← getDayKo 대신
 	return `${Number(m)}/${Number(d)} ${dayOfWeek}`
-}
-
-// 날짜에서 한국 요일명 반환 ('월', '화', ...)
-function getDayKo(dateStr: string): string {
-	return DAY_KO[new Date(dateStr).getDay()]
 }
 
 // DB 요일값 → 날짜 범위에서 해당 요일 날짜 찾기
 function findDatesByDayNames(dayNames: string[], dateRange: string[]): string[] {
-	return dateRange.filter(date => dayNames.includes(getDayKo(date)))
+	return dateRange.filter(date => dayNames.includes(getDayKoShort(date)))
 }
 
 // 시작일부터 종료일까지 날짜 배열 생성
@@ -102,7 +93,7 @@ export default function NoteSlideModal({ memberId, memberName, editTarget, onClo
 	const [visible, setVisible] = useState(false)
 
 	// ── 날짜 상태 ────────────────────────────────────────────────
-	const today = toDateStr(new Date())
+	const today = toLocalISO(new Date())
 	const [startDate, setStartDate] = useState(editTarget?.written_at ?? today)
 	const [endDate, setEndDate] = useState(addDays(editTarget?.written_at ?? today, 6))
 
@@ -126,8 +117,8 @@ export default function NoteSlideModal({ memberId, memberName, editTarget, onClo
 	// - ['2025-03-01'] → 그대로
 	const initRange = useMemo(
 		() => getDateRange(
-			editTarget?.written_at ?? toDateStr(new Date()),
-			addDays(editTarget?.written_at ?? toDateStr(new Date()), 6)
+			editTarget?.written_at ?? toLocalISO(new Date()),
+			addDays(editTarget?.written_at ?? toLocalISO(new Date()), 6)
 		),
 		[] // 마운트 시 한 번만
 	)

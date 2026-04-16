@@ -75,7 +75,7 @@ export default function MemberListSidebar({
 	}, [membersWithStats, search])
 
 	return (
-		<aside className={`studio-members h-full ${className || ''}`}  >
+		<aside className={`studio-members ${className || ''}`} >
 			{/* 검색 */}
 			<label className="flex px-3">
 				<input

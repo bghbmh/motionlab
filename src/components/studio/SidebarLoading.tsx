@@ -3,7 +3,8 @@
 export default function SidebarLoading() {
 	return (
 		<aside
-			className="w-64 flex flex-col items-center justify-center border-r border-white/5 bg-[#1A1F2C]"
+			className="w-64 flex flex-col items-center justify-center border-r "
+			style={{ height: 'calc(100vh - 70px)' }}
 		>
 			{/* 작고 세련된 스피너 */}
 			<div className="relative w-8 h-8 mb-3">

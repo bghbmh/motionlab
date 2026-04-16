@@ -26,6 +26,7 @@ export default async function StudioLayout({
 
 	if (!instructor) redirect('/login')
 
+
 	return (
 		<StudioShell
 			header={<StudioHeader instructor={instructor} />}
