@@ -29,6 +29,11 @@ export function toLocalISO(date: Date): string {
 	return `${y}-${m}-${d}`
 }
 
+export function formatDisplayDate(dateStr: string): string {
+	const [y, m, d] = dateStr.split('-')
+	return `${y}.${m}.${d}`
+}
+
 /**
  * 'YYYY-MM-DD' → 'YY.MM.DD' 표시용 포맷
  */
@@ -36,6 +41,7 @@ export function formatDate(dateStr: string): string {
 	const [y, m, d] = dateStr.split('-')
 	return `${y.slice(2)}.${m}.${d}`
 }
+
 
 /**
  * 'YYYY-MM-DD' → '월요일' 등 한글 요일 (전체)

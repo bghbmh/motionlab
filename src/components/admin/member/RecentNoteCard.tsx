@@ -34,7 +34,7 @@ export default function RecentNoteCard({
 	const workouts = note.note_workouts ?? []
 	const tags = note.note_tags ?? []
 
-	const completedIds = new Set(completions.map((c) => c.note_workout_id))
+	const completedIds = new Set(completions.map((c) => `${c.note_workout_id}_${c.completed_date}`))
 
 	// weekStart prop이 있으면 그 주차 기준으로, 없으면 note.written_at 기준 자동 계산
 	const { dates, weekStart, weekEnd } = weekStartProp

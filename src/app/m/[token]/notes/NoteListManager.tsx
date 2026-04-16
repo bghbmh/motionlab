@@ -29,6 +29,9 @@ import type { NoteCardData } from '@/components/member//NoteCard'
 import type { NoteWorkoutItemData } from '@/components/member/NoteWorkoutItem'
 import FutureCheckToast from '@/components/member/ui/FutureCheckToast'
 
+import { WORKOUT_METS_BY_INTENSITY } from '@/types/database'
+import type { Intensity } from '@/types/database'
+
 interface Props {
 	memberId: string
 	initialNotes: NoteCardData[]
@@ -77,7 +80,7 @@ export default function NoteListManager({ memberId, initialNotes, latestIdx }: P
 					workout_type: item.workoutType,
 					duration_min: item.durationMin,
 					prescribed_duration_min: item.durationMin,
-					mets_score: item.mets,
+					mets_score: WORKOUT_METS_BY_INTENSITY[item.workoutType][item.intensity],  // ← 변경
 					source: 'routine',
 					note_workout_id: workoutId,
 					activity_type: null,

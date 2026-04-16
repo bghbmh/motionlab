@@ -48,13 +48,13 @@ export function NcWorkOutList({ children = null }: { children?: React.ReactNode 
 	)
 }
 
-export function NcWorkOutTitle({ type, status }: { type: string, status: boolean }) {
+export function NcWorkOutTitle({ type, status = null }: { type: string, status: boolean | null }) {
 	return (
 		<div className="flex justify-between items-center">
 			<span className="text-gray-800 text-xs font-semibold leading-4">
 				{type}
 			</span>
-			{status ? (
+			{status === null ? null : status ? (
 				<svg width="16" height="16" viewBox="0 0 16 16" fill="none" >
 					<rect width="16" height="16" rx="2" fill="#ecfdf5" />
 					<path d="M4 8l3 3 5-5" stroke="#0bb489" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />

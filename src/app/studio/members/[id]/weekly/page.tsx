@@ -31,34 +31,36 @@ export default async function WeeklyPage({ params }: PageProps) {
 	const today = toLocalISO(new Date())
 	const baseDate = member.registered_at
 
-	// 1차: registered_at 기준으로 note fetch
-	const registeredWeekStart = getCurrentWeekStart(baseDate)
-	const registeredWeekEnd = getWeekEnd(registeredWeekStart)
-
-	const [weeklyLogsAll, recentNote, loggedDates, unsentNoteCount] = await Promise.all([
-		getWeeklyLogs(id, registeredWeekStart, registeredWeekEnd),
-		getRecentNote(id, registeredWeekEnd),
-		getAllLoggedDates(id, baseDate, today),
-		getUnsentNoteCount(id), // 추가: 미전송 알림장 개수 조회
-	])
-
-	// 2차: 알림장 written_at 기준으로 실제 weekStart 재계산
-	const currentWeekStart = getEffectiveWeekStart(baseDate, recentNote?.written_at)
+	// 1단계 — recentNote 먼저 조회해서 currentWeekStart 확정
+	const recentNote = await getRecentNote(id, today)
+	const currentWeekStart = getEffectiveWeekStart(baseDate, recentNote?.sent_at ?? recentNote?.written_at)
 	const currentWeekEnd = getWeekEnd(currentWeekStart)
 
-	// weekStart 기준으로 logs 재필터링
-	const weeklyLogs = weeklyLogsAll.filter(
-		(l) => l.logged_at >= currentWeekStart && l.logged_at <= currentWeekEnd
-	)
-	const totalMets = weeklyLogs.reduce((sum, l) => sum + l.mets_score, 0)
+	// 2단계 — currentWeekStart 기준으로 나머지 병렬 조회
+	const [weeklyLogs, allLoggedData, unsentNoteCount] = await Promise.all([
+		getWeeklyLogs(id, currentWeekStart, currentWeekEnd),
+		getAllLoggedDates(id, baseDate, today),
+		getUnsentNoteCount(id),
+	])
+
+	const loggedDates = [...new Set(allLoggedData.map((l) => l.date))]
+	const totalMets = weeklyLogs.reduce((sum, l) => sum + l.mets_score * l.duration_min, 0)  // ← 수정
 	const noteWorkoutIds = recentNote?.note_workouts?.map((w) => w.id) ?? []
 	const completions = await getNoteCompletions(noteWorkoutIds, currentWeekStart, currentWeekEnd)
 
-	// ✅ 서버에서 주차 목록 계산 — 클라이언트에서 new Date() 호출 방지
 	const baseWeeks = getAllWeekStarts(baseDate)
 	const allWeeks = baseWeeks.includes(currentWeekStart)
 		? baseWeeks
 		: [currentWeekStart, ...baseWeeks]
+
+	// 주차별 METs 계산
+	const weekMetsMap: Record<string, number> = {}
+	for (const week of allWeeks) {
+		const weekEnd = getWeekEnd(week)
+		weekMetsMap[week] = allLoggedData
+			.filter((l) => l.date >= week && l.date <= weekEnd)
+			.reduce((sum, l) => sum + l.mets_score * l.duration_min, 0)  // ← 수정
+	}
 
 	return (
 		<WeekSectionList
@@ -74,7 +76,8 @@ export default async function WeeklyPage({ params }: PageProps) {
 			}}
 			loggedDates={loggedDates}
 			allWeeks={allWeeks}
-			unsentNoteCount={unsentNoteCount} // 추가: 미전송 알림장 개수 전달
+			unsentNoteCount={unsentNoteCount}
+			weekMetsMap={weekMetsMap}
 		/>
 	)
 }

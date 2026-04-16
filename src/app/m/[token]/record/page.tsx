@@ -4,6 +4,7 @@
 import { createClient } from '@/lib/supabase/server'
 import type { WorkoutLog } from '@/types/database'
 import RecordListManager from './RecordListManager'
+import { toLocalISO } from '@/lib/weekUtils'
 
 interface PageProps {
 	params: Promise<{ token: string }>
@@ -36,6 +37,7 @@ export default async function RecordPage({ params }: PageProps) {
 		.order('logged_at', { ascending: false })
 
 	const logs = (data ?? []) as WorkoutLog[]
+	const today = toLocalISO(new Date())  // 오늘 날짜 (YYYY-MM-DD)
 
-	return <RecordListManager member={member} initialLogs={logs} />
+	return <RecordListManager member={member} initialLogs={logs} today={today} />
 }

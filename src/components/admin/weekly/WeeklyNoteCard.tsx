@@ -60,13 +60,13 @@ export default function WeeklyNoteCard({
 	const workouts = note.note_workouts ?? []
 	const tags = note.note_tags ?? []
 
-	const completedIds = new Set(completions.map((c) => c.note_workout_id))
+	const completedIds = new Set(completions.map((c) => `${c.note_workout_id}_${c.completed_date}`))
 	const sentLabel = formatDate(note.written_at)
 
 	return (
-		<div className="py-3 bg-neutral-50 rounded-2xl flex flex-col gap-2">
+		<div className="py-3 bg-neutral-50 rounded-2xl h-full flex flex-col gap-2">
 			{/* 현재 주차 기간 + 전송일 + 전송 상태 */}
-			<div className="pb-1 px-4  flex justify-between items-center">
+			<div className="pb-1 px-4 flex-none flex justify-between items-center">
 				<span className="text-gray-600 text-xs font-semibold leading-4">
 					{periodLabel}
 				</span>
@@ -77,7 +77,7 @@ export default function WeeklyNoteCard({
 			</div>
 
 			{/* 알림장 내용 요약 */}
-			<div className=" px-2 py-1 mx-4 border-l-[3px] border-neutral-300 flex flex-col gap-1">
+			<div className="flex-none px-2 py-1 mx-4 border-l-[3px] border-neutral-300 flex flex-col gap-1">
 				<span className="text-neutral-700 text-xs leading-4">{note.content}</span>
 				<DescriptionList items={[
 					{ label: '목표 -', value: `${note.recommended_mets} METs` },
@@ -86,7 +86,7 @@ export default function WeeklyNoteCard({
 			</div>
 
 			{/* 요일별 운동 카드 */}
-			<div className='max-h-[30vh] px-4 overflow-y-auto '>
+			<div className=' px-4 overflow-y-auto '>
 				{dates.map((dateStr, idx) => (
 					<div className='mb-3' key={`${dateStr}-${idx}`}>
 						<NoteCardView

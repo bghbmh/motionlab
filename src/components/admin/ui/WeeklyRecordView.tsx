@@ -45,7 +45,7 @@ export default function WeeklyRecordView({
 	return (
 		<div className="px-4 py-3 bg-white rounded-2xl flex flex-col">
 			{/* 기간 + 총 METs */}
-			<div className="pb-2 flex justify-between items-center">
+			<div className="pb-2 flex justify-between items-center flex-none">
 				<span className="text-gray-700 text-xs font-medium leading-4">{periodLabel}</span>
 				<div className="flex items-center gap-1">
 					<span className="text-neutral-500 text-xs leading-4">전체</span>
@@ -55,13 +55,13 @@ export default function WeeklyRecordView({
 			</div>
 
 			{/* 일별 기록 */}
-			<div className="flex flex-col">
+			<div className="flex-1 flex flex-col">
 				{dates.map((dateStr) => {
 					const { label: dayLabel, isSunday } = getDayLabel(dateStr)
 					const dayLogs = logsByDate[dateStr] ?? []
 
 					return (
-						<div key={dateStr} className="border-t border-gray-200 flex items-center overflow-hidden">
+						<div key={dateStr} className="border-t border-gray-200 flex items-center ">
 							{/* 날짜 */}
 							<div className="min-w-10 pl-2 pr-4 py-2 flex flex-col items-center justify-center shrink-0">
 								<span className="text-neutral-600 text-xs font-medium leading-4 min-w-8 text-center">
@@ -73,7 +73,7 @@ export default function WeeklyRecordView({
 							</div>
 
 							{/* 운동 기록 또는 기록없음 */}
-							<div className="flex-1 py-2 flex flex-col  ">
+							<div className="flex-1 py-2 flex flex-col overflow-y-auto ">
 								{dayLogs.length === 0 ? (
 									<div className="h-14 min-h-14 px-2 py-1 bg-white rounded-2xl flex items-center">
 										<span className="text-neutral-500 text-xs leading-4">기록없음</span>
@@ -93,7 +93,7 @@ export default function WeeklyRecordView({
 														? `${log.prescribed_duration_min}분`
 														: undefined
 												}
-												mets={log.mets_score}
+												mets={Math.round(log.mets_score * log.duration_min)}
 												memo={log.condition_memo ?? undefined}
 											/>
 										</Fragment>

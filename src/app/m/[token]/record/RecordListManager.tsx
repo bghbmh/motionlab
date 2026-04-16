@@ -20,9 +20,10 @@ import DeleteConfirmModal from '@/components/member/DeleteConfirmModal'
 interface Props {
 	member: { id: string }
 	initialLogs: WorkoutLog[]
+	today: string  // 추가
 }
 
-export default function RecordListManager({ member, initialLogs }: Props) {
+export default function RecordListManager({ member, initialLogs, today }: Props) {
 	const router = useRouter()
 	const [logs, setLogs] = useState<WorkoutLog[]>(initialLogs)
 	const [modalOpen, setModalOpen] = useState(false)
@@ -52,15 +53,17 @@ export default function RecordListManager({ member, initialLogs }: Props) {
 		workout_type: WorkoutType
 		intensity: string
 		duration_min: number
+		logged_at?: string  // 추가
 		condition_memo?: string
 	}) {
 		const supabase = createClient()
 		const metsScore = WORKOUT_METS_BY_INTENSITY[data.workout_type][data.intensity as Intensity]
+		const totalMets = Math.round(metsScore * data.duration_min)
 
 		if (modalMode === 'add') {
 			await supabase.from('workout_logs').insert({
 				member_id: member.id,
-				logged_at: new Date().toISOString().split('T')[0],
+				logged_at: data.logged_at ?? today,  // 오늘 날짜로 고정
 				workout_type: data.workout_type,
 				intensity: data.intensity,
 				duration_min: data.duration_min,

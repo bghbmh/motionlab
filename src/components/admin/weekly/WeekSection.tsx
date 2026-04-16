@@ -26,6 +26,7 @@ interface WeekSectionProps {
 	onToggle: () => void  // 추가
 	initialData?: WeekSectionData
 	hasUnsentNotes?: boolean // 추가: 미전송 알림장 존재 여부
+	initialTotalMets?: number
 }
 
 export default function WeekSection({
@@ -35,14 +36,17 @@ export default function WeekSection({
 	onOpen,
 	onToggle,
 	initialData,
-	hasUnsentNotes = false // 추가: 미전송 알림장 존재 여부
+	hasUnsentNotes = false, // 추가: 미전송 알림장 존재 여부
+	initialTotalMets = 0 // 추가: 초기 METs 값
 }: WeekSectionProps) {
 	const [isLoading, setIsLoading] = useState(false)
 	const [data, setData] = useState<WeekSectionData | null>(initialData ?? null)
 
 	const weekEnd = getWeekEnd(weekStart)
 	const weekDates = getWeekDates(weekStart)
-	const totalMets = data?.totalMets ?? 0
+	const totalMets = data
+		? data.logs.reduce((sum, l) => sum + l.mets_score * l.duration_min, 0)
+		: initialTotalMets
 
 	useEffect(() => {
 		if (!isOpen || data) return
@@ -92,8 +96,8 @@ export default function WeekSection({
 			)}
 
 			{isOpen && data && (
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 items-start">
-					<div className='col-span-full md:col-span-2'>
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 items-start  ">
+					<div className='col-span-full md:col-span-2 h-full'>
 						<WeeklyRecordView
 							periodLabel={`${formatDate(weekStart)} ~ ${formatDate(weekEnd)}`}
 							totalMets={data.totalMets}

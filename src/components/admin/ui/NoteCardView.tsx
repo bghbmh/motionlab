@@ -43,6 +43,7 @@ interface NoteCardViewProps {
 	completedIds: Set<string>
 	/** 알림장 태그 (첫 번째 운동에만 표시) */
 	tags?: NoteTag[]
+	useCompletedStatus?: boolean // 완료 상태 표시 여부 (기본값: true)
 }
 
 export default function NoteCardView({
@@ -50,6 +51,7 @@ export default function NoteCardView({
 	workouts,
 	completedIds,
 	tags = [],
+	useCompletedStatus = true
 }: NoteCardViewProps) {
 	const dayLabel = getDayKoFull(dateStr)
 	const dayStatus = getDayStatus(dateStr)
@@ -64,7 +66,7 @@ export default function NoteCardView({
 		})
 		.sort((a, b) => a.sort_order - b.sort_order)
 
-	const completedCount = dayWorkouts.filter((w) => completedIds.has(w.id)).length
+	const completedCount = dayWorkouts.filter((w) => completedIds.has(`${w.id}_${dateStr}`)).length
 
 
 	return (
@@ -90,7 +92,7 @@ export default function NoteCardView({
 						<WoItem>
 							<NcWorkOutTitle
 								type={WORKOUT_TYPE_LABELS[workout.workout_type]}
-								status={completedIds.has(workout.id)}
+								status={useCompletedStatus ? completedIds.has(`${workout.id}_${dateStr}`) : null}
 							/>
 
 							{workout.coach_memo && (

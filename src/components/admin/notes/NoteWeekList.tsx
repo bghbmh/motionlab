@@ -81,7 +81,14 @@ function NoteRow({ note, defaultOpen, onEdit, onRefresh }: {
 	async function handleSend() {
 		setSendLoading(true)
 		const supabase = createClient()
-		await supabase.from('notes').update({ is_sent: true }).eq('id', note.id)
+		const today = new Date().toLocaleDateString('en-CA')  // 로컬 기준 날짜
+		await supabase
+			.from('notes')
+			.update({
+				is_sent: true,
+				sent_at: today,  // ← 추가
+			})
+			.eq('id', note.id)
 		setSendLoading(false)
 		onRefresh()
 	}
@@ -89,7 +96,13 @@ function NoteRow({ note, defaultOpen, onEdit, onRefresh }: {
 	async function handleUnsend() {
 		setSendLoading(true)
 		const supabase = createClient()
-		await supabase.from('notes').update({ is_sent: false }).eq('id', note.id)
+		await supabase
+			.from('notes')
+			.update({
+				is_sent: false,
+				sent_at: null,  // ← 추가
+			})
+			.eq('id', note.id)
 		setSendLoading(false)
 		onRefresh()
 	}
@@ -139,50 +152,57 @@ function NoteRow({ note, defaultOpen, onEdit, onRefresh }: {
 			{/* 펼쳐진 상세 */}
 			{isOpen && (
 				<>
-					<div className="flex items-center justify-end gap-2 px-4 py-2">
-						{/* 수정 */}
-						<button
-							type="button"
-							onClick={() => onEdit(note)}
-							className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors"
-							title="수정"
-						>
-							<Pencil size={14} />
-						</button>
+					<div className="flex items-center justify-between gap-2 px-4 py-2">
 
-						{/* 전송 / 전송 취소 */}
-						{note.is_sent ? (
+						<span className="text-xs text-neutral-500">{formatDate(note.written_at)} 전송</span>
+
+						<div className='flex items-center gap-2'>
+							{/* 수정 */}
 							<button
 								type="button"
-								onClick={handleUnsend}
-								disabled={sendLoading}
-								className="px-2 py-1 rounded-lg text-xs font-medium text-red-500 border border-red-200 hover:bg-red-50 transition-colors disabled:opacity-50"
+								onClick={() => onEdit(note)}
+								className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors"
+								title="수정"
 							>
-								{sendLoading ? '처리 중...' : '전송 취소'}
+								<Pencil size={14} />
 							</button>
-						) : (
+
+							{/* 전송 / 전송 취소 */}
+							{note.is_sent ? (
+								<button
+									type="button"
+									onClick={handleUnsend}
+									disabled={sendLoading}
+									className="px-2 py-1 rounded-lg text-xs font-medium text-red-500 border border-red-200 hover:bg-red-50 transition-colors disabled:opacity-50"
+								>
+									{sendLoading ? '처리 중...' : '전송 취소'}
+								</button>
+							) : (
+								<button
+									type="button"
+									onClick={handleSend}
+									disabled={sendLoading}
+									className="px-2 py-1 rounded-lg text-xs font-medium text-[#0bb489] border border-[#0bb489] hover:bg-teal-50 transition-colors disabled:opacity-50"
+								>
+									{sendLoading ? '전송 중...' : '전송'}
+								</button>
+							)}
+
+							{/* 삭제 */}
 							<button
 								type="button"
-								onClick={handleSend}
-								disabled={sendLoading}
-								className="px-2 py-1 rounded-lg text-xs font-medium text-[#0bb489] border border-[#0bb489] hover:bg-teal-50 transition-colors disabled:opacity-50"
-							>
-								{sendLoading ? '전송 중...' : '전송'}
-							</button>
-						)}
-
-						{/* 삭제 */}
-						<button
-							type="button"
-							onClick={() => setShowDeleteConfirm(p => !p)}
-							className={`px-2 py-1 rounded-lg text-xs font-medium border transition-colors
+								onClick={() => setShowDeleteConfirm(p => !p)}
+								className={`px-2 py-1 rounded-lg text-xs font-medium border transition-colors
 							${showDeleteConfirm
-									? 'text-red-600 bg-red-50 border-red-300'
-									: 'text-red-500 border-red-200 hover:bg-red-50'
-								}`}
-						>
-							삭제
-						</button>
+										? 'text-red-600 bg-red-50 border-red-300'
+										: 'text-red-500 border-red-200 hover:bg-red-50'
+									}`}
+							>
+								삭제
+							</button>
+
+
+						</div>
 
 
 					</div>
@@ -207,6 +227,7 @@ function NoteRow({ note, defaultOpen, onEdit, onRefresh }: {
 										note_id: note.id,
 										tag: t.tag,
 									}))}
+									useCompletedStatus={false} // 알림장 상세에서는 완료 상태 표시 안 함
 								/>
 							))}
 						</div>

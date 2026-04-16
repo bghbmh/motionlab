@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react'
 import {
 	WORKOUT_TYPE_LABELS,
 	WORKOUT_METS_BY_INTENSITY,
+	INTENSITY_LABELS
 } from '@/types/database'
 import type { WorkoutType, Intensity } from '@/types/database'
 import BottomSheet from './ui/BottomSheet'
@@ -16,26 +17,19 @@ import ModalHeader from './ui/ModalHeader'
 import ModalContents from './ui/ModalContents'
 import WorkoutTypeIcon from './ui/WorkoutTypeIcon'
 
+import { toLocalISO, formatDisplayDate } from '@/lib/weekUtils'
+
 // ─── 상수 ──────────────────────────────────────────────────────
 
-const WORKOUT_TYPES: WorkoutType[] = [
-	'stretching', 'strength', 'cardio', 'pilates', 'yoga', 'other',
-]
+const WORKOUT_TYPES = Object.keys(WORKOUT_TYPE_LABELS) as WorkoutType[]
 
-const INTENSITY_OPTIONS: { value: Intensity; label: string }[] = [
-	{ value: 'recovery', label: '리커버리' },
-	{ value: 'normal', label: '일반' },
-	{ value: 'high', label: '고강도' },
-]
+const INTENSITY_OPTIONS: { value: Intensity; label: string }[] = (
+	['recovery', 'normal', 'high'] as Intensity[]
+).map((value) => ({
+	value,
+	label: INTENSITY_LABELS[value],
+}))
 
-function toDateStr(date: Date) {
-	return date.toISOString().split('T')[0]
-}
-
-function formatDisplayDate(dateStr: string) {
-	const [y, m, d] = dateStr.split('-')
-	return `${y}. ${m}. ${d}`
-}
 
 // ─── 타입 ──────────────────────────────────────────────────────
 
@@ -43,6 +37,7 @@ interface SaveData {
 	workout_type: WorkoutType
 	intensity: string
 	duration_min: number
+	logged_at?: string  // 추가
 	condition_memo?: string
 }
 
@@ -77,7 +72,7 @@ export default function WorkoutRecordModal({
 		(initialData?.intensity as Intensity) ?? 'normal'
 	)
 	const [loggedAt, setLoggedAt] = useState(
-		initialData?.logged_at ?? toDateStr(new Date())
+		initialData?.logged_at ?? toLocalISO(new Date())
 	)
 	const [duration, setDuration] = useState(String(initialData?.duration_min ?? ''))
 	const [memo, setMemo] = useState(initialData?.condition_memo ?? '')
@@ -89,7 +84,7 @@ export default function WorkoutRecordModal({
 		if (initialData) {
 			setWorkoutType(initialData.workout_type ?? 'strength')
 			setIntensity((initialData.intensity as Intensity) ?? 'normal')
-			setLoggedAt(initialData.logged_at ?? toDateStr(new Date()))
+			setLoggedAt(initialData.logged_at ?? toLocalISO(new Date())) // 수정: 초기값이 없으면 오늘 날짜로
 			setDuration(String(initialData.duration_min ?? ''))
 			setMemo(initialData.condition_memo ?? '')
 		}
@@ -116,6 +111,7 @@ export default function WorkoutRecordModal({
 			workout_type: workoutType,
 			intensity,
 			duration_min: durationNum,
+			logged_at: loggedAt,  // 추가
 			condition_memo: memo || undefined,
 		})
 		setSaving(false)

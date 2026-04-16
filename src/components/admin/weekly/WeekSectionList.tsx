@@ -24,6 +24,7 @@ interface WeekSectionListProps {
 	/** 서버에서 계산한 전체 주차 목록 (최신순) */
 	allWeeks: string[]
 	unsentNoteCount?: number // 추가: 미전송 알림장 개수
+	weekMetsMap: Record<string, number> // 추가: 주차별 METs 맵
 }
 
 export default function WeekSectionList({
@@ -34,7 +35,8 @@ export default function WeekSectionList({
 	currentWeekData,
 	loggedDates,
 	allWeeks,
-	unsentNoteCount = 0
+	unsentNoteCount = 0,
+	weekMetsMap
 }: WeekSectionListProps) {
 	const [openedWeeks, setOpenedWeeks] = useState<Set<string>>(
 		new Set([currentWeekStart])
@@ -71,6 +73,8 @@ export default function WeekSectionList({
 		}, 100)
 	}
 
+	console.log('allWeeks 00:', allWeeks)
+
 	return (
 		<div className="flex flex-col pt-0 pb-4">
 			<WeeklyCalendar
@@ -86,6 +90,8 @@ export default function WeekSectionList({
 					const isCurrentWeek = weekStart === currentWeekStart
 					const isOpen = openedWeeks.has(weekStart)
 
+					console.log('allWeeks 11:', allWeeks)
+
 					return (
 						<div
 							key={`${weekStart}-${idx}`}
@@ -99,6 +105,7 @@ export default function WeekSectionList({
 								onToggle={() => toggleWeek(weekStart)}  // 추가
 								initialData={isCurrentWeek ? currentWeekData : undefined}
 								hasUnsentNotes={unsentNoteCount > 0} // 추가: 현재 주차에 한해 미전송 알림장 개수 전달
+								initialTotalMets={weekMetsMap[weekStart] ?? 0}  // 추가
 							/>
 						</div>
 					)

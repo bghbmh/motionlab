@@ -36,25 +36,35 @@ export async function GET(
 			.select('*, note_workouts(*), note_tags(*)')
 			.eq('member_id', memberId)
 			.eq('is_sent', true)
-			.lte('written_at', weekEnd)
-			.order('written_at', { ascending: false })
+			.lte('sent_at', weekEnd)  // ← written_at → sent_at
+			.order('sent_at', { ascending: false })  // ← written_at → sent_at
 			.limit(1)
 			.maybeSingle(),
 	])
 
 	const logs = logsRes.data ?? []
 	const note = noteRes.data ?? null
-	const totalMets = logs.reduce((sum, l) => sum + l.mets_score, 0)
+	const totalMets = logs.reduce((sum, l) => sum + l.mets_score * l.duration_min, 0)
 
 	const noteWorkoutIds = note?.note_workouts?.map((w: any) => w.id) ?? []
-	const { data: completions } = noteWorkoutIds.length > 0
+	const { data: completionLogs } = noteWorkoutIds.length > 0
 		? await supabase
-			.from('note_workout_completions')
-			.select('*')
+			.from('workout_logs')
+			.select('note_workout_id, logged_at')
 			.in('note_workout_id', noteWorkoutIds)
-			.gte('completed_date', weekStart)
-			.lte('completed_date', weekEnd)
+			.gte('logged_at', weekStart)
+			.lte('logged_at', weekEnd)
+			.eq('source', 'routine')
+			.not('note_workout_id', 'is', null)
 		: { data: [] }
+
+	const completions = (completionLogs ?? []).map((row) => ({
+		id: row.note_workout_id,
+		note_workout_id: row.note_workout_id,
+		member_id: memberId,
+		completed_date: row.logged_at,
+		created_at: row.logged_at,
+	}))
 
 	return NextResponse.json({
 		logs,

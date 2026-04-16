@@ -129,6 +129,7 @@ export interface Note {
 	content: string
 	intensity: Intensity
 	written_at: string              // 'YYYY-MM-DD'
+	sent_at: string | null          // 'YYYY-MM-DD' 전송일 ← 추가
 	is_sent: boolean
 	days: string[]                  // ['전체'] or ['월','화','수'...]
 	recommended_mets: number | null // note_workouts METs 합산 총점
