@@ -122,6 +122,24 @@ export async function getUnsentNoteCount(memberId: string): Promise<number> {
 	return count ?? 0
 }
 
+
+export async function getNextNoteSentAt(
+	memberId: string,
+	currentSentAt: string
+): Promise<string | null> {
+	const supabase = await createClient()
+	const { data } = await supabase
+		.from('notes')
+		.select('sent_at')
+		.eq('member_id', memberId)
+		.eq('is_sent', true)
+		.gt('sent_at', currentSentAt)
+		.order('sent_at', { ascending: true })
+		.limit(1)
+		.maybeSingle()
+	return data?.sent_at ?? null
+}
+
 // ─── 알림장 전체 목록 (스튜디오 알림장 탭용) ─────────────────────
 // note_workouts, note_tags 포함 / 최신순
 export async function getNotes(memberId: string): Promise<Note[]> {
@@ -212,4 +230,17 @@ export async function getAllLoggedDates(
 		mets_score: l.mets_score,
 		duration_min: l.duration_min,  // ← 추가
 	}))
+}
+
+
+// 전송된 알림장 목록 (sent_at 오름차순)
+export async function getSentNotes(memberId: string): Promise<{ sent_at: string }[]> {
+	const supabase = await createClient()
+	const { data } = await supabase
+		.from('notes')
+		.select('sent_at')
+		.eq('member_id', memberId)
+		.eq('is_sent', true)
+		.order('sent_at', { ascending: true })
+	return data ?? []
 }

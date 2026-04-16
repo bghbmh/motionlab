@@ -210,9 +210,12 @@ export function getAllWeekStarts(baseDate: string): string[] {
 export function resolveDatesForWeek(weekStart: string, days: string[]): string[] {
 	if (days.includes('전체')) return getWeekDates(weekStart)
 
+	// 날짜 형식이면 그대로 반환
+	if (days[0]?.includes('-')) return [...days].sort()
+
+	// 요일 형식 처리 (기존 로직)
 	const base = parseLocalDate(weekStart)
 	const baseDay = base.getDay()
-
 	return days
 		.map((d) => {
 			const target = DAY_MAP[d]
@@ -225,7 +228,6 @@ export function resolveDatesForWeek(weekStart: string, days: string[]): string[]
 		.filter((d): d is string => d !== null)
 		.sort()
 }
-
 
 /**
  * 'YYYY-MM-DD' → 'M/D' 표시용 (달력용)

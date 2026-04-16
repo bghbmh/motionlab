@@ -17,6 +17,7 @@ interface WeeklyNoteCardProps {
 	logs: WorkoutLog[]
 	completions: NoteWorkoutCompletion[]
 	hasUnsentNotes?: boolean // 추가: 미전송 알림장 존재 여부
+	nextNoteSentAt?: string | null  // ← 추가
 }
 
 export default function WeeklyNoteCard({
@@ -26,7 +27,8 @@ export default function WeeklyNoteCard({
 	periodLabel,
 	logs,
 	completions,
-	hasUnsentNotes = false
+	hasUnsentNotes = false,
+	nextNoteSentAt = null,  // ← 추가
 }: WeeklyNoteCardProps) {
 
 	if (!note) {
@@ -86,18 +88,26 @@ export default function WeeklyNoteCard({
 			</div>
 
 			{/* 요일별 운동 카드 */}
-			<div className=' px-4 overflow-y-auto '>
-				{dates.map((dateStr, idx) => (
-					<div className='mb-3' key={`${dateStr}-${idx}`}>
-						<NoteCardView
-							dateStr={dateStr}
-							workouts={workouts}
-							completedIds={completedIds}
-							tags={tags}
-						/>
-					</div>
-
-				))}
+			<div className='px-4 overflow-y-auto'>
+				{dates.map((dateStr, idx) => {
+					const isReplaced = nextNoteSentAt !== null && dateStr >= nextNoteSentAt
+					return (
+						<div
+							className={`mb-3 ${isReplaced ? 'opacity-40' : ''}`}
+							key={`${dateStr}-${idx}`}
+						>
+							{isReplaced && (
+								<p className="text-xs text-neutral-400 mb-1">새 알림장으로 대체됨</p>
+							)}
+							<NoteCardView
+								dateStr={dateStr}
+								workouts={workouts}
+								completedIds={completedIds}
+								tags={tags}
+							/>
+						</div>
+					)
+				})}
 			</div>
 
 		</div>

@@ -19,6 +19,7 @@ export async function GET(
 	const { data: { user } } = await supabase.auth.getUser()
 	if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+
 	const weekEnd = getWeekEnd(weekStart)
 
 	const [logsRes, noteRes] = await Promise.all([
@@ -46,7 +47,21 @@ export async function GET(
 	const note = noteRes.data ?? null
 	const totalMets = logs.reduce((sum, l) => sum + l.mets_score * l.duration_min, 0)
 
+	// 다음 알림장 sent_at 조회 추가
+	const { data: nextNote } = note
+		? await supabase
+			.from('notes')
+			.select('sent_at')
+			.eq('member_id', memberId)
+			.eq('is_sent', true)
+			.gt('sent_at', note.sent_at)
+			.order('sent_at', { ascending: true })
+			.limit(1)
+			.maybeSingle()
+		: { data: null }
+
 	const noteWorkoutIds = note?.note_workouts?.map((w: any) => w.id) ?? []
+
 	const { data: completionLogs } = noteWorkoutIds.length > 0
 		? await supabase
 			.from('workout_logs')
@@ -71,5 +86,6 @@ export async function GET(
 		totalMets,
 		note,
 		completions: completions ?? [],
+		nextNoteSentAt: nextNote?.sent_at ?? null,  // ← 추가
 	})
 }

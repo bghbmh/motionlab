@@ -17,13 +17,6 @@ interface MemberWithLogs extends Member {
 	}>
 }
 
-function getWeekStart() {
-	const d = new Date()
-	const day = d.getDay()
-	d.setDate(d.getDate() - day + (day === 0 ? -6 : 1))
-	return d.toISOString().split('T')[0]
-}
-
 // metsUtils의 status → ActivityLevel 변환
 function toActivityLevel(status: string): ActivityLevel {
 	if (status === 'high') return 'high'
@@ -34,17 +27,18 @@ function toActivityLevel(status: string): ActivityLevel {
 export default function MemberListSidebar({
 	members,
 	origin,
+	weekStart,  // ← 추가
 	className
 }: {
 	members: MemberWithLogs[]
-	origin: string,
+	origin: string
+	weekStart: string  // ← 추가
 	className?: string
 }) {
 	const router = useRouter()
 	const pathname = usePathname()
 	const [search, setSearch] = useState('')
 
-	const weekStart = getWeekStart()
 
 	// 현재 URL에서 선택된 회원 ID 추출 (/studio/members/[id]/...)
 	const selectedId = useMemo(() => {

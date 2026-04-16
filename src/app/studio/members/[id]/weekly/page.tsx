@@ -3,14 +3,16 @@
 
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { getCurrentWeekStart, getEffectiveWeekStart, getWeekEnd, toLocalISO, getAllWeekStarts } from '@/lib/weekUtils'
+import { getCurrentWeekStart, getEffectiveWeekStart, getWeekEnd, toLocalISO } from '@/lib/weekUtils'
 import {
 	getMember,
 	getWeeklyLogs,
 	getRecentNote,
 	getNoteCompletions,
 	getAllLoggedDates,
-	getUnsentNoteCount
+	getUnsentNoteCount,
+	getNextNoteSentAt,
+	getSentNotes
 } from '@/lib/queries/member.queries'
 import WeekSectionList from '@/components/admin/weekly/WeekSectionList'
 
@@ -48,10 +50,29 @@ export default async function WeeklyPage({ params }: PageProps) {
 	const noteWorkoutIds = recentNote?.note_workouts?.map((w) => w.id) ?? []
 	const completions = await getNoteCompletions(noteWorkoutIds, currentWeekStart, currentWeekEnd)
 
-	const baseWeeks = getAllWeekStarts(baseDate)
-	const allWeeks = baseWeeks.includes(currentWeekStart)
-		? baseWeeks
-		: [currentWeekStart, ...baseWeeks]
+	// 새 코드 — 전송된 알림장별로 주차 계산
+	const sentNotes = await getSentNotes(id)
+	const allWeeksSet = new Set<string>()
+
+	for (let i = 0; i < sentNotes.length; i++) {
+		const sentAt = sentNotes[i].sent_at
+		const nextSentAt = sentNotes[i + 1]?.sent_at ?? null
+
+		let cursor = sentAt
+		while (true) {
+			allWeeksSet.add(cursor)
+			const nextDate = new Date(cursor)
+			nextDate.setDate(nextDate.getDate() + 7)
+			const nextCursor = toLocalISO(nextDate)
+
+			if (nextSentAt && nextCursor >= nextSentAt) break
+			if (!nextSentAt && nextCursor > today) break
+			cursor = nextCursor
+		}
+	}
+
+	allWeeksSet.add(currentWeekStart)
+	const allWeeks = [...allWeeksSet].sort((a, b) => b.localeCompare(a))
 
 	// 주차별 METs 계산
 	const weekMetsMap: Record<string, number> = {}
@@ -61,6 +82,16 @@ export default async function WeeklyPage({ params }: PageProps) {
 			.filter((l) => l.date >= week && l.date <= weekEnd)
 			.reduce((sum, l) => sum + l.mets_score * l.duration_min, 0)  // ← 수정
 	}
+
+	const nextNoteSentAt = recentNote?.sent_at
+		? await getNextNoteSentAt(id, recentNote.sent_at)
+		: null
+
+
+	console.log('recentNote?.sent_at:', recentNote?.sent_at)
+	console.log('currentWeekStart:', currentWeekStart)
+	console.log('weekBase:', recentNote?.sent_at ?? baseDate)
+	console.log('allWeeks:', allWeeks)
 
 	return (
 		<WeekSectionList
@@ -73,6 +104,7 @@ export default async function WeeklyPage({ params }: PageProps) {
 				totalMets,
 				note: recentNote,
 				completions,
+				nextNoteSentAt
 			}}
 			loggedDates={loggedDates}
 			allWeeks={allWeeks}

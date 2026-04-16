@@ -12,6 +12,7 @@ interface CurrentWeekData {
 	totalMets: number
 	note: Note | null
 	completions: NoteWorkoutCompletion[]
+	nextNoteSentAt: string | null  // ← 추가
 }
 
 interface WeekSectionListProps {
@@ -89,8 +90,6 @@ export default function WeekSectionList({
 				{allWeeks.map((weekStart, idx) => {
 					const isCurrentWeek = weekStart === currentWeekStart
 					const isOpen = openedWeeks.has(weekStart)
-
-					console.log('allWeeks 11:', allWeeks)
 
 					return (
 						<div

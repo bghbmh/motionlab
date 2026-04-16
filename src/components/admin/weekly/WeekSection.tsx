@@ -4,18 +4,22 @@
 
 import { useState, useEffect } from 'react'
 import type { Note, NoteWorkoutCompletion, WorkoutLog } from '@/types/database'
-import { formatDate, getWeekEnd, getWeekDates } from '@/lib/weekUtils'
+
 import WeeklyRecordView from '@/components/admin/ui/WeeklyRecordView'
 import NotePanel from '@/components/admin/weekly/NotePanel'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 
 import WeeklyNoteCard from './WeeklyNoteCard'
 
+import { formatDate, getWeekEnd, getWeekDates, resolveDatesForWeek } from '@/lib/weekUtils'
+
+
 interface WeekSectionData {
 	logs: WorkoutLog[]
 	totalMets: number
 	note: Note | null
 	completions: NoteWorkoutCompletion[]
+	nextNoteSentAt: string | null  // ← 추가
 }
 
 interface WeekSectionProps {
@@ -43,7 +47,10 @@ export default function WeekSection({
 	const [data, setData] = useState<WeekSectionData | null>(initialData ?? null)
 
 	const weekEnd = getWeekEnd(weekStart)
-	const weekDates = getWeekDates(weekStart)
+	const weekDates = getWeekDates(weekStart)  // 기록탭용 (7일 전체)
+	const noteDates = data?.note  // 알림장용 (알림장 요일만)
+		? resolveDatesForWeek(weekStart, data.note.days ?? ['전체'])
+		: weekDates
 	const totalMets = data
 		? data.logs.reduce((sum, l) => sum + l.mets_score * l.duration_min, 0)
 		: initialTotalMets
@@ -116,11 +123,12 @@ export default function WeekSection({
 						<WeeklyNoteCard
 							memberId={memberId}
 							periodLabel={`${formatDate(weekStart)} ~ ${formatDate(weekEnd)}`}
-							dates={weekDates}
+							dates={noteDates}
 							note={data.note}
 							completions={data.completions}
 							logs={data.logs}
 							hasUnsentNotes={hasUnsentNotes}
+							nextNoteSentAt={data.nextNoteSentAt}
 						/>
 					</div>
 
