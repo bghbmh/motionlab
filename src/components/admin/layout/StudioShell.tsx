@@ -3,7 +3,7 @@
 // src/components/admin/layout/StudioShell.tsx
 // layout.tsx가 서버 컴포넌트라 상태 관리 불가 → 여기서 사이드바 토글 상태 관리
 
-import { useState, useEffect } from 'react'
+import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext'
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 
 interface Props {
@@ -12,26 +12,16 @@ interface Props {
 	children: React.ReactNode  // 페이지 콘텐츠
 }
 
-export default function StudioShell({ header, sidebar, children }: Props) {
-	const [sidebarOpen, setSidebarOpen] = useState(true)
-
-	// 화면 크기에 따라 초기값 설정
-	useEffect(() => {
-		const mq = window.matchMedia('(min-width: 1280px)')
-		setSidebarOpen(mq.matches)
-		const handler = (e: MediaQueryListEvent) => setSidebarOpen(e.matches)
-		mq.addEventListener('change', handler)
-		return () => mq.removeEventListener('change', handler)
-	}, [])
+function StudioShellInner({ header, sidebar, children }: Props) {
+	const { sidebarOpen, setSidebarOpen } = useSidebar()
 
 	return (
 		<>
-
 			{/* 헤더 행 — 토글 버튼 + StudioHeader */}
 			<div className="sticky top-0 z-15 flex items-stretch shrink-0">
 				<button
 					type="button"
-					onClick={() => setSidebarOpen(p => !p)}
+					onClick={() => setSidebarOpen(!sidebarOpen)}
 					className={`shrink-0 px-3 border-b border-r border-neutral-200  transition-colors ${sidebarOpen ? 'bg-white hover:bg-zinc-100' : 'bg-gray-700 hover:bg-gray-800'}`}
 					title={sidebarOpen ? '사이드바 닫기' : '사이드바 열기'}
 				>
@@ -73,5 +63,13 @@ export default function StudioShell({ header, sidebar, children }: Props) {
 				{children}
 			</main>
 		</>
+	)
+}
+
+export default function StudioShell(props: Props) {
+	return (
+		<SidebarProvider>
+			<StudioShellInner {...props} />
+		</SidebarProvider>
 	)
 }

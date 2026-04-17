@@ -1,5 +1,6 @@
 // components/admin/sidebar/MemberListItem.tsx
 
+import { useSidebar } from '@/contexts/SidebarContext'
 import type { Member } from '@/types/database'
 import type { ActivityLevel } from '@/types/ui'
 import ActivityBadge from '@/components/admin/common/ActivityBadge'
@@ -24,12 +25,20 @@ export default function MemberListItem({
 	isSelected = false,
 	onClick,
 }: MemberListItemProps) {
+
+	const { closeSidebar } = useSidebar()
+
+	const handleClick = () => {
+		onClick?.()
+		closeSidebar()  // xl 미만일 때만 닫힘
+	}
+
 	return (
 		// button 안에 button 중첩을 피하기 위해 div + onClick 사용
 		<div
 			role="button"
 			tabIndex={0}
-			onClick={onClick}
+			onClick={handleClick}
 			onKeyDown={(e) => e.key === 'Enter' && onClick?.()}
 			className={`w-full text-left px-4 py-3 rounded-lg flex flex-col items-start gap-0.5 transition-all cursor-pointer border border-neutral-300
 				${isSelected
