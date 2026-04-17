@@ -86,14 +86,20 @@ export default async function MemberLayout({
 	const headersList = await headers()
 	const userAgent = headersList.get('user-agent') ?? null
 
+	// 관리자/강사 여부 확인
+	const { data: { user } } = await supabase.auth.getUser()
+	const isInstructor = !!user  // 로그인된 사용자 = 강사
+
 	// 앱 실행 로그 — fire and forget
-	supabase
-		.from('app_sessions')
-		.insert({
-			member_id: member.id,
-			user_agent: userAgent,
-		})
-		.then()
+	if (!isInstructor) {
+		supabase
+			.from('app_sessions')
+			.insert({
+				member_id: member.id,
+				user_agent: userAgent,
+			})
+			.then()
+	}
 
 	const { count: unreadCount } = await supabase
 		.from('notifications')
