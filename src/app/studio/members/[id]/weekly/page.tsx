@@ -46,34 +46,37 @@ export default async function WeeklyPage({ params }: PageProps) {
 	])
 
 	const loggedDates = [...new Set(allLoggedData.map((l) => l.date))]
-	const totalMets = weeklyLogs.reduce((sum, l) => sum + l.mets_score * l.duration_min, 0)  // ← 수정
+	const totalMets = weeklyLogs.reduce((sum, l) => sum + l.mets_score * l.duration_min, 0)
 	const noteWorkoutIds = recentNote?.note_workouts?.map((w) => w.id) ?? []
 	const completions = await getNoteCompletions(noteWorkoutIds, currentWeekStart, currentWeekEnd)
 
-	// 새 코드 — 전송된 알림장별로 주차 계산
+	// 전송된 알림장별로 주차 계산
 	const sentNotes = await getSentNotes(id)
 	const allWeeksSet = new Set<string>()
 
-	// 변경 후 — start_at만 주차로 추가
-	for (const note of sentNotes) {
-		if (note.start_at) allWeeksSet.add(note.start_at)
-	}
+	for (let i = 0; i < sentNotes.length; i++) {
+		const note = sentNotes[i]
+		const nextNote = sentNotes[i + 1] ?? null  // 오름차순이라 i+1이 다음 알림장
 
-	// 최신 알림장 이후 주차 자동 생성 (오늘까지)
-	const lastNote = sentNotes[sentNotes.length - 1]
-	if (lastNote?.start_at) {
-		let cursor = lastNote.start_at
+		if (!note.start_at) continue
+
+		let cursor = note.start_at
 		while (true) {
+			allWeeksSet.add(cursor)
+
 			const nextDate = new Date(cursor)
 			nextDate.setDate(nextDate.getDate() + 7)
 			const nextCursor = toLocalISO(nextDate)
-			if (nextCursor > today) break
-			allWeeksSet.add(nextCursor)
+
+			if (nextNote?.start_at && nextCursor >= nextNote.start_at) break
+			if (!nextNote && note.end_at && nextCursor > note.end_at) break  // 다음 알림장 없을 때만
+			if (!nextNote && nextCursor > today) break
+
 			cursor = nextCursor
 		}
 	}
-	allWeeksSet.add(currentWeekStart)
 
+	allWeeksSet.add(currentWeekStart)
 	const allWeeks = [...allWeeksSet].sort((a, b) => b.localeCompare(a))
 
 	// 주차별 METs 계산
@@ -82,18 +85,12 @@ export default async function WeeklyPage({ params }: PageProps) {
 		const weekEnd = getWeekEnd(week)
 		weekMetsMap[week] = allLoggedData
 			.filter((l) => l.date >= week && l.date <= weekEnd)
-			.reduce((sum, l) => sum + l.mets_score * l.duration_min, 0)  // ← 수정
+			.reduce((sum, l) => sum + l.mets_score * l.duration_min, 0)
 	}
 
 	const nextNoteSentAt = recentNote?.sent_at
 		? await getNextNoteSentAt(id, recentNote.sent_at)
 		: null
-
-
-	console.log('recentNote?.sent_at:', recentNote?.sent_at)
-	console.log('currentWeekStart:', currentWeekStart)
-	console.log('weekBase:', recentNote?.sent_at ?? baseDate)
-	console.log('allWeeks:', allWeeks)
 
 	return (
 		<WeekSectionList

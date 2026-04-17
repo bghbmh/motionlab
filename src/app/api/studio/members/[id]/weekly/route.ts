@@ -37,9 +37,8 @@ export async function GET(
 			.select('*, note_workouts(*), note_tags(*)')
 			.eq('member_id', memberId)
 			.eq('is_sent', true)
-			.lte('start_at', weekEnd)
-			.gte('start_at', weekStart)
-			.order('start_at', { ascending: true })
+			.lte('start_at', weekStart)       // weekEnd → weekStart, gte 제거
+			.order('start_at', { ascending: false })  // ascending: true → false
 			.limit(1)
 			.maybeSingle(),
 	])

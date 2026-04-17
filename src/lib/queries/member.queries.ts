@@ -234,11 +234,11 @@ export async function getAllLoggedDates(
 
 
 // 전송된 알림장 목록 (sent_at 오름차순)
-export async function getSentNotes(memberId: string): Promise<{ sent_at: string; start_at: string }[]> {
+export async function getSentNotes(memberId: string): Promise<{ sent_at: string; start_at: string; end_at: string | null }[]> {
 	const supabase = await createClient()
 	const { data } = await supabase
 		.from('notes')
-		.select('sent_at, start_at')
+		.select('sent_at, start_at, end_at')
 		.eq('member_id', memberId)
 		.eq('is_sent', true)
 		.order('start_at', { ascending: true })
