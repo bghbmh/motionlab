@@ -27,6 +27,7 @@ interface WeeklyRecordViewProps {
 	totalMets: number
 	logs: WorkoutLog[]
 	dates: string[]
+	nextStartAt?: string | null  // ← 추가
 }
 
 export default function WeeklyRecordView({
@@ -34,6 +35,7 @@ export default function WeeklyRecordView({
 	totalMets,
 	logs,
 	dates,
+	nextStartAt = null,
 }: WeeklyRecordViewProps) {
 	// 날짜별로 logs 그룹핑
 	const logsByDate = logs.reduce<Record<string, WorkoutLog[]>>((acc, log) => {
@@ -59,21 +61,31 @@ export default function WeeklyRecordView({
 				{dates.map((dateStr) => {
 					const { label: dayLabel, isSunday } = getDayLabel(dateStr)
 					const dayLogs = logsByDate[dateStr] ?? []
+					const isReplaced = nextStartAt !== null && dateStr >= nextStartAt  // ← 추가
+
 
 					return (
-						<div key={dateStr} className="border-t border-gray-200 flex items-center ">
+						<div key={dateStr} className={`border-t border-gray-200 flex items-center ${isReplaced ? 'opacity-50' : ''}`}>
+							{/* 대체됨 표시 — 날짜 위에 */}
+
 							{/* 날짜 */}
 							<div className="min-w-10 pl-2 pr-4 py-2 flex flex-col items-center justify-center shrink-0">
 								<span className="text-neutral-600 text-xs font-medium leading-4 min-w-8 text-center">
 									{formatDateShort(dateStr)}
 								</span>
-								<span className={`text-xs font-medium leading-4 opacity-50 ${isSunday ? 'text-red-500' : 'text-neutral-500'}`}>
+								<span className={`text-xs font-medium leading-4  ${isSunday ? 'text-red-500' : 'text-neutral-500'}`}>
 									{dayLabel}
 								</span>
 							</div>
 
+
+
 							{/* 운동 기록 또는 기록없음 */}
-							<div className="flex-1 py-2 flex flex-col overflow-y-auto ">
+							<div className="flex-1 py-2 flex flex-col overflow-y-auto relative">
+								{isReplaced && dateStr === nextStartAt && (
+									<div className="absolute h-[80%] w-full flex items-center justify-center text-xs bg-neutral-200 text-neutral-900 ">{dateStr}부터 새 알림장으로 대체되었습니다</div>
+								)}
+
 								{dayLogs.length === 0 ? (
 									<div className="h-14 min-h-14 px-2 py-1 bg-white rounded-2xl flex items-center">
 										<span className="text-neutral-500 text-xs leading-4">기록없음</span>

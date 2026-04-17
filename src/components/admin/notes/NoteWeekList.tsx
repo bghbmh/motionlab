@@ -52,18 +52,22 @@ function DeleteConfirm({ onConfirm, onCancel, loading }: {
 }
 
 // ─── 주차별 아코디언 행 ───────────────────────────────────────────
-function NoteRow({ note, defaultOpen, onEdit, onRefresh }: {
+function NoteRow({ note, defaultOpen, onEdit, onRefresh, nextStartAt }: {
 	note: NoteWithTags
 	defaultOpen: boolean
 	onEdit: (note: NoteWithTags) => void
 	onRefresh: () => void
+	nextStartAt: string | null
 }) {
 	const [isOpen, setIsOpen] = useState(defaultOpen)
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 	const [deleteLoading, setDeleteLoading] = useState(false)
 	const [sendLoading, setSendLoading] = useState(false)
 
-	const weekStart = note.written_at
+	const weekStart = note.start_at ?? note.sent_at ?? note.written_at
+	const weekEnd = note.end_at ?? getWeekEnd(weekStart)
+
+	const periodLabel = `${formatDate(weekStart)} ~ ${formatDate(weekEnd)}`
 	// note.days가 날짜 형식('YYYY-MM-DD')인지 요일 형식('월')인지 판별
 	const isDateFormat = (note.days ?? []).some(d => d.includes('-'))
 
@@ -71,12 +75,14 @@ function NoteRow({ note, defaultOpen, onEdit, onRefresh }: {
 		? (note.days ?? []).sort()                              // 날짜 그대로 사용
 		: resolveDatesForWeek(weekStart, note.days ?? ['전체']) // 요일 → 날짜 계산
 
-	const periodLabel = resolvedDates.length > 0
-		? `${formatDate(resolvedDates[0])} ~ ${formatDate(resolvedDates[resolvedDates.length - 1])}`
-		: `${formatDate(weekStart)} ~ ${formatDate(getWeekEnd(weekStart))}`
 	const completedIds = new Set<string>()
 
 
+
+	function isDateReplaced(dateStr: string): boolean {
+		if (!nextStartAt) return false
+		return dateStr >= nextStartAt
+	}
 
 	async function handleSend() {
 		setSendLoading(true)
@@ -216,18 +222,23 @@ function NoteRow({ note, defaultOpen, onEdit, onRefresh }: {
 
 						<div className="flex flex-col gap-2">
 							{resolvedDates.map((dateStr) => (
-								<NoteCardView
-									key={dateStr}
-									dateStr={dateStr}
-									workouts={note.note_workouts ?? []}
-									completedIds={completedIds}
-									tags={(note.note_tags ?? []).map((t, i) => ({
-										id: `tag-${i}`,
-										note_id: note.id,
-										tag: t.tag,
-									}))}
-									useCompletedStatus={false} // 알림장 상세에서는 완료 상태 표시 안 함
-								/>
+								<div key={dateStr} className={isDateReplaced(dateStr) ? 'opacity-40' : ''}>
+									{isDateReplaced(dateStr) && (
+										<p className="text-xs text-neutral-400 px-1 pb-1">새 알림장으로 대체됨</p>
+									)}
+									<NoteCardView
+										key={dateStr}
+										dateStr={dateStr}
+										workouts={note.note_workouts ?? []}
+										completedIds={completedIds}
+										tags={(note.note_tags ?? []).map((t, i) => ({
+											id: `tag-${i}`,
+											note_id: note.id,
+											tag: t.tag,
+										}))}
+										useCompletedStatus={false} // 알림장 상세에서는 완료 상태 표시 안 함
+									/>
+								</div>
 							))}
 						</div>
 					</div>
@@ -278,6 +289,7 @@ export default function NoteWeekList({ notes, filter, onEdit, onNew, onRefresh }
 						defaultOpen={idx === 0}
 						onEdit={onEdit}
 						onRefresh={onRefresh}
+						nextStartAt={filtered[idx - 1]?.start_at ?? null}  // ← 추가 (최신순이라 idx-1)
 					/>
 				))}
 			</div>

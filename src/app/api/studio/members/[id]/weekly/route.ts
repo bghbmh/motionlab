@@ -37,8 +37,9 @@ export async function GET(
 			.select('*, note_workouts(*), note_tags(*)')
 			.eq('member_id', memberId)
 			.eq('is_sent', true)
-			.lte('sent_at', weekEnd)  // ← written_at → sent_at
-			.order('sent_at', { ascending: false })  // ← written_at → sent_at
+			.lte('start_at', weekEnd)
+			.gte('start_at', weekStart)
+			.order('start_at', { ascending: true })
 			.limit(1)
 			.maybeSingle(),
 	])
@@ -51,11 +52,11 @@ export async function GET(
 	const { data: nextNote } = note
 		? await supabase
 			.from('notes')
-			.select('sent_at')
+			.select('start_at')
 			.eq('member_id', memberId)
 			.eq('is_sent', true)
-			.gt('sent_at', note.sent_at)
-			.order('sent_at', { ascending: true })
+			.gt('start_at', note.start_at)
+			.order('start_at', { ascending: true })
 			.limit(1)
 			.maybeSingle()
 		: { data: null }
@@ -86,6 +87,6 @@ export async function GET(
 		totalMets,
 		note,
 		completions: completions ?? [],
-		nextNoteSentAt: nextNote?.sent_at ?? null,  // ← 추가
+		nextNoteSentAt: nextNote?.start_at ?? null,  // ← 추가
 	})
 }

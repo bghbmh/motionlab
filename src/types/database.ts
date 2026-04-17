@@ -129,6 +129,8 @@ export interface Note {
 	content: string
 	intensity: Intensity
 	written_at: string              // 'YYYY-MM-DD'
+	start_at: string | null         // 'YYYY-MM-DD' 운동 시작일 ← 추가
+	end_at: string | null           // 'YYYY-MM-DD' 운동 종료일 ← 추가
 	sent_at: string | null          // 'YYYY-MM-DD' 전송일 ← 추가
 	is_sent: boolean
 	days: string[]                  // ['전체'] or ['월','화','수'...]

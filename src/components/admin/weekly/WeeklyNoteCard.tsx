@@ -1,4 +1,4 @@
-// components/admin/member/RecentNoteCard.tsx
+// components/admin/Weekly/WeeklyNoteCard.tsx
 
 import type { WorkoutLog } from '@/types/database'
 import { WORKOUT_TYPE_LABELS, INTENSITY_LABELS, Note, NoteWorkoutCompletion } from '@/types/database'
@@ -63,7 +63,7 @@ export default function WeeklyNoteCard({
 	const tags = note.note_tags ?? []
 
 	const completedIds = new Set(completions.map((c) => `${c.note_workout_id}_${c.completed_date}`))
-	const sentLabel = formatDate(note.written_at)
+	const sentLabel = note.sent_at ? formatDate(note.sent_at) : formatDate(note.written_at)
 
 	return (
 		<div className="py-3 bg-neutral-50 rounded-2xl overflow-hidden h-full flex flex-col gap-2">

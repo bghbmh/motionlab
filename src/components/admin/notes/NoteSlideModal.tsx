@@ -278,6 +278,8 @@ export default function NoteSlideModal({ memberId, memberName, editTarget, onClo
 			days: selectedDates,
 			recommended_mets: totalMetsDisplay,
 			written_at: startDate,
+			start_at: startDate,   // ← 추가
+			end_at: endDate,
 		}
 
 		let noteId: string
@@ -362,7 +364,7 @@ export default function NoteSlideModal({ memberId, memberName, editTarget, onClo
 					{/* ── 헤더 ─────────────────────────────────────── */}
 					<div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
 						<div className="flex items-center gap-3">
-							<div className="w-1 h-5 rounded-full bg-[#0bb489]" />
+							<div className="w-1 h-5 rounded-full bg-primary" />
 							<span className="text-base font-bold text-gray-900">
 								{memberName ?? `${memberName} 알림장 작성`}
 							</span>
@@ -394,7 +396,7 @@ export default function NoteSlideModal({ memberId, memberName, editTarget, onClo
 											onChange={e => handleStartDateChange(e.target.value)} className="flex-1 m-input pl-8" />
 										<Calendar size={16} className='absolute text-gray-500 left-2' style={{ top: '50%', transform: ' translateY(-50%)' }} />
 									</label>
-									<p className="text-[11px] text-[#0bb489]">· 시작일은 오늘 날짜로 자동 설정 돼요. 수정할 수 있어요</p>
+									<p className="text-[11px] text-primary">· 시작일은 오늘 날짜로 자동 설정 돼요. 수정할 수 있어요</p>
 								</div>
 
 								<div className="flex flex-col gap-1.5 flex-1">
@@ -407,8 +409,8 @@ export default function NoteSlideModal({ memberId, memberName, editTarget, onClo
 											onChange={e => setEndDate(e.target.value)} className="flex-1  m-input pl-8" />
 										<Calendar size={16} className='absolute text-gray-500 left-2' style={{ top: '50%', transform: ' translateY(-50%)' }} />
 									</label>
-									<p className="text-[11px] text-[#0bb489]">· 운동 마지막일이 없으면 수행 기간은 시작일을 기준으로 하는 한 주가 자동으로 설정돼요.</p>
-									<p className="text-[11px] text-[#0bb489]">예) 시작일 3/1인데 마지막일 설정을 안 한 경우, 마지막일은 3/7로 자동설정됩니다</p>
+									<p className="text-[11px] text-primary">· 운동 마지막일이 없으면 수행 기간은 시작일을 기준으로 하는 한 주가 자동으로 설정돼요.</p>
+									<p className="text-[11px] text-primary">예) 시작일 3/1인데 마지막일 설정을 안 한 경우, 마지막일은 3/7로 자동설정됩니다</p>
 								</div>
 							</div>
 
@@ -552,7 +554,7 @@ export default function NoteSlideModal({ memberId, memberName, editTarget, onClo
 					<div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-white shrink-0">
 						{totalMetsDisplay && (
 							<span className="text-xs text-gray-400">
-								총 <span className="font-semibold text-[#0bb489]">{totalMetsDisplay}</span> METs
+								총 <span className="font-semibold text-primary">{totalMetsDisplay}</span> METs
 							</span>
 						)}
 						<div className="flex gap-3 ml-auto">

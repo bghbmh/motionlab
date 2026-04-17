@@ -54,24 +54,26 @@ export default async function WeeklyPage({ params }: PageProps) {
 	const sentNotes = await getSentNotes(id)
 	const allWeeksSet = new Set<string>()
 
-	for (let i = 0; i < sentNotes.length; i++) {
-		const sentAt = sentNotes[i].sent_at
-		const nextSentAt = sentNotes[i + 1]?.sent_at ?? null
+	// 변경 후 — start_at만 주차로 추가
+	for (const note of sentNotes) {
+		if (note.start_at) allWeeksSet.add(note.start_at)
+	}
 
-		let cursor = sentAt
+	// 최신 알림장 이후 주차 자동 생성 (오늘까지)
+	const lastNote = sentNotes[sentNotes.length - 1]
+	if (lastNote?.start_at) {
+		let cursor = lastNote.start_at
 		while (true) {
-			allWeeksSet.add(cursor)
 			const nextDate = new Date(cursor)
 			nextDate.setDate(nextDate.getDate() + 7)
 			const nextCursor = toLocalISO(nextDate)
-
-			if (nextSentAt && nextCursor >= nextSentAt) break
-			if (!nextSentAt && nextCursor > today) break
+			if (nextCursor > today) break
+			allWeeksSet.add(nextCursor)
 			cursor = nextCursor
 		}
 	}
-
 	allWeeksSet.add(currentWeekStart)
+
 	const allWeeks = [...allWeeksSet].sort((a, b) => b.localeCompare(a))
 
 	// 주차별 METs 계산

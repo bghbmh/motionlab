@@ -48,9 +48,18 @@ export default function WeekSection({
 
 	const weekEnd = getWeekEnd(weekStart)
 	const weekDates = getWeekDates(weekStart)  // 기록탭용 (7일 전체)
-	const noteDates = data?.note  // 알림장용 (알림장 요일만)
-		? resolveDatesForWeek(weekStart, data.note.days ?? ['전체'])
-		: weekDates
+	const noteDates = data?.note
+		? (() => {
+			const days = data.note.days ?? ['전체']
+			if (days.includes('전체') || days.includes('매일')) return weekDates
+			// 날짜 형식 ('2026-04-17')
+			if (days[0]?.includes('-')) return days.filter(d => d >= weekStart && d <= weekEnd).sort()
+			// 요일 형식 ('월', '화' ...)
+			return resolveDatesForWeek(weekStart, days)
+		})()
+		: weekDates  // 알림장 날짜 (note.days → 실제 날짜로 변환, 없으면 전체 주차)
+
+
 	const totalMets = data
 		? data.logs.reduce((sum, l) => sum + l.mets_score * l.duration_min, 0)
 		: initialTotalMets
@@ -110,6 +119,7 @@ export default function WeekSection({
 							totalMets={data.totalMets}
 							logs={data.logs}
 							dates={weekDates}
+							nextStartAt={data.nextNoteSentAt}
 						/>
 					</div>
 
