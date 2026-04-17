@@ -49,10 +49,10 @@ export default function RecentNoteCard({
 	const sentLabel = formatDate(note.written_at)
 
 	return (
-		<div className=" flex flex-col gap-1">
+		<div className=" flex flex-col gap-1 h-full ">
 			<AdminCardHeader title="최근 알림장" actionLabel="전체보기" moreLinkUrl={moreLinkUrl} />
 
-			<div className=" py-3 bg-white rounded-2xl flex flex-col gap-2">
+			<div className=" py-3 bg-white rounded-2xl h-1 flex-1 flex flex-col gap-2">
 				{/* 기간 + 전송일 + 전송 상태 */}
 				<div className="pb-1 px-4 flex justify-between items-center">
 					<span className="text-gray-600 text-xs font-semibold leading-4">
@@ -74,7 +74,7 @@ export default function RecentNoteCard({
 				</div>
 
 				{/* 요일별 운동 카드 */}
-				<div className='max-h-[30vh] px-4 overflow-y-auto '>
+				<div className='flex-1 h-1 px-4 overflow-y-auto '>
 					{dates.map((dateStr, idx) => (
 						<div className='mb-3' key={`${dateStr}-${idx}`}>
 							<NoteCardView

@@ -21,14 +21,19 @@ export default function WeeklyRecordCard({
 	moreLinkUrl,
 }: WeeklyRecordCardProps) {
 	return (
-		<div className=" flex flex-col gap-1">
-			<AdminCardHeader title="주간 홈트 기록" actionLabel="더보기" moreLinkUrl={moreLinkUrl} />
-			<WeeklyRecordView
-				periodLabel={periodLabel}
-				totalMets={totalMets}
-				logs={logs}
-				dates={dates}
-			/>
+		<div className=" flex flex-col gap-1 h-full">
+			<div className='flex-none'>
+				<AdminCardHeader title="주간 홈트 기록" actionLabel="더보기" moreLinkUrl={moreLinkUrl} />
+			</div>
+			<div className='flex-1 h-1'>
+				<WeeklyRecordView
+					periodLabel={periodLabel}
+					totalMets={totalMets}
+					logs={logs}
+					dates={dates}
+				/>
+			</div>
+
 		</div>
 	)
 }

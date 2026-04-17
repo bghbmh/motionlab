@@ -66,7 +66,7 @@ export default function WeeklyNoteCard({
 	const sentLabel = formatDate(note.written_at)
 
 	return (
-		<div className="py-3 bg-neutral-50 rounded-2xl h-full flex flex-col gap-2">
+		<div className="py-3 bg-neutral-50 rounded-2xl overflow-hidden h-full flex flex-col gap-2">
 			{/* 현재 주차 기간 + 전송일 + 전송 상태 */}
 			<div className="pb-1 px-4 flex-none flex justify-between items-center">
 				<span className="text-gray-600 text-xs font-semibold leading-4">

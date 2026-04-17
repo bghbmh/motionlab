@@ -50,8 +50,8 @@ export default function MemberHomeTab({
 
 
 			{/* 주간 기록 + 알림장 */}
-			<div className="grid grid-cols-1 lg:grid-cols-5 gap-4 items-start">
-				<div className='col-span-full lg:col-span-3'>
+			<div className="grid grid-cols-1 lg:grid-cols-5 gap-4 items-start h-auto lg:h-147 ">
+				<div className='col-span-full lg:col-span-3 h-full  min-h-0 '>
 					<WeeklyRecordCard
 						periodLabel={`${formatDate(weekStart)} ~ ${formatDate(weekEnd)}`}
 						totalMets={totalMets}
@@ -60,7 +60,7 @@ export default function MemberHomeTab({
 						moreLinkUrl={`/studio/members/${memberId}/weekly`}
 					/>
 				</div>
-				<div className='col-span-full lg:col-span-2 h-full pt-0 lg:pt-7'>
+				<div className='col-span-full lg:col-span-2 h-full  min-h-0 '>
 					<NotePanelWrapper
 						memberId={memberId}
 						note={recentNote}

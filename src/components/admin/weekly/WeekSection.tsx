@@ -103,8 +103,8 @@ export default function WeekSection({
 			)}
 
 			{isOpen && data && (
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 items-start  ">
-					<div className='col-span-full md:col-span-2 h-full'>
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-2 items-start h-auto lg:h-147  ">
+					<div className='col-span-full md:col-span-2 h-full min-h-0 '>
 						<WeeklyRecordView
 							periodLabel={`${formatDate(weekStart)} ~ ${formatDate(weekEnd)}`}
 							totalMets={data.totalMets}
@@ -119,7 +119,7 @@ export default function WeekSection({
 						completions={data.completions}
 						weekStart={weekStart}
 					/> */}
-					<div className='col-span-full md:col-span-1 h-full'>
+					<div className='col-span-full md:col-span-1 h-full min-h-0 px-2 '>
 						<WeeklyNoteCard
 							memberId={memberId}
 							periodLabel={`${formatDate(weekStart)} ~ ${formatDate(weekEnd)}`}

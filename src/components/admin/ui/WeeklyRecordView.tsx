@@ -43,9 +43,9 @@ export default function WeeklyRecordView({
 	}, {})
 
 	return (
-		<div className="px-4 py-3 bg-white rounded-2xl flex flex-col">
+		<div className="py-3 bg-white rounded-2xl flex flex-col h-full ">
 			{/* 기간 + 총 METs */}
-			<div className="pb-2 flex justify-between items-center flex-none">
+			<div className="px-4 pb-2 flex justify-between items-center flex-none ">
 				<span className="text-gray-700 text-xs font-medium leading-4">{periodLabel}</span>
 				<div className="flex items-center gap-1">
 					<span className="text-neutral-500 text-xs leading-4">전체</span>
@@ -55,7 +55,7 @@ export default function WeeklyRecordView({
 			</div>
 
 			{/* 일별 기록 */}
-			<div className="flex-1 flex flex-col">
+			<div className="px-4 flex-1 h-1 flex flex-col overflow-auto">
 				{dates.map((dateStr) => {
 					const { label: dayLabel, isSunday } = getDayLabel(dateStr)
 					const dayLogs = logsByDate[dateStr] ?? []

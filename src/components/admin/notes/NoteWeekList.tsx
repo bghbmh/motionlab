@@ -122,7 +122,10 @@ function NoteRow({ note, defaultOpen, onEdit, onRefresh }: {
 	return (
 		<div className="border-b border-neutral-200 border-dashed last:border-b-0">
 			{/* 헤더 행 */}
-			<div className={`flex  items-center justify-between px-4 py-1.5 ${isOpen ? 'bg-neutral-200' : ''}`}>
+			<button
+				type="button"
+				onClick={() => setIsOpen(p => !p)}
+				className={`flex items-center justify-between w-full px-4 py-4 hover:bg-zinc-100 ${isOpen ? 'bg-zinc-200' : ' bg-white'}`}>
 				<div className="flex items-center gap-3">
 					<span className="text-sm font-semibold text-neutral-800">{periodLabel}</span>
 					<div className="flex items-center gap-1">
@@ -131,14 +134,10 @@ function NoteRow({ note, defaultOpen, onEdit, onRefresh }: {
 				</div>
 
 				{/* 펼치기 */}
-				<button
-					type="button"
-					onClick={() => setIsOpen(p => !p)}
-					className="px-2.5 py-2.5 rounded-md text-neutral-400 bg-white hover:text-neutral-700 hover:bg-neutral-100 transition-colors"
-				>
-					{isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-				</button>
-			</div>
+
+				{isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+
+			</button>
 
 			{/* 삭제 확인 */}
 			{showDeleteConfirm && (
