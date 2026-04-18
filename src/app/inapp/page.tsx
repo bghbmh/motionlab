@@ -1,18 +1,16 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-import { Suspense, useState } from 'react'
+import { Suspense } from 'react'
 
 function InAppGuide() {
 	const searchParams = useSearchParams()
 	const url = searchParams.get('url') ?? ''
-	const [copied, setCopied] = useState(false)
 
 	function openSafari() {
-		// 사용자 인터랙션 시점에 복사 (iOS 클립보드 정책)
 		try {
 			if (navigator.clipboard) {
-				navigator.clipboard.writeText(url).then(() => setCopied(true)).catch(() => fallbackCopy())
+				navigator.clipboard.writeText(url).catch(() => fallbackCopy())
 			} else {
 				fallbackCopy()
 			}
@@ -28,7 +26,7 @@ function InAppGuide() {
 			document.body.appendChild(t)
 			t.focus()
 			t.select()
-			try { document.execCommand('copy'); setCopied(true) } catch { }
+			try { document.execCommand('copy') } catch { }
 			document.body.removeChild(t)
 		}
 
@@ -56,6 +54,7 @@ function InAppGuide() {
 				width: '100%',
 				boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
 			}}>
+				{/* Safari 아이콘 인라인 SVG */}
 				<div style={{
 					marginBottom: '20px',
 					display: 'flex',
@@ -68,26 +67,10 @@ function InAppGuide() {
 				<p style={{ fontSize: '18px', fontWeight: 700, color: '#1a1a1a', marginBottom: '12px', lineHeight: 1.4 }}>
 					Safari에서 열어주세요
 				</p>
-				<p style={{ fontSize: '14px', color: '#666', lineHeight: 1.7, marginBottom: '8px' }}>
+				<p style={{ fontSize: '14px', color: '#666', lineHeight: 1.7, marginBottom: '24px' }}>
 					카카오톡 내부 브라우저에서는<br />
 					일부 기능이 제한될 수 있어요.
 				</p>
-
-				{/* 복사 상태 표시 */}
-				<div style={{
-					display: 'inline-flex',
-					alignItems: 'center',
-					gap: '6px',
-					background: copied ? '#e6faf5' : '#f1f5f9',
-					color: copied ? '#0bb489' : '#94a3b8',
-					borderRadius: '20px',
-					padding: '6px 14px',
-					fontSize: '13px',
-					fontWeight: 500,
-					marginBottom: '24px',
-				}}>
-					{copied ? '✅ URL이 복사됐어요!' : '🔗 URL 복사 중...'}
-				</div>
 
 				<button
 					onClick={openSafari}
@@ -118,8 +101,8 @@ function InAppGuide() {
 						📋 Safari에서 여는 방법
 					</p>
 					<p style={{ fontSize: '13px', color: '#666', lineHeight: 1.8 }}>
-						1. 위 버튼을 탭해 Safari를 열어요<br />
-						2. 주소창을 길게 터치해요<br />
+						1. 위 버튼을 터치하면 주소가 자동으로 복사돼요<br />
+						2. Safari가 열리면 주소창을 길게 터치해요<br />
 						3. &quot;붙여넣기 및 이동&quot;을 탭해요
 					</p>
 				</div>
