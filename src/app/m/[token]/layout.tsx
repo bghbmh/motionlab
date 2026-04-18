@@ -78,7 +78,14 @@ export async function generateMetadata({
 		description: `${name}의 데이터 기반 운동 루틴 매니지먼트`,
 		openGraph: {
 			title: `${name}님의 운동 리포트`,
-			description: '운동 기록과 일상생활활동을 확인하세요.',
+			description: '모션로그와 함께 운동하세요.',
+			images: [
+				{
+					url: 'https://motionlab-three.vercel.app/og-image.png', // ← 추가
+					width: 1200,
+					height: 630,
+				}
+			],
 		},
 		manifest: `/m/${token}/manifest.webmanifest`,
 		appleWebApp: {
@@ -89,6 +96,7 @@ export async function generateMetadata({
 		icons: {
 			apple: '/icons/icon-192x192.png',
 		},
+
 	}
 }
 
