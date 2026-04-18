@@ -1,9 +1,4 @@
 // src/app/m/[token]/layout.tsx
-//
-// [수정 내용]
-//   - app_sessions에 user_agent 컬럼 추가 저장
-//   - 접속 기기(iOS/Android/기타) 파악 가능
-//   - 카카오톡 등 인앱 브라우저에서 외부 브라우저로 강제 전환
 
 import './member.css'
 
@@ -20,29 +15,75 @@ const inappDenyScript = `
 (function() {
 	var ua = navigator.userAgent.toLowerCase();
 	var url = location.href;
+	var isIOS = ua.match(/iphone|ipad|ipod/i);
 
-	if (ua.match(/kakaotalk/i)) {
-		location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(url);
+	function showSafariGuide() {
+		var copied = false;
+		try {
+			var t = document.createElement('textarea');
+			document.body.appendChild(t);
+			t.value = url;
+			t.select();
+			document.execCommand('copy');
+			document.body.removeChild(t);
+			copied = true;
+		} catch(e) {}
 
+		document.open();
+		document.write(
+			'<!DOCTYPE html><html><head>' +
+			'<meta charset="UTF-8">' +
+			'<meta name="viewport" content="width=device-width,initial-scale=1">' +
+			'<style>' +
+			'*{box-sizing:border-box;margin:0;padding:0;}' +
+			'body{font-family:-apple-system,sans-serif;background:#f8faf8;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}' +
+			'.card{background:#fff;border-radius:20px;padding:40px 28px;text-align:center;max-width:360px;width:100%;box-shadow:0 4px 24px rgba(0,0,0,0.08);}' +
+			'.emoji{font-size:56px;margin-bottom:20px;}' +
+			'.title{font-size:18px;font-weight:700;color:#1a1a1a;margin-bottom:12px;line-height:1.4;}' +
+			'.desc{font-size:14px;color:#666;line-height:1.7;margin-bottom:28px;}' +
+			'.btn{display:block;width:100%;background:#0bb489;color:#fff;border:none;border-radius:12px;padding:16px;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:12px;}' +
+			'.url-box{background:#f1f5f9;border-radius:10px;padding:12px 16px;font-size:12px;color:#64748b;word-break:break-all;text-align:left;}' +
+			'.step{background:#f8faf8;border-radius:12px;padding:16px;margin-top:20px;text-align:left;}' +
+			'.step-title{font-size:13px;font-weight:600;color:#444;margin-bottom:8px;}' +
+			'.step-item{font-size:13px;color:#666;line-height:1.8;padding-left:4px;}' +
+			'</style>' +
+			'</head><body>' +
+			'<div class="card">' +
+			'<div class="emoji">🌐</div>' +
+			'<p class="title">Safari에서 열어주세요</p>' +
+			'<p class="desc">카카오톡 내부 브라우저에서는<br>일부 기능이 제한될 수 있어요.</p>' +
+			'<button class="btn" onclick="location.href=\'x-web-search://?\'">' +
+			'Safari로 열기' +
+			'</button>' +
+			'<div class="url-box">' + url + '</div>' +
+			'<div class="step">' +
+			'<p class="step-title">📋 Safari에서 여는 방법</p>' +
+			'<p class="step-item">1. 위 버튼을 탭해 Safari를 열어요</p>' +
+			'<p class="step-item">2. 주소창을 길게 터치해요</p>' +
+			'<p class="step-item">3. "붙여넣기 및 이동"을 탭해요</p>' +
+			'</div>' +
+			'</div>' +
+			'</body></html>'
+		);
+		document.close();
+	}
+
+	// 카카오톡 (iOS/Android 모두)
+	if (ua.match(/kakaotalk|kakao/i)) {
+		if (isIOS) {
+			showSafariGuide();
+		} else {
+			location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(url);
+		}
+
+	// 라인
 	} else if (ua.match(/line/i)) {
 		location.href = url + (url.indexOf('?') !== -1 ? '&' : '?') + 'openExternalBrowser=1';
 
+	// 그외 인앱
 	} else if (ua.match(/inapp|naver|instagram|band|twitter|FB_IAB|FB4A|FBAN|FBIOS/i)) {
-		if (ua.match(/iphone|ipad|ipod/i)) {
-			window.addEventListener('DOMContentLoaded', function() {
-				document.body.innerHTML =
-					'<div style="font-family:-apple-system,sans-serif;padding:40px 24px;text-align:center;">' +
-					'<p style="font-size:18px;font-weight:700;margin-bottom:8px;">외부 브라우저에서 열어주세요</p>' +
-					'<p style="font-size:14px;color:#666;line-height:1.6;margin-bottom:32px;">' +
-					'아래 버튼을 눌러 Safari를 실행하세요.<br>' +
-					'Safari 주소창을 길게 터치 후<br>"붙여넣기 및 이동"을 눌러주세요.' +
-					'</p>' +
-					'<button onclick="var t=document.createElement(\'textarea\');document.body.appendChild(t);t.value=window.location.href;t.select();document.execCommand(\'copy\');document.body.removeChild(t);alert(\'URL이 복사되었습니다.\');location.href=\'x-web-search://?\'" ' +
-					'style="background:#0bb489;color:#fff;border:none;border-radius:12px;padding:14px 32px;font-size:16px;font-weight:600;">' +
-					'Safari로 열기' +
-					'</button>' +
-					'</div>';
-			});
+		if (isIOS) {
+			showSafariGuide();
 		} else {
 			location.href = 'intent://' + url.replace(/https?:\/\//i, '') + '#Intent;scheme=https;package=com.android.chrome;end';
 		}
@@ -78,14 +119,7 @@ export async function generateMetadata({
 		description: `${name}의 데이터 기반 운동 루틴 매니지먼트`,
 		openGraph: {
 			title: `${name}님의 운동 리포트`,
-			description: '모션로그와 함께 운동하세요.',
-			images: [
-				{
-					url: 'https://motionlab-three.vercel.app/og-image.png', // ← 추가
-					width: 1200,
-					height: 630,
-				}
-			],
+			description: '운동 기록과 일상생활활동을 확인하세요.',
 		},
 		manifest: `/m/${token}/manifest.webmanifest`,
 		appleWebApp: {
@@ -96,7 +130,6 @@ export async function generateMetadata({
 		icons: {
 			apple: '/icons/icon-192x192.png',
 		},
-
 	}
 }
 
@@ -151,8 +184,6 @@ export default async function MemberLayout({
 
 	return (
 		<div className="m-layout pb-5">
-
-			{/* 인앱 브라우저 외부 전환 */}
 			<script dangerouslySetInnerHTML={{ __html: inappDenyScript }} />
 
 			<MemberHeader
@@ -168,7 +199,6 @@ export default async function MemberLayout({
 			</main>
 
 			<MemberGnb token={token} />
-
 		</div>
 	)
 }
