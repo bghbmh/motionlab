@@ -18,6 +18,7 @@ interface Notification {
 
 interface Props {
 	memberId: string
+	token: string  // ← 추가
 	initialNotifications: Notification[]
 }
 
@@ -34,6 +35,7 @@ function formatRelativeTime(iso: string): string {
 
 export default function NotificationsClient({
 	memberId,
+	token,
 	initialNotifications,
 }: Props) {
 
@@ -79,6 +81,14 @@ export default function NotificationsClient({
 
 	console.log('[읽음처리 2 notifications:', notifications)
 
+	function handleNotificationClick(n: Notification) {
+		if (n.type === 'app_install') {
+			router.push(`/m/${token}?install=true`)
+		} else if (n.type === 'note_sent' && n.note_id) {
+			router.push(`/m/${token}/notes`)
+		}
+	}
+
 	if (notifications.length === 0) {
 		return (
 			<div className="flex flex-col items-center justify-center pt-20 gap-4">
@@ -106,6 +116,7 @@ export default function NotificationsClient({
 			{notifications.map(n => (
 				<div
 					key={n.id}
+					onClick={() => handleNotificationClick(n)}
 					className="bg-white rounded-[16px] flex items-start gap-3 px-4 py-4"
 					style={{
 						border: n.is_read

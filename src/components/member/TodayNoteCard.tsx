@@ -117,7 +117,11 @@ export default function TodayNoteCard({
 
 				{/* Empty: 알림장은 있지만 오늘 처방 운동 없을 때 */}
 				{hasNote && totalCount === 0 && (
-					<EmptyState icon="😴" message="오늘 알림장에는 추천 운동이 없어요" />
+					<>
+						<EmptyState icon={<img src="/images/Face_in_clouds_animated.svg" alt="알림장 없어요" className='w-16' />} message="오늘 알림장에는 추천 운동이 없어요" />
+					</>
+
+
 				)}
 
 				{/* 운동 아이템 목록 */}

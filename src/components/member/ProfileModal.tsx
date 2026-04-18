@@ -152,8 +152,8 @@ export default function ProfileModal({ token, memberName, registeredAt, onClose 
 								{!showIosGuide ? (
 									<div className="px-4 py-4 flex flex-col gap-3">
 										<div className="flex items-start gap-3">
-											<div className="w-10 h-10 rounded-xl bg-[#0bb489]/10 flex items-center justify-center shrink-0">
-												<Download size={18} className="text-[#0bb489]" />
+											<div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+												<Download size={18} className="text-primary" />
 											</div>
 											<div className="flex flex-col gap-0.5">
 												<p className="text-sm font-semibold text-gray-900">홈 화면에 추가하기</p>
@@ -165,9 +165,9 @@ export default function ProfileModal({ token, memberName, registeredAt, onClose 
 										<button
 											type="button"
 											onClick={handleInstall}
-											className="w-full py-3 rounded-xl bg-[#0bb489] text-white text-sm font-semibold transition-colors hover:bg-[#09a07a]"
+											className="w-full py-3 rounded-xl bg-primary text-white text-sm font-semibold transition-colors hover:bg-[#09a07a]"
 										>
-											{os === 'ios' ? '홈 화면에 추가' : '앱 설치하기'}
+											{os === 'ios' ? '홈 화면에 추가하는 방법' : '앱 설치하기'}
 										</button>
 									</div>
 								) : (
@@ -183,7 +183,7 @@ export default function ProfileModal({ token, memberName, registeredAt, onClose 
 												'우측 상단 \'추가\'를 탭하면 완료!',
 											].map((text, i) => (
 												<div key={i} className="flex items-start gap-2.5">
-													<div className="w-5 h-5 rounded-full bg-[#0bb489] flex items-center justify-center shrink-0">
+													<div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center shrink-0">
 														<span className="text-[11px] font-bold text-white">{i + 1}</span>
 													</div>
 													<span className="text-xs text-gray-700 leading-5 pt-px">{text}</span>
@@ -193,7 +193,7 @@ export default function ProfileModal({ token, memberName, registeredAt, onClose 
 										<button
 											type="button"
 											onClick={handleClose}
-											className="w-full py-3 rounded-xl bg-[#0bb489] text-white text-sm font-semibold"
+											className="w-full py-3 rounded-xl bg-primary text-white text-sm font-semibold"
 										>
 											홈 화면에 추가했어요
 										</button>
@@ -214,9 +214,9 @@ export default function ProfileModal({ token, memberName, registeredAt, onClose 
 									disabled={isLoading || !isSupported || permission === 'denied' || pushEnabled}
 									className="w-full px-4 py-4 flex items-center gap-3 text-left disabled:opacity-60"
 								>
-									<div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${pushEnabled ? 'bg-[#0bb489]/10' : 'bg-neutral-100'}`}>
+									<div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${pushEnabled ? 'bg-primary/10' : 'bg-neutral-100'}`}>
 										{pushEnabled
-											? <Bell size={18} className="text-[#0bb489]" />
+											? <Bell size={18} className="text-primary" />
 											: <BellOff size={18} className="text-neutral-400" />
 										}
 									</div>

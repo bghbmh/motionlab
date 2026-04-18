@@ -15,7 +15,7 @@ export default async function NotificationsPage({
 
 	const { data: member } = await supabase
 		.from('members')
-		.select('id')
+		.select('id, access_token')
 		.eq('access_token', token)
 		.single()
 
@@ -40,6 +40,7 @@ export default async function NotificationsPage({
 
 			<NotificationsClient
 				memberId={member.id}
+				token={member.access_token}
 				initialNotifications={notifications ?? []}
 			/>
 		</div>

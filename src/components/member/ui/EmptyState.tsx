@@ -4,7 +4,7 @@
 
 interface Props {
 	message?: string
-	icon?: string       // 이모지 또는 아이콘 문자열
+	icon?: string | React.ReactNode        // 이모지 또는 아이콘 문자열
 }
 
 export default function EmptyState({
@@ -22,10 +22,7 @@ export default function EmptyState({
 			{icon && (
 				<span style={{ fontSize: 32, lineHeight: 1 }}>{icon}</span>
 			)}
-			<p
-				className="text-xs text-center"
-				style={{ color: '#a1a1a1' }}
-			>
+			<p className="text-xs text-center text-gray-500">
 				{message}
 			</p>
 		</div>

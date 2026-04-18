@@ -1,31 +1,31 @@
 // src/app/m/[token]/notes/page.tsx
 // 서버 컴포넌트 — notes + note_workouts + workout_logs 조회
 // 완료 여부는 workout_logs(source='routine', note_workout_id) 기준으로 판단
-// note_workout_completions 테이블 미사용
 //
 // 주차 분리 규칙:
-//   - 알림장 발송일(written_at) 기준으로 7일씩 분리
-//   - 다음 알림장 발송일이 있으면 그 하루 전에서 끊김 (7일 미만 가능)
+//   - start_at ~ end_at 기준으로 슬라이스 생성
+//   - end_at 없으면 다음 알림장 start_at 하루 전까지 7일씩 분리
 //   - 오늘 날짜가 포함된 주차 카드만 isLatest=true (체크 가능)
 //
 // 요일 날짜 표시:
-//   - 각 주차 시작일 기준으로 요일별 실제 날짜 계산
-//   - ex) '월요일' → '4/7 월요일'
+//   - days가 날짜 형식('YYYY-MM-DD')이면 그대로 사용
+//   - days가 요일 형식('월', '화')이면 slice.start 기준으로 날짜 계산
 //
-// [수정 내용 - 버그 수정]
-//   완료 판단 로직 변경
-//   기존: entries.find(e => e.logged_at >= slice.start && e.logged_at <= slice.end)
-//         → 주차 범위 안에 기록이 하나라도 있으면 완료로 판단
-//         → '전체' 타입은 일주일치 카드가 같은 note_workout_id를 공유하므로
-//            금요일 하나만 체크해도 전체 주차 카드가 완료로 표시되는 버그
-//   수정: entries.find(e => e.logged_at === dayDate)
-//         → 이 카드의 날짜(dayDate)와 logged_at이 정확히 일치해야 완료로 판단
+// 대체됨:
+//   - 다음 알림장 start_at 이후의 dayDate는 isReplaced=true
 
 import { createClient } from '@/lib/supabase/server'
 import type { WorkoutType, Intensity } from '@/types/database'
 import NoteListManager from './NoteListManager'
 import type { NoteCardData, NoteDaySectionData } from '@/components/member/NoteCard'
 import type { NoteWorkoutItemData } from '@/components/member/NoteWorkoutItem'
+import {
+	parseLocalDate,
+	toLocalISO,
+	formatDate,
+	getDayKoShort,
+	DAY_KO_SHORT,
+} from '@/lib/weekUtils'
 
 interface PageProps {
 	params: Promise<{ token: string }>
@@ -33,27 +33,6 @@ interface PageProps {
 
 // ─── 날짜 유틸 ────────────────────────────────────────────────
 
-// 'YYYY-MM-DD' → Date (로컬 기준, 시간 없음)
-function parseDate(dateStr: string): Date {
-	const [y, m, d] = dateStr.split('-').map(Number)
-	return new Date(y, m - 1, d)
-}
-
-// Date → 'YYYY-MM-DD'
-function toISO(date: Date): string {
-	const y = date.getFullYear()
-	const m = String(date.getMonth() + 1).padStart(2, '0')
-	const d = String(date.getDate()).padStart(2, '0')
-	return `${y}-${m}-${d}`
-}
-
-// 'YYYY-MM-DD' → 'YY.MM.DD'
-function toShortDate(dateStr: string): string {
-	const [y, m, d] = dateStr.split('-')
-	return `${y.slice(2)}.${m}.${d}`
-}
-
-// date에 n일 더하기
 function addDays(date: Date, n: number): Date {
 	const result = new Date(date)
 	result.setDate(result.getDate() + n)
@@ -62,72 +41,67 @@ function addDays(date: Date, n: number): Date {
 
 // ─── 요일 유틸 ────────────────────────────────────────────────
 
-const DAY_NAMES: Record<string, string> = {
-	'전체': '전체',
-	'월': '월', '화': '화', '수': '수',
-	'목': '목', '금': '금', '토': '토', '일': '일',
-}
-
-// 요일 약자 → 숫자 (일=0, 월=1, ..., 토=6)
-const DAY_INDEX: Record<string, number> = {
-	'일': 0, '월': 1, '화': 2, '수': 3, '목': 4, '금': 5, '토': 6,
-}
-
-// 주차 시작일(periodStart)을 기준으로 요일 약자에 해당하는 실제 날짜 계산
-// ex) periodStart='2025-04-07(월)', day='목' → '2025-04-10'
 function getDayDate(periodStart: string, day: string): string {
 	if (day === '전체') return periodStart
-	const start = parseDate(periodStart)
-	const startDow = start.getDay()           // 0=일 ~ 6=토
-	const targetDow = DAY_INDEX[day] ?? startDow
-	let diff = targetDow - startDow
+	const start = parseLocalDate(periodStart)
+	const startDow = start.getDay()
+	const targetDow = DAY_KO_SHORT.indexOf(day)
+	const resolvedDow = targetDow === -1 ? startDow : targetDow
+	let diff = resolvedDow - startDow
 	if (diff < 0) diff += 7
-	return toISO(addDays(start, diff))
+	return toLocalISO(addDays(start, diff))
 }
 
-// '4/7 월요일' 형식으로 변환
-function formatDayLabel(dateStr: string, dayName: string): string {
-	if (dayName === '전체') return '전체'
+function formatDayLabel(dateStr: string, day: string): string {
+	if (day === '전체') return '전체'
 	const [, m, d] = dateStr.split('-').map(Number)
-	return `${m}/${d} ${dayName}`
+	return `${m}/${d} ${day}`
+}
+
+function resolveDayInfo(d: string, sliceStart: string, isDateStr: boolean): {
+	dayDate: string
+	dayLabel: string
+} {
+	if (isDateStr) {
+		const [, mm, dd] = d.split('-').map(Number)
+		return { dayDate: d, dayLabel: `${mm}/${dd} ${getDayKoShort(d)}` }
+	} else {
+		const dayDate = getDayDate(sliceStart, d)
+		return { dayDate, dayLabel: formatDayLabel(dayDate, d) }
+	}
 }
 
 // ─── 주차 분리 ────────────────────────────────────────────────
 
 interface WeekSlice {
-	start: string   // 'YYYY-MM-DD'
-	end: string     // 'YYYY-MM-DD'
+	start: string
+	end: string
 }
 
-// 알림장 발송일부터 종료일(exclusive)까지를 7일 단위로 분리
-// endExclusive: 다음 알림장 발송일 or null(진행중)
-// today: 오늘 날짜 — 진행중인 경우 오늘까지만 슬라이스
 function splitIntoWeeks(
 	startStr: string,
 	endExclusive: string | null,
 	today: string,
 ): WeekSlice[] {
 	const slices: WeekSlice[] = []
-	let cursor = parseDate(startStr)
+	let cursor = parseLocalDate(startStr)
 
 	const hardEnd = endExclusive
-		? addDays(parseDate(endExclusive), -1)  // 다음 알림장 하루 전
-		: null  // 진행 중 — 오늘이 포함된 주차까지 생성
+		? addDays(parseLocalDate(endExclusive), -1)
+		: null
 
 	while (true) {
-		const sliceStart = toISO(cursor)
-		const sliceEnd = toISO(addDays(cursor, 6))  // 7일 구간
+		const sliceStart = toLocalISO(cursor)
+		const sliceEnd = toLocalISO(addDays(cursor, 6))
 
-		if (hardEnd && sliceStart > toISO(hardEnd)) break
+		if (hardEnd && sliceStart > toLocalISO(hardEnd)) break
 
 		if (hardEnd) {
-			// 다음 알림장 있음 — hardEnd에서 끊기
-			const actualEnd = sliceEnd <= toISO(hardEnd) ? sliceEnd : toISO(hardEnd)
+			const actualEnd = sliceEnd <= toLocalISO(hardEnd) ? sliceEnd : toLocalISO(hardEnd)
 			slices.push({ start: sliceStart, end: actualEnd })
 		} else {
-			// 진행 중 — 오늘이 포함된 주차까지만 생성
 			slices.push({ start: sliceStart, end: sliceEnd })
-			if (sliceStart <= today && today <= sliceEnd) break  // 오늘 포함된 주차에서 종료
+			if (sliceStart <= today && today <= sliceEnd) break
 		}
 
 		cursor = addDays(cursor, 7)
@@ -142,7 +116,6 @@ export default async function NotePage({ params }: PageProps) {
 	const { token } = await params
 	const supabase = await createClient()
 
-	// 1. 회원 조회
 	const { data: member } = await supabase
 		.from('members')
 		.select('id')
@@ -157,14 +130,16 @@ export default async function NotePage({ params }: PageProps) {
 		)
 	}
 
-	const today = toISO(new Date())
+	const today = toLocalISO(new Date())
 
-	// 2. 알림장 목록 조회 (발송된 것만, 최신순) + note_workouts join
 	const { data: notes } = await supabase
 		.from('notes')
 		.select(`
 			id,
 			written_at,
+			sent_at,
+			start_at,
+			end_at,
 			content,
 			days,
 			recommended_mets,
@@ -181,7 +156,7 @@ export default async function NotePage({ params }: PageProps) {
 		`)
 		.eq('member_id', member.id)
 		.eq('is_sent', true)
-		.order('written_at', { ascending: false })
+		.order('sent_at', { ascending: false })
 
 	if (!notes || notes.length === 0) {
 		return (
@@ -191,8 +166,6 @@ export default async function NotePage({ params }: PageProps) {
 		)
 	}
 
-	// 3. 완료된 운동 조회 — workout_logs(source='routine') 기준
-	// note_workout_completions 대신 workout_logs를 단일 진실 공급원으로 사용
 	const allWorkoutIds = notes.flatMap(n =>
 		(n.note_workouts ?? []).map((w: any) => w.id)
 	)
@@ -206,7 +179,6 @@ export default async function NotePage({ params }: PageProps) {
 			.in('note_workout_id', allWorkoutIds)
 		: { data: [] }
 
-	// Map<note_workout_id, { logged_at, duration_min }[]>
 	const completionMap = new Map<string, { logged_at: string; duration_min: number }[]>()
 	for (const log of routineLogs ?? []) {
 		if (!log.note_workout_id) continue
@@ -215,23 +187,31 @@ export default async function NotePage({ params }: PageProps) {
 		completionMap.set(log.note_workout_id, entries)
 	}
 
-	// 4. 알림장별로 주차 분리 → NoteCardData[] 생성
 	const noteCards: NoteCardData[] = []
 
 	for (let i = 0; i < notes.length; i++) {
 		const note = notes[i]
-		const writtenAt = note.written_at ?? today
 
-		// 다음 알림장 발송일 (현재 note보다 더 최신 = notes[i-1])
-		const nextNoteDate = i > 0 ? (notes[i - 1].written_at ?? null) : null
+		const startAt = note.start_at ?? note.sent_at ?? note.written_at ?? today
+		const endAt = note.end_at ?? null
 
-		// 7일 단위 주차 슬라이스
-		const slices = splitIntoWeeks(writtenAt, nextNoteDate, today)
+		// 다음 알림장 start_at (현재보다 최신 = notes[i-1], 최신순 정렬이므로)
+		const nextNoteStartAt = i > 0
+			? (notes[i - 1].start_at ?? notes[i - 1].sent_at ?? null)
+			: null
+
+		// endExclusive 결정:
+		// 1. 다음 알림장 start_at 우선
+		// 2. end_at 다음날
+		// 3. 둘 다 없으면 null (오늘 포함 주차까지 생성)
+		const endExclusive = nextNoteStartAt
+			?? (i === 0 ? null : endAt ? toLocalISO(addDays(parseLocalDate(endAt), 1)) : null)
+
+		const slices = splitIntoWeeks(startAt, endExclusive, today)
 
 		const workouts: any[] = (note.note_workouts ?? [])
 			.sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
 
-		// 요일별 그룹핑
 		const dayMap = workouts.reduce<Record<string, any[]>>((acc, w) => {
 			const key = w.day ?? '전체'
 			if (!acc[key]) acc[key] = []
@@ -240,19 +220,19 @@ export default async function NotePage({ params }: PageProps) {
 		}, {})
 
 		const rawDays: string[] = Array.isArray(note.days) ? note.days : ['전체']
-		const isAllDays = rawDays.length === 1 && rawDays[0] === '전체'
+		const isAllDays = rawDays.includes('전체') || rawDays.includes('매일')
+		const isDayDateFormat = !isAllDays && /^\d{4}-\d{2}-\d{2}$/.test(rawDays[0] ?? '')
 
 		const sliceCards: NoteCardData[] = slices.map((slice) => {
 			const isCurrentSlice = slice.start <= today && today <= slice.end
 
 			let noteDays: string[]
 			if (isAllDays) {
-				// slice.start ~ slice.end 사이의 날짜를 하루씩 생성
 				noteDays = []
-				let cursor = parseDate(slice.start)
-				const sliceEndDate = parseDate(slice.end)
-				while (toISO(cursor) <= toISO(sliceEndDate)) {
-					noteDays.push(toISO(cursor))
+				let cursor = parseLocalDate(slice.start)
+				const sliceEndDate = parseLocalDate(slice.end)
+				while (toLocalISO(cursor) <= toLocalISO(sliceEndDate)) {
+					noteDays.push(toLocalISO(cursor))
 					cursor = addDays(cursor, 1)
 				}
 			} else {
@@ -260,38 +240,32 @@ export default async function NotePage({ params }: PageProps) {
 			}
 
 			const daySections: NoteDaySectionData[] = noteDays
-				.filter(d => isAllDays ? true : dayMap[d]?.length > 0)
+				.filter(d => {
+					if (isAllDays) return true
+					if (isDayDateFormat) return true  // 날짜 형식은 모두 포함 (범위 밖도 isReplaced로 표시)
+					return (dayMap[d]?.length ?? 0) > 0
+				})
 				.map(d => {
 					let dayDate: string
 					let dayLabel: string
 
 					if (isAllDays) {
-						dayDate = d
 						const [, mm, dd] = d.split('-').map(Number)
-						const dow = ['일', '월', '화', '수', '목', '금', '토'][parseDate(d).getDay()]
-						const dowFull = DAY_NAMES[dow] ?? dow
-						dayLabel = `${mm}/${dd} ${dowFull}`
+						dayDate = d
+						dayLabel = `${mm}/${dd} ${getDayKoShort(d)}`
 					} else {
-						dayDate = getDayDate(slice.start, d)
-						const dayName = DAY_NAMES[d] ?? d
-						dayLabel = formatDayLabel(dayDate, dayName)
+						const resolved = resolveDayInfo(d, slice.start, isDayDateFormat)
+						dayDate = resolved.dayDate
+						dayLabel = resolved.dayLabel
 					}
+
+					// 다음 알림장 start_at 이후면 대체됨
+					const isReplaced = nextNoteStartAt !== null && dayDate >= nextNoteStartAt
 
 					const workoutKey = isAllDays ? '전체' : d
 					const items: NoteWorkoutItemData[] = (dayMap[workoutKey] ?? []).map((w: any) => {
 						const entries = completionMap.get(w.id) ?? []
-
-						// ─── [버그 수정] 완료 판단 ────────────────────────────────
-						// 기존: 주차 범위(slice.start ~ slice.end) 안에 기록이 하나라도 있으면 완료
-						//       → 같은 note_workout_id를 공유하는 '전체' 타입에서
-						//          금요일 체크 시 나머지 요일 카드도 완료로 표시되는 버그
-						// 수정: 이 카드의 날짜(dayDate)와 logged_at이 정확히 일치해야 완료
-						//       → 요일별로 독립적으로 완료 여부 판단
-						const matchedEntry = entries.find(
-							e => e.logged_at === dayDate
-						)
-						// ─────────────────────────────────────────────────────────
-
+						const matchedEntry = entries.find(e => e.logged_at === dayDate)
 						const completed = !!matchedEntry
 						const actualMin = matchedEntry ? matchedEntry.duration_min : null
 						return {
@@ -308,21 +282,24 @@ export default async function NotePage({ params }: PageProps) {
 					})
 
 					return {
-						id: isAllDays ? `${note.id}-${d}` : `${note.id}-${d}-${slice.start}`,
+						id: isAllDays
+							? `${note.id}-${d}`
+							: `${note.id}-${d}-${slice.start}`,
 						day: dayLabel,
 						dayDate,
+						isReplaced,
 						items,
 					}
 				})
-				.sort((a: any, b: any) => a.dayDate.localeCompare(b.dayDate))
+				.sort((a, b) => a.dayDate.localeCompare(b.dayDate))
 
 			return {
 				id: `${note.id}-${slice.start}`,
-				sentAt: writtenAt,
+				sentAt: note.sent_at ?? note.written_at ?? today,
 				direction: note.content ?? '',
 				targetMets: note.recommended_mets ?? 0,
-				periodStart: toShortDate(slice.start),
-				periodEnd: toShortDate(slice.end),
+				periodStart: formatDate(slice.start),
+				periodEnd: formatDate(slice.end),
 				daySections,
 				isCurrentSlice,
 			} as NoteCardData & { isCurrentSlice: boolean }
@@ -338,10 +315,18 @@ export default async function NotePage({ params }: PageProps) {
 		return bDate.localeCompare(aDate)
 	})
 
-	// 5. isLatest 판단 — 오늘이 포함된 주차 카드 1개만 true
 	const latestIdx = noteCards.findIndex(
 		(c) => (c as any).isCurrentSlice === true
 	)
+
+	console.log('noteCards:', noteCards.map(c => ({
+		id: c.id,
+		periodStart: c.periodStart,
+		periodEnd: c.periodEnd,
+		isCurrentSlice: (c as any).isCurrentSlice,
+	})))
+	console.log('latestIdx:', latestIdx)
+	console.log('today:', today)
 
 	return (
 		<NoteListManager

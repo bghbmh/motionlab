@@ -125,7 +125,7 @@ export default function TodayWorkoutCard({
 				{/* 카드 헤더 */}
 				<div className="flex items-end justify-between px-1">
 					<div className="flex flex-col gap-0">
-						<p className="m-label">오늘의 운동</p>
+						<p className="m-card-label">오늘의 운동</p>
 						<p className="m-sublabel">오늘 하루 추가로 한 운동을 기록해요</p>
 					</div>
 				</div>

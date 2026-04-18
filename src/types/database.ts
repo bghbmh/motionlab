@@ -59,6 +59,8 @@ export interface WorkoutLog {
 	created_at: string
 	intensity: Intensity | null  // 신규
 	prescribed_duration_min: number | null
+	is_skipped: boolean
+	is_manual_daily?: boolean  // 신규: 자동기록/수동추가 구분용
 }
 
 export type WorkoutType =

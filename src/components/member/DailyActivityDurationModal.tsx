@@ -39,6 +39,8 @@ export default function DailyActivityDurationModal({
 		onConfirm(option, durationNum)
 	}
 
+	console.log('option in duration modal', option)
+
 	return (
 		<Modal onClose={onClose}>
 			<div className="flex flex-col gap-2 p-[24px] relative">
@@ -129,7 +131,7 @@ export default function DailyActivityDurationModal({
 				{previewMets !== null && (
 					<p className="text-[12px] px-2">
 						<span className="text-[#1d211c]">
-							{option.mets_value} METs/h × {duration}분 ={' '}
+							{option.mets_value} METs/h x {duration}분 ={' '}
 						</span>
 						<span style={{ color: 'var(--color-primary)' }}>
 							{previewMets} METs

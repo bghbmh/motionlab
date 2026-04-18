@@ -6,9 +6,10 @@
 interface Props {
 	onClose?: () => void      // 딤 배경 클릭 시 닫기 — undefined면 비활성
 	children: React.ReactNode
+	className?: string       // BottomSheet 내부 최상단 div에 추가 클래스
 }
 
-export default function BottomSheet({ onClose, children }: Props) {
+export default function BottomSheet({ onClose, className, children }: Props) {
 	return (
 		<div
 			className="fixed inset-0 flex items-end justify-center"
@@ -21,7 +22,7 @@ export default function BottomSheet({ onClose, children }: Props) {
 			{/* data-no-pull: PullToRefresh가 이 영역 내 터치를 무시 */}
 			<div
 				data-no-pull="true"
-				className="w-full relative flex flex-col"
+				className={`w-full relative flex flex-col ${className || ''}`}
 				style={{
 					maxWidth: '98vw',               // m-layout 최대 너비와 동일
 					maxHeight: '90dvh',           // 화면의 90% 상한

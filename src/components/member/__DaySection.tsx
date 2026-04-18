@@ -8,7 +8,6 @@ interface DaySectionProps {
 	totalDurationMin: number
 	totalMets: number
 	logs: WorkoutLog[]
-	memberId: string          // ← 추가
 	onEdit: (log: WorkoutLog) => void
 	onDelete: (log: WorkoutLog) => void
 }
@@ -18,7 +17,6 @@ export function DaySection({
 	totalDurationMin,
 	totalMets,
 	logs,
-	memberId,
 	onEdit,
 	onDelete,
 }: DaySectionProps) {
@@ -40,7 +38,6 @@ export function DaySection({
 					<WorkoutLogItem
 						key={log.id}
 						log={log}
-						memberId={memberId}
 						onEdit={onEdit}
 						onDelete={onDelete}
 					/>

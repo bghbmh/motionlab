@@ -2,7 +2,7 @@
 // Figma: 컴포넌트 섹션 > 일상생활활동-아이템
 // 커스텀-체크박스 + 활동명 + 수정/삭제 버튼
 
-import { Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Trash2, Check } from 'lucide-react'
 
 interface Props {
 	activityType: string
@@ -36,17 +36,8 @@ export default function DailyActivityItem({
 				onClick={onToggleInclude}
 				aria-label={isIncluded ? '포함 해제' : '포함'}
 			>
-				{isIncluded && (
-					<svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-						<path
-							d="M4 10l4.5 4.5L16 6"
-							stroke="white"
-							strokeWidth="2"
-							strokeLinecap="round"
-							strokeLinejoin="round"
-						/>
-					</svg>
-				)}
+				<Check size={20} className={`${isIncluded ? 'text-white' : 'text-gray-300'}`} />
+
 			</button>
 
 			{/* 활동명 + 옵션 */}

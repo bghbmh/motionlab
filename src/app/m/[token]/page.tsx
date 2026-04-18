@@ -21,17 +21,19 @@ function parseLocalDate(dateStr: string): Date {
 
 export default async function MemberHomePage({
 	params,
+	searchParams,
 }: {
 	params: Promise<{ token: string }>
+	searchParams: Promise<{ install?: string }>
 }) {
-
+	const { install } = await searchParams
 
 	const { token } = await params
 	const supabase = await createClient()
 
 	const { data: member } = await supabase
 		.from('members')
-		.select('id, name, week_start_date')
+		.select('id, name, week_start_date, registered_at')
 		.eq('access_token', token)
 		.single()
 
@@ -52,9 +54,10 @@ export default async function MemberHomePage({
 		todayRoutineLogsRes,
 		todayManualLogsRes,
 		dailyActivitiesRes,
-		todayDailyLogsRes,
+		todayDailyCheckedLogsRes,  // ← is_skipped=false (isIncluded용)
+		todayDailyAllLogsRes,      // ← 전체 (autoSave 중복 방지용)
 		everDailyLogsRes,
-		unreadCountRes,          // ← 추가: 읽지 않은 알림 개수
+		unreadCountRes,         // ← 추가: 읽지 않은 알림 개수
 	] = await Promise.all([
 		// 주간 운동 로그
 		supabase
@@ -97,11 +100,20 @@ export default async function MemberHomePage({
 		// 일상생활 패턴
 		supabase
 			.from('daily_activities')
-			.select('id, activity_type, activity_label, mets_value, duration_min_per_day, frequency_per_week, paper_code')
+			.select('id, activity_type, activity_label, mets_value, duration_min_per_day, frequency_per_week, paper_code, is_checked')
 			.eq('member_id', member.id)
 			.order('created_at', { ascending: true }),
 
-		// 오늘 저장된 일상생활 로그 (체크 상태 복원용)
+		// 오늘 포함 상태만 (isIncluded 초기값용)
+		supabase
+			.from('workout_logs')
+			.select('activity_type')
+			.eq('member_id', member.id)
+			.eq('logged_at', today)
+			.eq('source', 'daily')
+			.eq('is_skipped', false),  // ← 포함 상태만
+
+		// 오늘 전체 (autoSave 중복 방지용)
 		supabase
 			.from('workout_logs')
 			.select('activity_type')
@@ -115,6 +127,7 @@ export default async function MemberHomePage({
 			.select('activity_type')
 			.eq('member_id', member.id)
 			.eq('source', 'daily')
+			.eq('is_skipped', false)  // ← 추가
 			.lt('logged_at', today)
 			.not('activity_type', 'is', null),
 
@@ -131,9 +144,11 @@ export default async function MemberHomePage({
 	const todayRoutineLogs = todayRoutineLogsRes.data ?? []
 	const todayManualLogs = todayManualLogsRes.data ?? []
 	const dailyActivities = dailyActivitiesRes.data ?? []
-	const todayLoggedDailyTypes = (todayDailyLogsRes.data ?? [])
-		.map(l => l.activity_type)
-		.filter(Boolean) as string[]
+	const todayCheckedTypes = (todayDailyCheckedLogsRes.data ?? [])
+		.map(l => l.activity_type).filter(Boolean) as string[]
+
+	const todayAllLoggedTypes = (todayDailyAllLogsRes.data ?? [])
+		.map(l => l.activity_type).filter(Boolean) as string[]
 
 	// 과거 daily 기록 타입 — 중복 제거
 	const everLoggedDailyTypes = [...new Set(
@@ -181,6 +196,9 @@ export default async function MemberHomePage({
 				token={token}
 				memberName={member.name}
 				hasNews={unreadCount > 0}
+				autoOpenProfile={install === 'true'}
+				registeredAt={member.registered_at}
+
 			/>
 
 			{/* 기간별 활동 통계
@@ -215,7 +233,8 @@ export default async function MemberHomePage({
 				memberId={member.id}
 				patterns={dailyActivities as any}
 				today={today}
-				todayLoggedTypes={todayLoggedDailyTypes}
+				todayLoggedTypes={todayCheckedTypes}        // isIncluded 초기값
+				todayAllLoggedTypes={todayAllLoggedTypes}   // autoSave 중복 방지
 				everLoggedTypes={everLoggedDailyTypes}
 			/>
 		</>

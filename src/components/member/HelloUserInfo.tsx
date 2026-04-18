@@ -1,23 +1,33 @@
+'use client'
 // src/components/member/HelloUserInfo.tsx
 // Figma: hello-user-info (36:1697) — Property 1=Default
 // 안녕하세요 😄 / 이름님 > / 새 소식 알림
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { ChevronRight, Bell } from 'lucide-react'
 import PwaInstallModal from '@/components/member/PwaInstallModal'
 import PushPermissionModal from '@/components/member/PushPermissionModal'
+import ProfileModal from '@/components/member/ProfileModal'
 
 interface Props {
 	token: string
 	memberName: string
 	hasNews?: boolean   // "새로운 소식이 있어요!!" 표시 여부
+	autoOpenProfile?: boolean
+	registeredAt: string   // 'YYYY-MM-DD' 형식, 프로필 모달에서 7일 이내 여부 판단용
 }
 
 export default function HelloUserInfo({
 	token,
 	memberName,
 	hasNews = false,
+	autoOpenProfile = false,
+	registeredAt,
 }: Props) {
+
+	const [showProfile, setShowProfile] = useState(autoOpenProfile)
+
 	return (
 		<>
 			{/* PWA 설치 유도 모달 — 클라이언트에서만 렌더링 */}
@@ -33,29 +43,26 @@ export default function HelloUserInfo({
 					{/* 안녕하세요 😄 */}
 					<div className="user-hi">
 						<span>안녕하세요</span>
-						<span className='emoji w-5 h-5'>
-							<img src='/images/Grinning-face-with-smiling-eyes.png' />
+						<span className='emoji block w-5 h-5 relative '>
+							<img src='/images/Grinning_face_animated.svg'
+								style={{
+									position: 'absolute',
+									display: 'block',
+									top: '50%',
+									left: '50%',
+									width: '180%',
+									height: '180%',
+									transform: 'translate(-50%, -50%)',
+									maxWidth: 'none',
+								}} />
 						</span>
 					</div>
 
 					{/* 이름님 > */}
-					<div
+					<button
+						type="button"
+						onClick={() => setShowProfile(true)}
 						className="user-name flex items-center gap-0.5"
-					>
-						<div className="flex items-baseline gap-0.5">
-							<span className="text-lg font-bold leading-7 text-gray-900">
-								{memberName}
-							</span>
-							<span className="text-lg font-light leading-7 text-gray-900">
-								님
-							</span>
-						</div>
-					</div>
-
-					{/* <Link
-						href={`/m/${token}/profile`}
-						className="user-name flex items-center gap-0.5"
-						style={{ textDecoration: 'none' }}
 					>
 						<div className="flex items-baseline gap-0.5">
 							<span className="text-lg font-bold leading-7 text-gray-900">
@@ -66,7 +73,7 @@ export default function HelloUserInfo({
 							</span>
 						</div>
 						<ChevronRight size={20} style={{ color: 'var(--m-text)' }} />
-					</Link> */}
+					</button>
 				</div>
 
 				{/* 새 소식 알림 — hasNews일 때만 */}
@@ -87,6 +94,15 @@ export default function HelloUserInfo({
 							새로운 소식이 있어요!!
 						</span>
 					</Link>
+				)}
+
+				{showProfile && (
+					<ProfileModal
+						token={token}
+						memberName={memberName}
+						registeredAt={registeredAt}
+						onClose={() => setShowProfile(false)}
+					/>
 				)}
 			</div>
 		</>

@@ -1,20 +1,17 @@
 'use client'
 // src/components/member/NoteCard.tsx
 // 알림장 탭 > 알림장 1개 카드
-//
-// [수정 내용]
-//   - onFutureCheck prop 추가
-//   - 각 섹션의 dayDate와 오늘을 비교해 isFuture 계산
-//   - NoteDaySection으로 isFuture, onFutureCheck 전달
 
 import { useState } from 'react'
 import NoteDaySection from './NoteDaySection'
 import type { NoteWorkoutItemData } from './NoteWorkoutItem'
+import { toLocalISO } from '@/lib/weekUtils'
 
 export interface NoteDaySectionData {
 	id: string
-	day: string       // '4/7 월요일' 등
-	dayDate: string   // 'YYYY-MM-DD' — isFuture 판단용
+	day: string         // '4/7 월' 등
+	dayDate: string     // 'YYYY-MM-DD' — isFuture, isReplaced 판단용
+	isReplaced?: boolean // 새 알림장으로 대체된 날짜
 	items: NoteWorkoutItemData[]
 }
 
@@ -32,16 +29,11 @@ interface Props {
 	note: NoteCardData
 	isLatest: boolean
 	onToggle?: (workoutId: string, completed: boolean, item: NoteWorkoutItemData) => void
-	onFutureCheck?: () => void  // 미래 날짜 체크 시도 시 토스트 표시
+	onFutureCheck?: () => void
 }
 
-// 오늘 날짜 'YYYY-MM-DD' (로컬 기준)
 function getTodayISO(): string {
-	const d = new Date()
-	const y = d.getFullYear()
-	const m = String(d.getMonth() + 1).padStart(2, '0')
-	const day = String(d.getDate()).padStart(2, '0')
-	return `${y}-${m}-${day}`
+	return toLocalISO(new Date())
 }
 
 export default function NoteCard({ note, isLatest, onToggle, onFutureCheck }: Props) {
@@ -117,22 +109,31 @@ export default function NoteCard({ note, isLatest, onToggle, onFutureCheck }: Pr
 
 						{/* 요일별 섹션 */}
 						{note.daySections.map((section) => {
-							// dayDate가 오늘보다 미래면 체크 불가
 							const isFuture = section.dayDate > today
+							const isReplaced = section.isReplaced ?? false
 							const completedCount = section.items.filter(i => i.completed).length
 
 							return (
-								<NoteDaySection
+								<div
 									key={section.id}
-									day={section.day}
-									completedCount={completedCount}
-									totalCount={section.items.length}
-									items={section.items}
-									isLatest={isLatest}
-									isFuture={isFuture}
-									onToggle={onToggle}
-									onFutureCheck={onFutureCheck}
-								/>
+									className={isReplaced ? 'opacity-40' : ''}
+								>
+									{isReplaced && (
+										<p className="text-[11px] text-neutral-400 px-[4px] pb-[4px]">
+											새 알림장으로 대체됨
+										</p>
+									)}
+									<NoteDaySection
+										day={section.day}
+										completedCount={completedCount}
+										totalCount={section.items.length}
+										items={section.items}
+										isLatest={isLatest && !isReplaced}
+										isFuture={isFuture || isReplaced}
+										onToggle={onToggle}
+										onFutureCheck={onFutureCheck}
+									/>
+								</div>
 							)
 						})}
 					</>

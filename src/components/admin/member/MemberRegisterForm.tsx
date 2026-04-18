@@ -156,6 +156,14 @@ export default function MemberRegisterForm({ studioId, instructorId }: Props) {
 			)
 		}
 
+		// 3. 앱 설치 권유 알림 생성 ← 추가
+		await supabase.from('notifications').insert({
+			member_id: member.id,
+			type: 'app_install',
+			message: `${form.name.trim()}님, 모션로그 앱을 설치하면 더 편리하게 사용할 수 있어요. 지금 설치해보세요!`,
+			is_read: false,
+		})
+
 		router.push(`/studio/members/${member.id}`)
 		router.refresh()
 	}
