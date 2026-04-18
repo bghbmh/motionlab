@@ -36,7 +36,7 @@ export default function WorkoutRecordItem({
 					{/* 타입 뱃지 */}
 					<div className="flex items-center gap-0">
 						{icon}
-						<span className={`text-xs font-medium leading-5 pl-1 ${labelColor}`}>{label}</span>
+						<span className={`text-xs font-medium leading-5 pl-1  ${labelColor}`}>{label}</span>
 						{subLabel && <>
 							<Dot size={10} className='text-gray-800' />
 							<span className="text-xs text-gray-500 leading-5">{subLabel}</span>

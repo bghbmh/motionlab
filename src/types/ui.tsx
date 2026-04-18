@@ -58,7 +58,7 @@ export const RECORD_TYPE_CONFIG: Record<RecordType, RecordTypeConfig> = {
 	'daily-repeat': {
 		label: '일상',
 		subLabel: '반복',
-		labelColor: 'text-teal-500',
+		labelColor: 'text-teal-700',
 		icon: (
 			<svg width="13" height="13" viewBox="0 0 13 13" fill="none">
 				<g clipPath="url(#clip0_daily_repeat)">
@@ -76,7 +76,7 @@ export const RECORD_TYPE_CONFIG: Record<RecordType, RecordTypeConfig> = {
 	'daily-once': {
 		label: '일상',
 		subLabel: '한번',
-		labelColor: 'text-teal-500',
+		labelColor: 'text-teal-700',
 		icon: (
 			<svg width="13" height="13" viewBox="0 0 13 13" fill="none">
 				<g clipPath="url(#clip0_daily_once)">
