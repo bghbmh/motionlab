@@ -40,7 +40,7 @@ const inappDenyScript = `
 			+ '<div class="emoji">\uD83C\uDF10</div>'
 			+ '<p class="title">Safari\uC5D0\uC11C \uC5F4\uC5B4\uC8FC\uC138\uC694</p>'
 			+ '<p class="desc">\uCE74\uCE74\uC624\uD1A1 \uB0B4\uBD80 \uBE0C\uB77C\uC6B0\uC800\uC5D0\uC11C\uB294<br>\uC77C\uBD80 \uAE30\uB2A5\uC774 \uC81C\uD55C\uB420 \uC218 \uC788\uC5B4\uC694.</p>'
-			+ '<button class="btn" onclick="location.href=\'x-web-search://?\'">'
+			+ '<button class="btn" onclick="location.href=encodeURI(\'x-web-search://?\');">'
 			+ 'Safari\uB85C \uC5F4\uAE30'
 			+ '</button>'
 			+ '<div class="step">'
