@@ -3,6 +3,7 @@
 import type { RecordType } from '@/types/ui'
 import { RECORD_TYPE_CONFIG } from '@/types/ui'
 import MemberMemo from '../ui/MemberMemo'
+import { Dot, Slash } from 'lucide-react'
 
 interface WorkoutRecordItemProps {
 	type: RecordType
@@ -25,7 +26,7 @@ export default function WorkoutRecordItem({
 	memo,
 	tags,
 }: WorkoutRecordItemProps) {
-	const { label, labelColor, icon } = RECORD_TYPE_CONFIG[type]
+	const { label, subLabel, labelColor, icon } = RECORD_TYPE_CONFIG[type]
 
 	return (
 		<div className="self-stretch min-h-14 px-2 py-1 bg-white rounded-2xl flex flex-col justify-center gap-1 overflow-hidden">
@@ -33,9 +34,13 @@ export default function WorkoutRecordItem({
 				{/* 타입 뱃지 + 운동명 + 세부정보 */}
 				<div className="flex items-center gap-1.5 flex-1 flex-wrap">
 					{/* 타입 뱃지 */}
-					<div className="flex items-center gap-1">
+					<div className="flex items-center gap-0">
 						{icon}
-						<span className={`text-xs font-medium leading-5 ${labelColor}`}>{label}</span>
+						<span className={`text-xs font-medium leading-5 pl-1 ${labelColor}`}>{label}</span>
+						{subLabel && <>
+							<Dot size={10} className='text-gray-800' />
+							<span className="text-xs text-gray-500 leading-5">{subLabel}</span>
+						</>}
 					</div>
 
 					{/* 운동명 */}

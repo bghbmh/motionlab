@@ -26,7 +26,7 @@ import { IntensityLabel } from './IntensityLabel'
 import MemberMemo from './ui/MemberMemo'
 import WorkoutOptions from './ui/WorkoutOptions'
 import { Dot } from 'lucide-react'
-import DailyTypeIcon from './ui/DailyTypeIcon'
+import { DailyTypeIcon, DAILY_TYPE_LABELS } from './ui/DailyTypeIcon'
 
 interface Props {
 	log: WorkoutLog
@@ -92,7 +92,9 @@ export default function WorkoutLogItem({ log, memberId, deleting = false, onEdit
 					<div className="flex items-center gap-0">
 						<RecordTypeBadge type="daily" />
 						<Dot size={14} className='text-gray-500' />
-						<span className='m-sublabel text-xs font-medium'>반복</span>
+						<span className='m-sublabel text-xs font-medium'>
+							{DAILY_TYPE_LABELS['repeat']}
+						</span>
 					</div>
 					<div className="flex flex-col items-center justify-center">
 						<span className="font-semibold text-[18px] leading-[20px] text-primary">
@@ -103,7 +105,7 @@ export default function WorkoutLogItem({ log, memberId, deleting = false, onEdit
 				</div>
 
 				<div className="flex items-center px-2 gap-[10px]">
-					<DailyTypeIcon dailyType='lifestyle' size={50} />
+					<DailyTypeIcon dailyType='repeat' size={50} />
 					<div className="flex flex-col flex-1 justify-center">
 						<span className="m-card-item-title font-medium">{activityLabel ?? label}</span>
 						<span className="m-sublabel text-sm font-medium">{log.duration_min}분</span>
@@ -149,7 +151,7 @@ export default function WorkoutLogItem({ log, memberId, deleting = false, onEdit
 					<Dot size={14} className='text-gray-500' />
 
 					{log.source === 'daily'
-						? <span className='m-sublabel text-xs font-medium'>한번</span>
+						? <span className='m-sublabel text-xs font-medium'>{DAILY_TYPE_LABELS['once']}</span>
 						: <IntensityLabel intensity={log.intensity ?? 'normal'} />}
 				</div>
 

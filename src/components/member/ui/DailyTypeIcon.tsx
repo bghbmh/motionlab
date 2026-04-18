@@ -1,16 +1,16 @@
 // src/components/member/ui/WorkoutTypeIcon.tsx
 
 
-export type DailyType = 'lifestyle' | 'once'  // 일상활동 유형만 허용
+export type DailyType = 'repeat' | 'once'  // 일상활동 유형만 허용
 
 const DAILY_ICON_PATHS: Record<DailyType, string> = {
-	lifestyle: '/images/workout/daily_lifestyle.png',
+	repeat: '/images/workout/daily_lifestyle.png',
 	once: '/images/workout/daily_once.png',
 }
 
-const DAILY_TYPE_LABELS: Record<DailyType, string> = {
-	lifestyle: '일상활동',
-	once: '일회성 활동',
+export const DAILY_TYPE_LABELS: Record<DailyType, string> = {
+	repeat: '반복',
+	once: '한번',
 }
 
 interface Props {
@@ -18,7 +18,7 @@ interface Props {
 	size?: number  // px, 기본 34
 }
 
-export default function DailyTypeIcon({ dailyType, size = 50 }: Props) {
+export function DailyTypeIcon({ dailyType, size = 50 }: Props) {
 	const src = DAILY_ICON_PATHS[dailyType]
 	const label = DAILY_TYPE_LABELS[dailyType]
 

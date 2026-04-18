@@ -4,9 +4,11 @@
 
 import type { WorkoutLog } from '@/types/database'
 import { WORKOUT_TYPE_LABELS, INTENSITY_LABELS } from '@/types/database'
+import { ALL_DAILY_ACTIVITY_OPTIONS } from '@/data/dailyActivityOptions'
 import WorkoutRecordItem from '@/components/admin/member/WorkoutRecordItem'
-import { formatDate, formatDateShort } from '@/lib/weekUtils'
+import { formatDateShort } from '@/lib/weekUtils'
 import { Fragment } from 'react'
+import type { RecordType } from '@/types/ui'
 
 // 'YYYY-MM-DD' → 요일 한 글자
 const DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
@@ -15,11 +17,16 @@ function getDayLabel(dateStr: string): { label: string; isSunday: boolean } {
 	return { label: DAY_LABELS[day], isSunday: day === 0 }
 }
 
-// WorkoutLog.source → WorkoutRecordItem의 type prop으로 변환
-function toRecordType(source: WorkoutLog['source']): 'note' | 'direct' | 'daily' {
-	if (source === 'routine') return 'note'
-	if (source === 'manual') return 'direct'
-	return 'daily'
+// WorkoutLog → RecordType
+// daily + !is_manual_daily → 'daily-repeat' (반복)
+// daily + is_manual_daily  → 'daily-once'   (한번)
+function toRecordType(log: WorkoutLog): RecordType {
+	if (log.source === 'routine') return 'note'
+	if (log.source === 'manual') return 'direct'
+	if (log.source === 'daily') {
+		return log.is_manual_daily ? 'daily-once' : 'daily-repeat'
+	}
+	return 'daily-repeat'
 }
 
 interface WeeklyRecordViewProps {
@@ -27,7 +34,7 @@ interface WeeklyRecordViewProps {
 	totalMets: number
 	logs: WorkoutLog[]
 	dates: string[]
-	nextStartAt?: string | null  // ← 추가
+	nextStartAt?: string | null
 }
 
 export default function WeeklyRecordView({
@@ -45,9 +52,9 @@ export default function WeeklyRecordView({
 	}, {})
 
 	return (
-		<div className="py-3 bg-white rounded-2xl flex flex-col h-full ">
+		<div className="py-3 bg-white rounded-2xl flex flex-col h-full">
 			{/* 기간 + 총 METs */}
-			<div className="px-4 pb-2 flex justify-between items-center flex-none ">
+			<div className="px-4 pb-2 flex justify-between items-center flex-none">
 				<span className="text-gray-700 text-xs font-medium leading-4">{periodLabel}</span>
 				<div className="flex items-center gap-1">
 					<span className="text-neutral-500 text-xs leading-4">전체</span>
@@ -61,29 +68,26 @@ export default function WeeklyRecordView({
 				{dates.map((dateStr) => {
 					const { label: dayLabel, isSunday } = getDayLabel(dateStr)
 					const dayLogs = logsByDate[dateStr] ?? []
-					const isReplaced = nextStartAt !== null && dateStr >= nextStartAt  // ← 추가
-
+					const isReplaced = nextStartAt !== null && dateStr >= nextStartAt
 
 					return (
 						<div key={dateStr} className={`border-t border-gray-200 flex items-center ${isReplaced ? 'opacity-50' : ''}`}>
-							{/* 대체됨 표시 — 날짜 위에 */}
-
 							{/* 날짜 */}
 							<div className="min-w-10 pl-2 pr-4 py-2 flex flex-col items-center justify-center shrink-0">
 								<span className="text-neutral-600 text-xs font-medium leading-4 min-w-8 text-center">
 									{formatDateShort(dateStr)}
 								</span>
-								<span className={`text-xs font-medium leading-4  ${isSunday ? 'text-red-500' : 'text-neutral-500'}`}>
+								<span className={`text-xs font-medium leading-4 ${isSunday ? 'text-red-500' : 'text-neutral-500'}`}>
 									{dayLabel}
 								</span>
 							</div>
 
-
-
 							{/* 운동 기록 또는 기록없음 */}
 							<div className="flex-1 py-2 flex flex-col overflow-y-auto relative">
 								{isReplaced && dateStr === nextStartAt && (
-									<div className="absolute h-[80%] w-full flex items-center justify-center text-xs bg-neutral-200 text-neutral-900 ">{dateStr}부터 새 알림장으로 대체되었습니다</div>
+									<div className="absolute h-[80%] w-full flex items-center justify-center text-xs bg-neutral-200 text-neutral-900">
+										{dateStr}부터 새 알림장으로 대체되었습니다
+									</div>
 								)}
 
 								{dayLogs.length === 0 ? (
@@ -91,26 +95,32 @@ export default function WeeklyRecordView({
 										<span className="text-neutral-500 text-xs leading-4">기록없음</span>
 									</div>
 								) : (
-									dayLogs.map((log, idx) => (
-										<Fragment key={log.id}>
-											{idx > 0 && <hr key={`hr-${log.id}`} className="border-t border-dashed border-gray-200 my-1" />}
-											<WorkoutRecordItem
-												type={toRecordType(log.source)}
-												name={WORKOUT_TYPE_LABELS[log.workout_type]}
-												intensity={log.intensity ? INTENSITY_LABELS[log.intensity] : '일반'}
-												duration={`${log.duration_min}분`}
-												originalDuration={
-													log.prescribed_duration_min &&
-														log.prescribed_duration_min !== log.duration_min
-														? `${log.prescribed_duration_min}분`
-														: undefined
-												}
-												mets={Math.round(log.mets_score * log.duration_min)}
-												memo={log.condition_memo ?? undefined}
-											/>
-										</Fragment>
+									dayLogs.map((log, idx) => {
+										// 일상활동이면 activity_label 사용
+										const name = log.source === 'daily' && log.activity_type
+											? (ALL_DAILY_ACTIVITY_OPTIONS.find(o => o.activity_type === log.activity_type)?.activity_label ?? log.activity_type)
+											: WORKOUT_TYPE_LABELS[log.workout_type]
 
-									))
+										return (
+											<Fragment key={log.id}>
+												{idx > 0 && <hr className="border-t border-dashed border-gray-200 my-1" />}
+												<WorkoutRecordItem
+													type={toRecordType(log)}
+													name={name}
+													intensity={log.intensity ? INTENSITY_LABELS[log.intensity] : '일반'}
+													duration={`${log.duration_min}분`}
+													originalDuration={
+														log.prescribed_duration_min &&
+															log.prescribed_duration_min !== log.duration_min
+															? `${log.prescribed_duration_min}분`
+															: undefined
+													}
+													mets={Math.round(log.mets_score * log.duration_min)}
+													memo={log.condition_memo ?? undefined}
+												/>
+											</Fragment>
+										)
+									})
 								)}
 							</div>
 						</div>
