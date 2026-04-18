@@ -1,16 +1,15 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useState } from 'react'
 
 function InAppGuide() {
 	const searchParams = useSearchParams()
 	const url = searchParams.get('url') ?? ''
 	const [copied, setCopied] = useState(false)
 
-	// 페이지 로드 시 자동으로 URL 복사
-	useEffect(() => {
-		if (!url) return
+	function openSafari() {
+		// 사용자 인터랙션 시점에 복사 (iOS 클립보드 정책)
 		try {
 			if (navigator.clipboard) {
 				navigator.clipboard.writeText(url).then(() => setCopied(true)).catch(() => fallbackCopy())
@@ -29,16 +28,13 @@ function InAppGuide() {
 			document.body.appendChild(t)
 			t.focus()
 			t.select()
-			try {
-				document.execCommand('copy')
-				setCopied(true)
-			} catch { }
+			try { document.execCommand('copy'); setCopied(true) } catch { }
 			document.body.removeChild(t)
 		}
-	}, [url])
 
-	function openSafari() {
-		window.location.href = 'x-web-search://?'
+		setTimeout(() => {
+			window.location.href = 'x-web-search://?'
+		}, 300)
 	}
 
 	return (
