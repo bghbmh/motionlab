@@ -29,7 +29,8 @@ const inappDenyScript = `
 		if (isIOS) {
 			location.href = '/inapp?url=' + encodeURIComponent(url);
 		} else {
-			location.href = 'intent://' + url.replace(/https?:\/\//i, '') + '#Intent;scheme=https;package=com.android.chrome;end';
+			var chromUrl = url.indexOf('https://') === 0 ? url.slice(8) : url.slice(7);
+			location.href = 'intent://' + chromUrl + '#Intent;scheme=https;package=com.android.chrome;end';
 		}
 	}
 })();
