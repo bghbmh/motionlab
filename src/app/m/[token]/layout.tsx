@@ -139,7 +139,7 @@ export async function generateMetadata({
 		},
 
 	}
-}
+}  /** ㅅtest */
 
 export async function generateViewport() {
 	return { themeColor: '#f8faf8' }
