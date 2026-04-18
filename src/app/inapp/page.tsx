@@ -60,28 +60,13 @@ function InAppGuide() {
 				width: '100%',
 				boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
 			}}>
-				<div style={{ marginBottom: '20px' }}>
-					<svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-						<rect width="72" height="72" rx="16" fill="url(#safari-bg)" />
-						<circle cx="36" cy="36" r="22" stroke="white" strokeWidth="1.5" strokeOpacity="0.4" />
-						<circle cx="36" cy="36" r="22" stroke="white" strokeWidth="1" strokeOpacity="0.2" strokeDasharray="2 4" />
-						{/* 나침반 바늘 — 빨강(북) / 흰색(남) */}
-						<polygon points="36,18 38.2,34 33.8,34" fill="#FF3B30" />
-						<polygon points="36,54 33.8,38 38.2,38" fill="white" />
-						{/* 중앙 원 */}
-						<circle cx="36" cy="36" r="3" fill="white" />
-						{/* 눈금 4방향 */}
-						<line x1="36" y1="14" x2="36" y2="18" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeOpacity="0.7" />
-						<line x1="36" y1="54" x2="36" y2="58" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeOpacity="0.7" />
-						<line x1="14" y1="36" x2="18" y2="36" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeOpacity="0.7" />
-						<line x1="54" y1="36" x2="58" y2="36" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeOpacity="0.7" />
-						<defs>
-							<linearGradient id="safari-bg" x1="0" y1="0" x2="72" y2="72" gradientUnits="userSpaceOnUse">
-								<stop offset="0%" stopColor="#1E90FF" />
-								<stop offset="100%" stopColor="#006FD6" />
-							</linearGradient>
-						</defs>
-					</svg>
+				<div style={{
+					marginBottom: '20px',
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'center',
+				}}>
+					<img src="/inapp/safari.svg" alt="사파리" style={{ width: '64px', height: '64px' }} />
 				</div>
 
 				<p style={{ fontSize: '18px', fontWeight: 700, color: '#1a1a1a', marginBottom: '12px', lineHeight: 1.4 }}>
