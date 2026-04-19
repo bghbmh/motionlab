@@ -111,7 +111,7 @@ export function usePushNotification({ token }: UsePushNotificationOptions) {
 			debug('3. 구독 생성 완료')
 
 			// 4. 서버에 구독 정보 저장
-			debug('4. 서버 저장 중...')
+			debug(`4. 서버 저장 중... token: ${token?.slice(0, 8)}`)
 			const res = await fetch('/api/push/subscribe', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
