@@ -68,24 +68,24 @@ export function usePushNotification({ token }: UsePushNotificationOptions) {
 				return false
 			}
 
-			// 2. SW 등록
-			debug('2. SW 등록 중...')
-			const reg = await registerSW()
-			if (!reg) {
-				debug('2. SW 등록 실패')
-				return false
-			}
-			debug('2. SW 등록 완료')
-
-			// SW가 완전히 활성화될 때까지 대기
-			debug('2. SW 활성화 대기 중...')
-			const activeReg = await Promise.race([
+			// 2. SW 준비 확인
+			debug('2. SW 확인 중...')
+			let activeReg = await Promise.race([
 				navigator.serviceWorker.ready,
 				new Promise<never>((_, reject) =>
-					setTimeout(() => reject(new Error('SW 활성화 타임아웃')), 5000)
+					setTimeout(() => reject(new Error('SW 타임아웃')), 3000)
 				)
-			])
-			debug('2. SW 활성화 완료')
+			]).catch(async () => {
+				// ready 실패 시 직접 등록 시도
+				debug('2. SW 직접 등록 시도...')
+				return await registerSW()
+			})
+
+			if (!activeReg) {
+				debug('2. SW 준비 실패')
+				return false
+			}
+			debug('2. SW 준비 완료')
 
 			// 3. 푸시 구독 생성
 			debug('3. 푸시 구독 생성 중...')
