@@ -32,16 +32,9 @@ export default function PushPermissionModal({ token }: Props) {
 	const [visible, setVisible] = useState(false)
 
 	useEffect(() => {
-		// standalone 모드가 아니면 표시 안 함
 		if (!isStandalone()) return
-
-		// 푸시 미지원이면 표시 안 함
 		if (!isSupported) return
-
-		// 이미 브라우저에서 허용된 상태면 표시 안 함
 		if (permission === 'granted') return
-
-		// 이미 구독 완료 기록이 있으면 표시 안 함
 		if (localStorage.getItem(SUBSCRIBED_KEY) === 'true') return
 
 		setVisible(true)
@@ -54,11 +47,13 @@ export default function PushPermissionModal({ token }: Props) {
 	}
 
 	async function handleAllow() {
-		await subscribe()
-		// 구독 완료 기록 — 다음 실행 시 모달 안 뜸
-		localStorage.setItem(SUBSCRIBED_KEY, 'true')
-		// 임시: 디버그 메시지 확인 위해 3초 후 닫힘
-		setTimeout(() => setVisible(false), 3000)
+		const success = await subscribe()
+		if (success) {
+			// 구독 성공했을 때만 localStorage에 기록 → 다음 실행 시 모달 안 뜸
+			localStorage.setItem(SUBSCRIBED_KEY, 'true')
+			setVisible(false)
+		}
+		// 실패하면 모달 유지 → 사용자가 다시 시도할 수 있음
 	}
 
 	return (

@@ -17,7 +17,7 @@ export function usePushNotification({ token }: UsePushNotificationOptions) {
 
 	const debug = (msg: string) => {
 		setDebugMessage(msg)
-		console.log('[Push]', msg)  // ← 이걸 추가
+		console.log('[Push]', msg)
 	}
 
 	// 현재 구독 상태 확인
@@ -48,11 +48,11 @@ export function usePushNotification({ token }: UsePushNotificationOptions) {
 		}
 	}, [])
 
-	// 푸시 구독 요청
-	const subscribe = useCallback(async () => {
+	// 푸시 구독 요청 — 성공 시 true, 실패 시 false 반환
+	const subscribe = useCallback(async (): Promise<boolean> => {
 		if (!('PushManager' in window)) {
 			alert('이 브라우저는 푸시 알림을 지원하지 않습니다.')
-			return
+			return false
 		}
 
 		setIsLoading(true)
@@ -65,8 +65,7 @@ export function usePushNotification({ token }: UsePushNotificationOptions) {
 			debug(`1. 권한 결과: ${result}`)
 
 			if (result !== 'granted') {
-				setIsLoading(false)
-				return
+				return false
 			}
 
 			// 2. SW 등록
@@ -74,45 +73,45 @@ export function usePushNotification({ token }: UsePushNotificationOptions) {
 			const reg = await registerSW()
 			if (!reg) {
 				debug('2. SW 등록 실패')
-				setIsLoading(false)
-				return
+				return false
 			}
 			debug('2. SW 등록 완료')
 
-			// ✅ SW가 완전히 활성화될 때까지 대기
+			// SW가 완전히 활성화될 때까지 대기
 			debug('2. SW 활성화 대기 중...')
 			const activeReg = await navigator.serviceWorker.ready
-			debug('2. SW 등록 완료')
+			debug('2. SW 활성화 완료')
 
-			// 3. 푸시 구독 생성
 			// 3. 푸시 구독 생성
 			debug('3. 푸시 구독 생성 중...')
 			const keyArray = urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!)
-			const subscription = await activeReg.pushManager.subscribe({  // ← activeReg 사용
+			const subscription = await activeReg.pushManager.subscribe({
 				userVisibleOnly: true,
 				applicationServerKey: keyArray.buffer as ArrayBuffer,
 			})
-			// setDebugMessage('3. 푸시 구독 생성 중...')
-			// const keyArray = urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!)
-			// const subscription = await reg.pushManager.subscribe({
-			// 	userVisibleOnly: true,
-			// 	applicationServerKey: keyArray.buffer as ArrayBuffer,
-			// })
 			debug('3. 구독 생성 완료')
 
 			// 4. 서버에 구독 정보 저장
 			debug('4. 서버 저장 중...')
-			await fetch('/api/push/subscribe', {
+			const res = await fetch('/api/push/subscribe', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ token, subscription }),
 			})
-			debug('4. 완료! ✅')
 
+			if (!res.ok) {
+				debug(`4. 서버 저장 실패: ${res.status}`)
+				return false
+			}
+
+			debug('4. 완료! ✅')
 			setIsSubscribed(true)
+			return true
+
 		} catch (err: any) {
 			debug(`❌ 오류: ${err?.message ?? String(err)}`)
 			console.error('[Push] 구독 실패:', err)
+			return false
 		} finally {
 			setIsLoading(false)
 		}
