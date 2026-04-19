@@ -79,7 +79,12 @@ export function usePushNotification({ token }: UsePushNotificationOptions) {
 
 			// SW가 완전히 활성화될 때까지 대기
 			debug('2. SW 활성화 대기 중...')
-			const activeReg = await navigator.serviceWorker.ready
+			const activeReg = await Promise.race([
+				navigator.serviceWorker.ready,
+				new Promise<never>((_, reject) =>
+					setTimeout(() => reject(new Error('SW 활성화 타임아웃')), 5000)
+				)
+			])
 			debug('2. SW 활성화 완료')
 
 			// 3. 푸시 구독 생성
