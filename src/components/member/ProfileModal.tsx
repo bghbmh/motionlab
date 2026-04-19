@@ -92,7 +92,14 @@ export default function ProfileModal({ token, memberName, registeredAt, onClose 
 		// 1. localStorage 초기화
 		localStorage.removeItem(SUBSCRIBED_KEY)
 
-		// 2. 캐시만 삭제 — SW는 건드리지 않음
+		// 2. DB 구독 정보 삭제 (member_id 기준 전체)
+		await fetch('/api/push/subscribe', {
+			method: 'DELETE',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ token, deleteAll: true }),
+		}).catch(() => { })
+
+		// 3. 캐시 삭제 — SW는 건드리지 않음
 		if ('caches' in window) {
 			const keys = await caches.keys()
 			await Promise.all(keys.map(key => caches.delete(key)))
@@ -102,7 +109,8 @@ export default function ProfileModal({ token, memberName, registeredAt, onClose 
 		setTimeout(() => window.location.reload(), 2000)
 	}
 
-	const pushEnabled = permission === 'granted' || isSubscribed
+	// isSubscribed 기준으로만 판단 — permission만으로는 실제 구독 여부 알 수 없음
+	const pushEnabled = isSubscribed
 
 	const pushLabel = (() => {
 		if (!isSupported) return '이 기기에서는 지원하지 않아요'
@@ -276,7 +284,7 @@ export default function ProfileModal({ token, memberName, registeredAt, onClose 
 								className="w-full px-4 py-4 flex items-center gap-3 text-left disabled:opacity-50"
 							>
 								<div className="w-10 h-10 rounded-xl bg-neutral-100 flex items-center justify-center shrink-0">
-									<svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+									<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
 										<path d="M9 2a7 7 0 1 0 4.95 11.95" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round" />
 										<path d="M14 9V6h-3" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
 									</svg>

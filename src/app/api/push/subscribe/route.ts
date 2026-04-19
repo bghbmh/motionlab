@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
 			},
 			{
 				title: 'motion-log',
-				body: '운동 알림이 설정됐어요! 강사님 알림장을 바로 받아볼 수 있어요 💪',
+				body: '모션로그와 함께해요! 알림장이 도착하면 바로 알려드릴게요 🎉',
 				url: `/m/${token}`,
 			}
 		)
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
 	try {
-		const { token, endpoint } = await req.json()
+		const { token, endpoint, deleteAll } = await req.json()
 
 		const supabase = await createClient()
 		const { data: member } = await supabase
@@ -76,11 +76,20 @@ export async function DELETE(req: NextRequest) {
 			return NextResponse.json({ error: 'Not found' }, { status: 404 })
 		}
 
-		await supabase
-			.from('push_subscriptions')
-			.delete()
-			.eq('member_id', member.id)
-			.eq('endpoint', endpoint)
+		if (deleteAll) {
+			// 앱 초기화 — member_id 기준 전체 삭제
+			await supabase
+				.from('push_subscriptions')
+				.delete()
+				.eq('member_id', member.id)
+		} else {
+			// 알림 해제 — endpoint 기준 단건 삭제
+			await supabase
+				.from('push_subscriptions')
+				.delete()
+				.eq('member_id', member.id)
+				.eq('endpoint', endpoint)
+		}
 
 		return NextResponse.json({ ok: true })
 	} catch {
