@@ -1,13 +1,12 @@
 'use client'
 // src/components/member/ProfileModal.tsx
 // 개인설정 모달 — 이름 클릭 시 표시
-// 항목: 앱 설치 유도, 푸시 알림 설정
+// 항목: 앱 설치 유도, 푸시 알림 설정, 앱 초기화
 
 import { useEffect, useState } from 'react'
 import { X, Download, Bell, BellOff, ChevronRight } from 'lucide-react'
 import { usePushNotification } from '@/hooks/usePushNotification'
 
-const STORAGE_KEY = 'pwa_install_dismissed_date'
 const SUBSCRIBED_KEY = 'push_subscribed'
 
 function isStandalone(): boolean {
@@ -36,17 +35,10 @@ export default function ProfileModal({ token, memberName, registeredAt, onClose 
 	const [os, setOs] = useState<'ios' | 'android' | 'other'>('other')
 	const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
 	const [showIosGuide, setShowIosGuide] = useState(false)
+	const [resetDone, setResetDone] = useState(false)
 
 	const { permission, isSubscribed, isLoading, isSupported, subscribe, unsubscribe, debugMessage } =
 		usePushNotification({ token })
-
-	// 7일 이내 여부
-	const isWithin7Days = (() => {
-		const reg = new Date(registeredAt)
-		const today = new Date()
-		const diff = Math.floor((today.getTime() - reg.getTime()) / (1000 * 60 * 60 * 24))
-		return diff <= 7
-	})()
 
 	useEffect(() => {
 		const t = requestAnimationFrame(() => setVisible(true))
@@ -94,6 +86,24 @@ export default function ProfileModal({ token, memberName, registeredAt, onClose 
 	async function handleUnsubscribe() {
 		await unsubscribe()
 		localStorage.removeItem(SUBSCRIBED_KEY)
+	}
+
+	async function handleReset() {
+		// 1. localStorage 초기화
+		localStorage.removeItem(SUBSCRIBED_KEY)
+
+		// 2. 서비스워커 캐시 전체 초기화
+		if ('caches' in window) {
+			const keys = await caches.keys()
+			await Promise.all(keys.map(key => caches.delete(key)))
+		}
+
+		setResetDone(true)
+
+		// 2초 후 앱 새로고침
+		setTimeout(() => {
+			window.location.reload()
+		}, 2000)
 	}
 
 	const pushEnabled = permission === 'granted' || isSubscribed
@@ -145,7 +155,7 @@ export default function ProfileModal({ token, memberName, registeredAt, onClose 
 						</button>
 					</div>
 
-					<div className="px-4 pb-8 flex flex-col gap-3">
+					<div className="px-4 pb-8 flex flex-col gap-3 overflow-y-auto" style={{ maxHeight: 'calc(80vh - 100px)' }}>
 
 						{/* ── 앱 설치 섹션 ── */}
 						{!installed && (
@@ -176,7 +186,6 @@ export default function ProfileModal({ token, memberName, registeredAt, onClose 
 										</button>
 									</div>
 								) : (
-									/* iOS 안내 */
 									<div className="px-4 py-4 flex flex-col gap-3">
 										<p className="text-sm font-semibold text-gray-900">아이폰은 직접 설치해야 해요</p>
 										<p className="text-xs text-neutral-500">사파리 브라우저에서 아래 순서대로 따라해주세요</p>
@@ -214,7 +223,6 @@ export default function ProfileModal({ token, memberName, registeredAt, onClose 
 									<p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide">알림</p>
 								</div>
 
-								{/* 허용하기 / 허용됨 행 */}
 								<button
 									type="button"
 									onClick={!pushEnabled && isSupported && permission !== 'denied' ? handlePush : undefined}
@@ -236,7 +244,7 @@ export default function ProfileModal({ token, memberName, registeredAt, onClose 
 									)}
 								</button>
 
-								{/* 구독 해제 버튼 — 허용됐을 때만 표시 */}
+								{/* 구독 해제 버튼 */}
 								{pushEnabled && isSupported && (
 									<div className="px-4 pb-4">
 										<button
@@ -259,6 +267,33 @@ export default function ProfileModal({ token, memberName, registeredAt, onClose 
 								)}
 							</div>
 						)}
+
+						{/* ── 앱 설정 섹션 ── */}
+						<div className="rounded-2xl bg-neutral-50 overflow-hidden">
+							<div className="px-4 py-3 border-b border-neutral-100">
+								<p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide">앱 설정</p>
+							</div>
+							<button
+								type="button"
+								onClick={handleReset}
+								disabled={resetDone}
+								className="w-full px-4 py-4 flex items-center gap-3 text-left disabled:opacity-50"
+							>
+								<div className="w-10 h-10 rounded-xl bg-neutral-100 flex items-center justify-center shrink-0">
+									<svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+										<path d="M9 2a7 7 0 1 0 4.95 11.95" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round" />
+										<path d="M14 9V6h-3" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+									</svg>
+								</div>
+								<div className="flex flex-col gap-0.5 flex-1">
+									<p className="text-sm font-semibold text-gray-900">앱 초기화</p>
+									<p className="text-xs text-neutral-500">
+										{resetDone ? '초기화 완료! 잠시 후 재시작돼요' : '앱이 이상하게 동작할 때 초기화해보세요'}
+									</p>
+								</div>
+								{!resetDone && <ChevronRight size={16} className="text-neutral-300" />}
+							</button>
+						</div>
 
 					</div>
 				</div>
