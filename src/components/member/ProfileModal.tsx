@@ -92,10 +92,17 @@ export default function ProfileModal({ token, memberName, registeredAt, onClose 
 		// 1. localStorage 초기화
 		localStorage.removeItem(SUBSCRIBED_KEY)
 
-		// 2. 서비스워커 캐시 전체 초기화
+		// 2. 서비스워커 캐시만 삭제
 		if ('caches' in window) {
 			const keys = await caches.keys()
 			await Promise.all(keys.map(key => caches.delete(key)))
+		}
+
+		// 3. SW 재등록 — unregister 후 다시 등록해서 active 상태 보장
+		if ('serviceWorker' in navigator) {
+			const reg = await navigator.serviceWorker.getRegistration()
+			if (reg) await reg.unregister()
+			await navigator.serviceWorker.register('/sw.js', { scope: '/' })
 		}
 
 		setResetDone(true)

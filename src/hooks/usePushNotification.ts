@@ -87,6 +87,20 @@ export function usePushNotification({ token }: UsePushNotificationOptions) {
 			}
 			debug('2. SW 준비 완료')
 
+			// SW active 상태 확인
+			if (!activeReg.active) {
+				debug('2. SW active 아님 — 대기 중...')
+				await new Promise<void>((resolve, reject) => {
+					const sw = activeReg.installing ?? activeReg.waiting
+					if (!sw) return reject(new Error('SW를 찾을 수 없음'))
+					sw.addEventListener('statechange', (e) => {
+						if ((e.target as ServiceWorker).state === 'activated') resolve()
+					})
+					setTimeout(() => reject(new Error('SW activate 타임아웃')), 5000)
+				})
+			}
+			debug('2. SW active 확인 완료')
+
 			// 3. 푸시 구독 생성
 			debug('3. 푸시 구독 생성 중...')
 			const keyArray = urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!)
