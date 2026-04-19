@@ -4,7 +4,7 @@
 // 항목: 앱 설치 유도, 푸시 알림 설정, 앱 초기화
 
 import { useEffect, useState } from 'react'
-import { X, Download, Bell, BellOff, ChevronRight } from 'lucide-react'
+import { X, Download, Bell, BellOff, ChevronRight, Check } from 'lucide-react'
 import { usePushNotification } from '@/hooks/usePushNotification'
 
 const SUBSCRIBED_KEY = 'push_subscribed'
@@ -22,10 +22,12 @@ function isIOS(): boolean {
 	return /iphone|ipad|ipod/i.test(navigator.userAgent)
 }
 
+type ActionState = 'idle' | 'loading' | 'done'
+
 interface Props {
 	token: string
 	memberName: string
-	registeredAt: string   // 'YYYY-MM-DD'
+	registeredAt: string
 	onClose: () => void
 }
 
@@ -36,6 +38,9 @@ export default function ProfileModal({ token, memberName, registeredAt, onClose 
 	const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
 	const [showIosGuide, setShowIosGuide] = useState(false)
 	const [resetDone, setResetDone] = useState(false)
+	const [actionState, setActionState] = useState<ActionState>('idle')
+	const [actionLabel, setActionLabel] = useState('')
+	const [actionDoneLabel, setActionDoneLabel] = useState('')
 
 	const { permission, isSubscribed, isLoading, isSupported, subscribe, unsubscribe, debugMessage } =
 		usePushNotification({ token })
@@ -61,6 +66,17 @@ export default function ProfileModal({ token, memberName, registeredAt, onClose 
 		setTimeout(onClose, 280)
 	}
 
+	function showAction(loadingLabel: string, doneLabel: string) {
+		setActionLabel(loadingLabel)
+		setActionDoneLabel(doneLabel)
+		setActionState('loading')
+	}
+
+	function completeAction() {
+		setActionState('done')
+		setTimeout(() => setActionState('idle'), 2000)
+	}
+
 	async function handleInstall() {
 		if (os === 'ios') {
 			setShowIosGuide(true)
@@ -77,39 +93,44 @@ export default function ProfileModal({ token, memberName, registeredAt, onClose 
 	}
 
 	async function handlePush() {
+		showAction('알림 허용 중...', '알림이 설정됐어요!')
 		const success = await subscribe()
 		if (success) {
 			localStorage.setItem(SUBSCRIBED_KEY, 'true')
+			completeAction()
+		} else {
+			setActionState('idle')
 		}
 	}
 
 	async function handleUnsubscribe() {
+		showAction('알림 해제 중...', '알림이 해제됐어요')
 		await unsubscribe()
 		localStorage.removeItem(SUBSCRIBED_KEY)
+		completeAction()
 	}
 
 	async function handleReset() {
-		// 1. localStorage 초기화
+		showAction('앱 초기화 중...', '초기화 완료! 잠시 후 재시작돼요')
+
 		localStorage.removeItem(SUBSCRIBED_KEY)
 
-		// 2. DB 구독 정보 삭제 (member_id 기준 전체)
 		await fetch('/api/push/subscribe', {
 			method: 'DELETE',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ token, deleteAll: true }),
 		}).catch(() => { })
 
-		// 3. 캐시 삭제 — SW는 건드리지 않음
 		if ('caches' in window) {
 			const keys = await caches.keys()
 			await Promise.all(keys.map(key => caches.delete(key)))
 		}
 
 		setResetDone(true)
+		completeAction()
 		setTimeout(() => window.location.reload(), 2000)
 	}
 
-	// isSubscribed 기준으로만 판단 — permission만으로는 실제 구독 여부 알 수 없음
 	const pushEnabled = isSubscribed
 
 	const pushLabel = (() => {
@@ -127,6 +148,42 @@ export default function ProfileModal({ token, memberName, registeredAt, onClose 
 				style={{ opacity: visible ? 1 : 0 }}
 				onClick={handleClose}
 			/>
+
+			{/* 로딩 / 완료 오버레이 */}
+			{actionState !== 'idle' && (
+				<div className="fixed inset-0 z-[200] flex items-center justify-center">
+					<div className="bg-white rounded-[20px] shadow-xl px-8 py-7 flex flex-col items-center gap-4 w-[240px]">
+						{actionState === 'loading' ? (
+							<>
+								<p className="text-sm font-semibold text-gray-800 text-center">{actionLabel}</p>
+								{/* 프로그레스바 */}
+								<div className="w-full h-1.5 bg-neutral-100 rounded-full overflow-hidden">
+									<div
+										className="h-full bg-primary rounded-full"
+										style={{
+											animation: 'ml-progress 1.4s ease-in-out infinite',
+										}}
+									/>
+								</div>
+								<style>{`
+									@keyframes ml-progress {
+										0%   { width: 0%;   margin-left: 0%; }
+										50%  { width: 60%;  margin-left: 20%; }
+										100% { width: 0%;   margin-left: 100%; }
+									}
+								`}</style>
+							</>
+						) : (
+							<>
+								<div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+									<Check size={24} className="text-primary" />
+								</div>
+								<p className="text-sm font-semibold text-gray-800 text-center">{actionDoneLabel}</p>
+							</>
+						)}
+					</div>
+				</div>
+			)}
 
 			{/* 모달 — 아래에서 슬라이드업 */}
 			<div className="fixed inset-x-0 bottom-0 z-100 flex h-[80vh] justify-center">
@@ -230,7 +287,7 @@ export default function ProfileModal({ token, memberName, registeredAt, onClose 
 								<button
 									type="button"
 									onClick={!pushEnabled && isSupported && permission !== 'denied' ? handlePush : undefined}
-									disabled={isLoading || !isSupported || permission === 'denied' || pushEnabled}
+									disabled={actionState !== 'idle' || !isSupported || permission === 'denied' || pushEnabled}
 									className="w-full px-4 py-4 flex items-center gap-3 text-left disabled:opacity-60"
 								>
 									<div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${pushEnabled ? 'bg-primary/10' : 'bg-neutral-100'}`}>
@@ -254,11 +311,10 @@ export default function ProfileModal({ token, memberName, registeredAt, onClose 
 										<button
 											type="button"
 											onClick={handleUnsubscribe}
-											disabled={isLoading}
-											className="w-full py-2.5 rounded-xl border border-neutral-200 text-xs text-neutral-400 font-medium transition-colors hover:bg-neutral-100"
-											style={{ opacity: isLoading ? 0.5 : 1 }}
+											disabled={actionState !== 'idle'}
+											className="w-full py-2.5 rounded-xl border border-neutral-200 text-xs text-neutral-400 font-medium transition-colors hover:bg-neutral-100 disabled:opacity-50"
 										>
-											{isLoading ? '처리 중...' : '알림 해제하기'}
+											알림 해제하기
 										</button>
 									</div>
 								)}
@@ -280,7 +336,7 @@ export default function ProfileModal({ token, memberName, registeredAt, onClose 
 							<button
 								type="button"
 								onClick={handleReset}
-								disabled={resetDone}
+								disabled={resetDone || actionState !== 'idle'}
 								className="w-full px-4 py-4 flex items-center gap-3 text-left disabled:opacity-50"
 							>
 								<div className="w-10 h-10 rounded-xl bg-neutral-100 flex items-center justify-center shrink-0">
@@ -291,9 +347,7 @@ export default function ProfileModal({ token, memberName, registeredAt, onClose 
 								</div>
 								<div className="flex flex-col gap-0.5 flex-1">
 									<p className="text-sm font-semibold text-gray-900">앱 초기화</p>
-									<p className="text-xs text-neutral-500">
-										{resetDone ? '초기화 완료! 잠시 후 재시작돼요' : '앱이 이상하게 동작할 때 초기화해보세요'}
-									</p>
+									<p className="text-xs text-neutral-500">앱이 이상하게 동작할 때 초기화해보세요</p>
 								</div>
 								{!resetDone && <ChevronRight size={16} className="text-neutral-300" />}
 							</button>
