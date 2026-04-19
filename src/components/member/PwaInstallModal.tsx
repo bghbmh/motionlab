@@ -165,7 +165,7 @@ export default function PwaInstallModal() {
 									onClick={handleInstall}
 									className="flex-1 bg-[#0bb489] text-white text-[14px] font-medium rounded-[8px] px-[16px] py-[12px] leading-5"
 								>
-									{os === 'ios' ? '홈 화면에 추가' : '앱 설치'}
+									{os === 'ios' ? '홈 화면에 추가하는 방법' : '앱 설치'}
 								</button>
 							</div>
 						</div>

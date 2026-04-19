@@ -10,6 +10,7 @@
 
 import { useState, useEffect } from 'react'
 import { usePushNotification } from '@/hooks/usePushNotification'
+import { Bell, Dot } from 'lucide-react'
 
 const SUBSCRIBED_KEY = 'push_subscribed'
 
@@ -34,8 +35,12 @@ export default function PushPermissionModal({ token }: Props) {
 	useEffect(() => {
 		if (!isStandalone()) return
 		if (!isSupported) return
-		if (permission === 'granted') return
-		if (localStorage.getItem(SUBSCRIBED_KEY) === 'true') return
+
+		// 이미 허용됐으면 모달 닫기
+		if (permission === 'granted' || localStorage.getItem(SUBSCRIBED_KEY) === 'true') {
+			setVisible(false)
+			return
+		}
 
 		setVisible(true)
 	}, [permission, isSubscribed, isSupported])
@@ -85,10 +90,8 @@ export default function PushPermissionModal({ token }: Props) {
 								'새 알림장 도착 시 바로 알림',
 								'운동 요일마다 운동 권유 알림',
 							].map((text) => (
-								<div key={text} className="flex items-center gap-[6px]">
-									<svg width="2" height="2" viewBox="0 0 2 2" fill="none">
-										<circle cx="1" cy="1" r="1" fill="#82827C" />
-									</svg>
+								<div key={text} className="flex items-center  ">
+									<Dot size={12} color="#82827C" />
 									<span className="text-[12px] text-[#525252] leading-4">{text}</span>
 								</div>
 							))}

@@ -85,8 +85,10 @@ export default function ProfileModal({ token, memberName, registeredAt, onClose 
 	}
 
 	async function handlePush() {
-		await subscribe()
-		localStorage.setItem(SUBSCRIBED_KEY, 'true')
+		const success = await subscribe()
+		if (success) {
+			localStorage.setItem(SUBSCRIBED_KEY, 'true')
+		}
 	}
 
 	const pushLabel = (() => {
