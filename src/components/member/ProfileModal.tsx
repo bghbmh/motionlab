@@ -37,7 +37,7 @@ export default function ProfileModal({ token, memberName, registeredAt, onClose 
 	const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
 	const [showIosGuide, setShowIosGuide] = useState(false)
 
-	const { permission, isSubscribed, isLoading, isSupported, subscribe } =
+	const { permission, isSubscribed, isLoading, isSupported, subscribe, unsubscribe, debugMessage } =
 		usePushNotification({ token })
 
 	// 7일 이내 여부
@@ -91,14 +91,19 @@ export default function ProfileModal({ token, memberName, registeredAt, onClose 
 		}
 	}
 
+	async function handleUnsubscribe() {
+		await unsubscribe()
+		localStorage.removeItem(SUBSCRIBED_KEY)
+	}
+
+	const pushEnabled = permission === 'granted' || isSubscribed
+
 	const pushLabel = (() => {
 		if (!isSupported) return '이 기기에서는 지원하지 않아요'
-		if (permission === 'granted' || isSubscribed) return '알림 허용됨'
+		if (pushEnabled) return '알림 허용됨'
 		if (permission === 'denied') return '브라우저 설정에서 허용해주세요'
 		return '알림 허용하기'
 	})()
-
-	const pushEnabled = permission === 'granted' || isSubscribed
 
 	return (
 		<>
@@ -110,9 +115,7 @@ export default function ProfileModal({ token, memberName, registeredAt, onClose 
 			/>
 
 			{/* 모달 — 아래에서 슬라이드업 */}
-			<div
-				className="fixed inset-x-0 bottom-0 z-100 flex h-[80vh] justify-center"
-			>
+			<div className="fixed inset-x-0 bottom-0 z-100 flex h-[80vh] justify-center">
 				<div
 					className="w-full bg-white rounded-t-[28px] shadow-2xl overflow-hidden"
 					style={{
@@ -210,6 +213,8 @@ export default function ProfileModal({ token, memberName, registeredAt, onClose 
 								<div className="px-4 py-3 border-b border-neutral-100">
 									<p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide">알림</p>
 								</div>
+
+								{/* 허용하기 / 허용됨 행 */}
 								<button
 									type="button"
 									onClick={!pushEnabled && isSupported && permission !== 'denied' ? handlePush : undefined}
@@ -230,6 +235,28 @@ export default function ProfileModal({ token, memberName, registeredAt, onClose 
 										<ChevronRight size={16} className="text-neutral-300" />
 									)}
 								</button>
+
+								{/* 구독 해제 버튼 — 허용됐을 때만 표시 */}
+								{pushEnabled && isSupported && (
+									<div className="px-4 pb-4">
+										<button
+											type="button"
+											onClick={handleUnsubscribe}
+											disabled={isLoading}
+											className="w-full py-2.5 rounded-xl border border-neutral-200 text-xs text-neutral-400 font-medium transition-colors hover:bg-neutral-100"
+											style={{ opacity: isLoading ? 0.5 : 1 }}
+										>
+											{isLoading ? '처리 중...' : '알림 해제하기'}
+										</button>
+									</div>
+								)}
+
+								{/* 임시 디버그 메시지 — 테스트 후 삭제 */}
+								{debugMessage && (
+									<p className="px-4 pb-4 text-[11px] text-center break-all text-neutral-400">
+										{debugMessage}
+									</p>
+								)}
 							</div>
 						)}
 
