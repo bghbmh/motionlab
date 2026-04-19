@@ -48,6 +48,20 @@ export function usePushNotification({ token }: UsePushNotificationOptions) {
 		}
 	}, [])
 
+	// SW 준비 확인 — ready 실패 시 직접 등록 시도
+	const getSWRegistration = useCallback(async () => {
+		const reg = await Promise.race([
+			navigator.serviceWorker.ready,
+			new Promise<never>((_, reject) =>
+				setTimeout(() => reject(new Error('SW 타임아웃')), 3000)
+			)
+		]).catch(async () => {
+			debug('SW 직접 등록 시도...')
+			return await registerSW()
+		})
+		return reg ?? null
+	}, [registerSW])
+
 	// 푸시 구독 요청 — 성공 시 true, 실패 시 false 반환
 	const subscribe = useCallback(async (): Promise<boolean> => {
 		if (!('PushManager' in window)) {
@@ -70,16 +84,7 @@ export function usePushNotification({ token }: UsePushNotificationOptions) {
 
 			// 2. SW 준비 확인
 			debug('2. SW 확인 중...')
-			let activeReg = await Promise.race([
-				navigator.serviceWorker.ready,
-				new Promise<never>((_, reject) =>
-					setTimeout(() => reject(new Error('SW 타임아웃')), 3000)
-				)
-			]).catch(async () => {
-				// ready 실패 시 직접 등록 시도
-				debug('2. SW 직접 등록 시도...')
-				return await registerSW()
-			})
+			const activeReg = await getSWRegistration()
 
 			if (!activeReg) {
 				debug('2. SW 준비 실패')
@@ -134,13 +139,15 @@ export function usePushNotification({ token }: UsePushNotificationOptions) {
 		} finally {
 			setIsLoading(false)
 		}
-	}, [token, registerSW])
+	}, [token, getSWRegistration])
 
 	// 푸시 구독 해제
 	const unsubscribe = useCallback(async () => {
 		setIsLoading(true)
 		try {
-			const reg = await navigator.serviceWorker.ready
+			const reg = await getSWRegistration()
+			if (!reg) throw new Error('SW 준비 실패')
+
 			const sub = await reg.pushManager.getSubscription()
 
 			if (sub) {
@@ -158,7 +165,7 @@ export function usePushNotification({ token }: UsePushNotificationOptions) {
 		} finally {
 			setIsLoading(false)
 		}
-	}, [token])
+	}, [token, getSWRegistration])
 
 	const isSupported =
 		typeof window !== 'undefined' &&
