@@ -115,6 +115,10 @@ export default function ProfileModal({ token, memberName, registeredAt, onClose 
 
 		localStorage.removeItem(SUBSCRIBED_KEY)
 
+		// 브라우저 푸시 구독 해제
+		await unsubscribe()
+
+		// DB 전체 삭제
 		await fetch('/api/push/subscribe', {
 			method: 'DELETE',
 			headers: { 'Content-Type': 'application/json' },
