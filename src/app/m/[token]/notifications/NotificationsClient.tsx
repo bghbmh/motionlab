@@ -49,34 +49,21 @@ export default function NotificationsClient({
 			.filter(n => !n.is_read)
 			.map(n => n.id)
 
-
 		if (unreadIds.length === 0) return
 
-
-		console.log('[읽음처리 1] unreadIds:', unreadIds, notifications)
-
-		const supabase = createClient()
-		// supabase
-		// 	.from('notifications')
-		// 	.update({ is_read: true })
-		// 	.in('id', unreadIds)
-		// 	.then(() => {
-		// 		setNotifications(prev =>
-		// 			prev.map(n => ({ ...n, is_read: true }))
-		// 		)
-		// 		router.refresh()
-		// 	})
 		fetch('/api/notifications/read-all', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ memberId }),
 		}).then(async (res) => {
 			const data = await res.json()
-			console.log('[읽음처리] API 응답:', res.status, data)  // ← 추가
-			setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
-			router.refresh()
+			console.log('[읽음처리] API 응답:', res.status, data)
+			if (res.ok) {
+				setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
+				// 딜레이 줘서 DB 반영 후 refresh
+				setTimeout(() => router.refresh(), 300)
+			}
 		})
-
 	}, [])
 
 	console.log('[읽음처리 2 notifications:', notifications)
