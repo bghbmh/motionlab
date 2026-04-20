@@ -890,13 +890,15 @@ export default function MemberRecordSection({
 
 				{/* ── 기본 정보 ──────────────────────────────────────── */}
 				<Section icon={<User size={16} />} title="기본 정보" onEdit={() => setEditMemberOpen(true)}>
-					<div className={gridSt}>
+					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
 						<InfoRow label="이름" value={member.name} />
 						<InfoRow label="연락처" value={member.phone} />
 						<InfoRow label="생년월일" value={formatDate(member.birth_date)} />
 						<InfoRow label="등록일" value={`${formatDate(member.registered_at)} (${memberDays}일 경과)`} />
 						<InfoRow label="주 수업 횟수" value={`주 ${member.sessions_per_week}회`} />
-						<InfoRow label="특이사항" value={member.memo} />
+						<div className='col-span-full'>
+							<InfoRow label="특이사항" value={member.memo} />
+						</div>
 					</div>
 				</Section>
 
