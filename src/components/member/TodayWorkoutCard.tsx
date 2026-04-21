@@ -10,7 +10,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import type { WorkoutType } from '@/types/database'
+import type { WorkoutType, Intensity } from '@/types/database'
+import { WORKOUT_METS_BY_INTENSITY } from '@/types/database'
 import EmptyState from './ui/EmptyState'
 import WorkoutRecordItem, { type WorkoutRecord } from './WorkoutRecordItem'
 import WorkoutRecordModal from './WorkoutRecordModal'
@@ -42,6 +43,9 @@ export default function TodayWorkoutCard({
 		condition_memo?: string
 	}) {
 		const supabase = createClient()
+		const metsScore = WORKOUT_METS_BY_INTENSITY[data.workout_type]?.[data.intensity as Intensity] ?? 0  // ← 추가
+
+
 		const { data: inserted, error } = await supabase
 			.from('workout_logs')
 			.insert({
@@ -49,7 +53,7 @@ export default function TodayWorkoutCard({
 				logged_at: today,
 				workout_type: data.workout_type,
 				duration_min: data.duration_min,
-				mets_score: 0,            // TODO: WORKOUT_TYPE_METS로 계산
+				mets_score: metsScore,            // TODO: WORKOUT_TYPE_METS로 계산
 				condition_memo: data.condition_memo || null,
 				source: 'manual',
 				note_workout_id: null,
@@ -85,11 +89,14 @@ export default function TodayWorkoutCard({
 	}) {
 		if (!editTarget) return
 		const supabase = createClient()
+		const metsScore = WORKOUT_METS_BY_INTENSITY[data.workout_type]?.[data.intensity as Intensity] ?? 0  // ← 추가
+
 		const { error } = await supabase
 			.from('workout_logs')
 			.update({
 				workout_type: data.workout_type,
 				duration_min: data.duration_min,
+				mets_score: metsScore,
 				condition_memo: data.condition_memo || null,
 			})
 			.eq('id', editTarget.id)
@@ -101,7 +108,7 @@ export default function TodayWorkoutCard({
 
 		setRecords(prev => prev.map(r =>
 			r.id === editTarget.id
-				? { ...r, ...data }
+				? { ...r, ...data, mets_score: metsScore }
 				: r
 		))
 		setEditTarget(null)
