@@ -69,7 +69,7 @@ export default function WorkoutRecordItem({
 					<WorkoutOptions
 						intensity={record.intensity}
 						prescribedMin={record.duration_min}
-						mets={record.mets_score}
+						mets={record.mets_score * record.duration_min}
 					/>
 				</div>
 			</div>

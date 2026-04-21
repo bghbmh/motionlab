@@ -19,6 +19,10 @@ import DailyActivityDurationModal from '@/components/member/DailyActivityDuratio
 import BottomSheet from '@/components/member/ui/BottomSheet'
 import ModalHeader from '@/components/member/ui/ModalHeader'
 
+import { ALL_DAILY_ACTIVITY_OPTIONS } from '@/data/dailyActivityOptions'
+
+
+
 interface Props {
 	member: { id: string }
 	initialLogs: WorkoutLog[]
@@ -46,6 +50,9 @@ export default function RecordListManager({ member, initialLogs, today }: Props)
 	const [dailyStep, setDailyStep] = useState<'select' | 'duration'>('select')
 	const [selectedDailyOpt, setSelectedDailyOpt] = useState<DailyActivityOption | null>(null)
 	const [dailyLoggedAt, setDailyLoggedAt] = useState(today)
+
+	const [editDailyTarget, setEditDailyTarget] = useState<WorkoutLog | null>(null)
+
 
 	const fetchLogs = useCallback(async () => {
 		const supabase = createClient()
@@ -83,6 +90,7 @@ export default function RecordListManager({ member, initialLogs, today }: Props)
 		setSelectedDailyOpt(null)
 	}
 
+
 	// ── 운동 추가/수정 저장 ────────────────────────────────────
 	async function handleSave(data: {
 		workout_type: WorkoutType
@@ -93,6 +101,9 @@ export default function RecordListManager({ member, initialLogs, today }: Props)
 	}) {
 		const supabase = createClient()
 		const metsScore = WORKOUT_METS_BY_INTENSITY[data.workout_type][data.intensity as Intensity]
+
+		// 상단 상태에 추가
+
 
 		if (modalMode === 'add') {
 			await supabase.from('workout_logs').insert({
@@ -156,6 +167,25 @@ export default function RecordListManager({ member, initialLogs, today }: Props)
 		router.refresh()
 	}
 
+	const editDailyOpt = editDailyTarget
+		? ALL_DAILY_ACTIVITY_OPTIONS.find(o => o.activity_type === editDailyTarget.activity_type)
+		: null
+
+	async function handleDailyEdit(opt: DailyActivityOption, durationMin: number) {
+		if (!editDailyTarget) return
+		const supabase = createClient()
+		await supabase
+			.from('workout_logs')
+			.update({
+				duration_min: durationMin,
+				mets_score: opt.mets_value,
+			})
+			.eq('id', editDailyTarget.id)
+		setEditDailyTarget(null)
+		await fetchLogs()
+		router.refresh()
+	}
+
 	async function handleDeleted() {
 		setDeleteTarget(null)
 		await fetchLogs()
@@ -173,6 +203,8 @@ export default function RecordListManager({ member, initialLogs, today }: Props)
 
 	const months = Object.keys(grouped).sort((a, b) => b.localeCompare(a))
 	const totalDays = new Set(logs.map(l => l.logged_at)).size
+
+
 
 	return (
 		<>
@@ -213,9 +245,13 @@ export default function RecordListManager({ member, initialLogs, today }: Props)
 											logs={dayLogs}
 											memberId={member.id}
 											onEdit={(log) => {
-												setEditTarget(log)
-												setModalMode('edit')
-												setModalOpen(true)
+												if (log.source === 'daily') {
+													setEditDailyTarget(log)  // ← 일상활동은 별도 처리
+												} else {
+													setEditTarget(log)
+													setModalMode('edit')
+													setModalOpen(true)
+												}
 											}}
 											onDelete={setDeleteTarget}
 										/>
@@ -340,6 +376,22 @@ export default function RecordListManager({ member, initialLogs, today }: Props)
 						setModalOpen(false)
 						setEditTarget(null)
 					}}
+				/>
+			)}
+
+			{/* 일상활동 수정 모달 */}
+			{editDailyTarget && editDailyOpt && (
+				<DailyActivityDurationModal
+					option={{
+						activity_type: editDailyTarget.activity_type ?? '',
+						activity_label: editDailyOpt.activity_label,
+						mets_value: editDailyTarget.mets_score,
+						paper_code: editDailyOpt.paper_code ?? '',
+						category: editDailyOpt.category ?? '',
+					}}
+					onConfirm={handleDailyEdit}
+					onBack={() => setEditDailyTarget(null)}
+					onClose={() => setEditDailyTarget(null)}
 				/>
 			)}
 

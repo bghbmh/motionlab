@@ -192,10 +192,14 @@ export default function NoteSlideModal({ memberId, memberName, editTarget, onClo
 	})
 
 	// 총 METs
-	const totalMets = Object.values(dayWorkouts)
-		.flat()
-		.filter(Boolean)
-		.reduce<number>((s, w) => s + (calcMets(w) ?? 0), 0)
+	const totalMets = Object.entries(dayWorkouts)
+		.reduce<number>((s, [day, items]) => {
+			const daySum = (items ?? []).reduce((ds, w) => ds + (calcMets(w) ?? 0), 0)
+			const multiplier = day === '매일' ? dateRange.length : 1  // ← 매일이면 날짜 수 곱하기
+			return s + daySum * multiplier
+		}, 0)
+
+
 	const totalMetsDisplay = totalMets > 0 ? Math.round(totalMets * 100) / 100 : null
 
 	const defaultVideoQuery = tags.length > 0

@@ -2,6 +2,7 @@
 
 import type { Intensity, WorkoutType, Note, NoteWorkout, NoteTag, NoteVideo } from '@/types/database'
 import { WORKOUT_TYPE_METS } from '@/types/database'
+import { WORKOUT_METS_BY_INTENSITY } from '@/types/database'  // ← import 추가
 
 export const WEEKDAYS = ['월', '화', '수', '목', '금', '토', '일']
 export const ALL_DAYS = ['전체', ...WEEKDAYS]
@@ -37,7 +38,8 @@ export function cloneItems(items: WorkoutItem[]): WorkoutItem[] {
 
 export function calcMets(item: WorkoutItem | null): number | null {
 	if (!item || !item.workout_type || !item.duration_min || Number(item.duration_min) <= 0) return null
-	return Math.round(WORKOUT_TYPE_METS[item.workout_type] * Number(item.duration_min) * 100) / 100
+	const mets = WORKOUT_METS_BY_INTENSITY[item.workout_type]?.[item.intensity] ?? WORKOUT_TYPE_METS[item.workout_type]
+	return mets * Number(item.duration_min)
 }
 
 // ─── NoteWithTags ─────────────────────────────────────────────────
