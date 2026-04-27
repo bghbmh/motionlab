@@ -53,7 +53,8 @@ export default function WorkoutLogItem({ log, memberId, deleting = false, onEdit
 	const isAutoDailyRecord = log.source === 'daily' && !log.is_manual_daily
 	const isManualDailyRecord = log.source === 'daily' && !!log.is_manual_daily
 
-	const canEdit = log.source === 'manual' || isManualDailyRecord
+	// 수정 후
+	const canEdit = log.source === 'manual' || log.source === 'routine' || isManualDailyRecord
 
 	// ── 일상활동 포함/건너뜀 상태 (자동기록만) ────────────────
 	const [isSkipped, setIsSkipped] = useState(log.is_skipped ?? false)
