@@ -54,9 +54,10 @@ export default async function WeeklyPage({ params }: PageProps) {
 	const sentNotes = await getSentNotes(id)
 	const allWeeksSet = new Set<string>()
 
+	// 수정 후 — 알림장 사이 구간도 today까지 채움
 	for (let i = 0; i < sentNotes.length; i++) {
 		const note = sentNotes[i]
-		const nextNote = sentNotes[i + 1] ?? null  // 오름차순이라 i+1이 다음 알림장
+		const nextNote = sentNotes[i + 1] ?? null
 
 		if (!note.start_at) continue
 
@@ -68,8 +69,9 @@ export default async function WeeklyPage({ params }: PageProps) {
 			nextDate.setDate(nextDate.getDate() + 7)
 			const nextCursor = toLocalISO(nextDate)
 
+			// 다음 알림장 시작 전까지 계속 생성 (사이 구간도 포함)
 			if (nextNote?.start_at && nextCursor >= nextNote.start_at) break
-			if (!nextNote && note.end_at && nextCursor > note.end_at) break  // 다음 알림장 없을 때만
+			// 마지막 알림장이면 오늘까지
 			if (!nextNote && nextCursor > today) break
 
 			cursor = nextCursor
